@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Builds
+client/dist/
+client/dist-ssr/
+server/dist/
+
+# Env & secrets (keep .env.example, ignore real envs)
+.env
+.env.local
+.env.*.local
+client/.env
+server/.env
+
+# Uploads & generated reports (local only)
+server/uploads/
+uploads/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+
+# Misc
+*.local
+coverage/
+.nyc_output/
