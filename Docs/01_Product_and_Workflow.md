@@ -2,7 +2,7 @@
 > Read this first. Explains WHAT SentinelAI is, WHY it exists, WHO uses it, and HOW the end-to-end workflow works.
 
 ## 1. Project Identity (for AI agent)
-- **Name:** SentinelAI — Intelligent Security Assessment & Vulnerability Management Platform
+- **Name:** Saksham-AI — Intelligent Security Assessment & Vulnerability Management Platform
 - **Event:** SIH 2026, Problem Statement 26163, Organization: NTRO, Category: Software, Theme: Smart Automation
 - **Primary target:** World Monitor application (authorized test/demo environment)
 - **Architecture rule:** Build as a reusable platform — World Monitor is the first target, but any authorized web app must be assessable without code rewrite.
