@@ -52,7 +52,7 @@ export function Dashboard() {
           {(data.activity || []).length === 0 && <EmptyState title="No activity" hint="Project events will appear here." />}
           <ul className="flex flex-col gap-2 text-sm">
             {(data.activity || []).map((a) => (
-              <li key={a._id} className="flex justify-between gap-2 border-b border-slate-100 pb-2 dark:border-slate-800">
+              <li key={a._id} className="flex justify-between gap-2 rounded-lg border-b border-slate-100 px-2 py-2 transition hover:bg-slate-50 hover:shadow-sm dark:border-slate-800 dark:hover:bg-slate-800/50">
                 <span>{a.action} <span className="text-slate-500">{a.detail}</span></span>
                 <span className="text-xs text-slate-400">{new Date(a.createdAt).toLocaleString()}</span>
               </li>
@@ -69,7 +69,7 @@ export function Dashboard() {
         {(data.recentFindings || []).length === 0 && <EmptyState title="No findings" hint="Run an assessment on an authorized target." />}
         <ul className="flex flex-col gap-2">
           {(data.recentFindings || []).map((f) => (
-            <li key={f._id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 p-3 dark:border-slate-800">
+            <li key={f._id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 p-3 transition duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:hover:border-slate-600">
               <Link to={`/findings/${f._id}`} className="font-medium hover:underline">{f.findingId} · {f.title}</Link>
               <span className="flex gap-2"><SeverityBadge severity={f.severity} /><StatusBadge status={f.status} /></span>
             </li>

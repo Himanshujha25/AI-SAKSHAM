@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import { cn } from '../../lib/utils';
 
 const SEVERITY_STYLES = {
@@ -24,42 +25,47 @@ const STATUS_STYLES = {
 };
 
 export function SeverityBadge({ severity }) {
-  return <span className={cn('inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold', SEVERITY_STYLES[severity] || SEVERITY_STYLES.Informational)}>{severity}</span>;
+  return <span className={cn('inline-flex shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold transition hover:scale-105', SEVERITY_STYLES[severity] || SEVERITY_STYLES.Informational)}>{severity}</span>;
 }
 
 export function StatusBadge({ status }) {
-  return <span className={cn('inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold', STATUS_STYLES[status] || 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300')}>{status}</span>;
+  return <span className={cn('inline-flex shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold transition hover:scale-105', STATUS_STYLES[status] || 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300')}>{status}</span>;
 }
 
 export function PageHeader({ title, subtitle, actions }) {
   return (
-    <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="mb-6 flex flex-wrap items-start justify-between gap-4"
+    >
+      <div className="min-w-0">
+        <h1 className="truncate text-2xl font-semibold tracking-tight">{title}</h1>
         {subtitle && <p className="mt-1 text-sm text-slate-500">{subtitle}</p>}
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
-    </div>
+      {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+    </motion.div>
   );
 }
 
 export function StatCard({ label, value, hint }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-slate-300 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-600">
       <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-1 text-2xl font-semibold">{value}</p>
+      <p className="mt-1 text-2xl font-semibold tracking-tight">{value}</p>
       {hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
     </div>
   );
 }
 
 export function LoadingState({ label = 'Loading…' }) {
-  return <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500 dark:border-slate-700">{label}</div>;
+  return <div className="animate-pulse rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500 dark:border-slate-700">{label}</div>;
 }
 
 export function EmptyState({ title, hint }) {
   return (
-    <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center dark:border-slate-700">
+    <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center transition hover:border-slate-400 hover:shadow-sm dark:border-slate-700 dark:hover:border-slate-600">
       <p className="font-medium">{title}</p>
       {hint && <p className="mt-1 text-sm text-slate-500">{hint}</p>}
     </div>
@@ -70,7 +76,7 @@ export function ErrorState({ message, onRetry }) {
   return (
     <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
       <p>{message}</p>
-      {onRetry && <button onClick={onRetry} className="mt-2 underline">Retry</button>}
+      {onRetry && <button onClick={onRetry} className="mt-2 font-medium underline underline-offset-4 transition hover:opacity-80">Retry</button>}
     </div>
   );
 }

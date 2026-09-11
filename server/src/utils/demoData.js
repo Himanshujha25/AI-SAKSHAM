@@ -1,4 +1,4 @@
-// Deterministic demo assessment data so SIH demo is reproducible.
+// Deterministic demo assessment data so demos are reproducible.
 // Safe: no real scanning — generates plausible assets/findings for the authorized demo target.
 const { severityFromScore } = require('./security');
 

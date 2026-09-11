@@ -8,6 +8,7 @@ import { Projects, ProjectDetail } from './pages/projects/projects';
 import { Assessments, AssessmentDetail } from './pages/assessments/assessments';
 import { Findings, FindingDetail } from './pages/findings/findings';
 import { Reports, Settings } from './pages/reports/reports';
+import { Landing } from './pages/landing/Landing';
 
 const qc = new QueryClient();
 
@@ -38,7 +39,7 @@ export default function App() {
               <Route path="/settings" element={<Settings />} />
               <Route path="/targets" element={<Navigate to="/projects" replace />} />
             </Route>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={<Landing />} />
             <Route path="*" element={<p className="p-8">Not found — <a className="underline" href="/dashboard">dashboard</a></p>} />
           </Routes>
         </BrowserRouter>

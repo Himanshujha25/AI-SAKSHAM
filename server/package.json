@@ -1,7 +1,7 @@
 {
   "name": "sentinelai-server",
   "version": "1.0.0",
-  "description": "SentinelAI backend — security assessment platform (SIH 2026 PS 26163)",
+  "description": "SentinelAI backend — security assessment platform",
   "main": "server.js",
   "type": "commonjs",
   "scripts": {

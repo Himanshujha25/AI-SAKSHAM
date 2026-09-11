@@ -40,7 +40,7 @@ export function Reports() {
       {(list.data?.reports || []).length === 0 && !list.isLoading && <EmptyState title="No reports" hint="Generate your first PDF above." />}
       <div className="flex flex-col gap-2">
         {(list.data?.reports || []).map((r) => (
-          <div key={r._id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+          <div key={r._id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-600">
             <span className="text-sm">{r.type} · {new Date(r.createdAt).toLocaleString()} · {r.status}</span>
             {r.fileUrl && <a className="text-sm underline" href={`${apiBase}${r.fileUrl}`} target="_blank" rel="noreferrer">Download PDF</a>}
           </div>

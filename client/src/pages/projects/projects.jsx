@@ -27,7 +27,7 @@ export function Projects() {
       <Card className="mb-4">
         <h2 className="mb-2 font-medium">New project</h2>
         <div className="flex flex-col gap-2 md:flex-row">
-          <Input placeholder="World Monitor Security Assessment" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          <Input placeholder="My Web App Security Assessment" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           <Input placeholder="Description (optional)" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
           <Button onClick={() => create.mutate()} disabled={!form.name || create.isPending}>Create</Button>
         </div>
@@ -36,7 +36,7 @@ export function Projects() {
       {(data.projects || []).length === 0 && <EmptyState title="No projects" hint="Create your first assessment workspace above." />}
       <div className="grid gap-3 md:grid-cols-2">
         {(data.projects || []).map((p) => (
-          <Link key={p._id} to={`/projects/${p._id}`} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow dark:border-slate-800 dark:bg-slate-900">
+          <Link key={p._id} to={`/projects/${p._id}`} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-slate-300 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-600">
             <p className="font-medium">{p.name}</p>
             <p className="mt-1 line-clamp-2 text-sm text-slate-500">{p.description || 'No description'}</p>
             <p className="mt-2 text-xs text-slate-400">{p.status} · {new Date(p.updatedAt).toLocaleString()}</p>
@@ -69,7 +69,7 @@ export function ProjectDetail() {
       <PageHeader title={data.project.name} subtitle={data.project.description} />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {['totalAssessments', 'critical', 'high', 'verified'].map((k) => (
-          <div key={k} className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+          <div key={k} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
             <p className="text-xs uppercase text-slate-500">{k}</p>
             <p className="text-2xl font-semibold">{data.overview?.[k] ?? 0}</p>
           </div>

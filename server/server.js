@@ -6,6 +6,21 @@ const { connectDB } = require('./src/config/db');
 
 async function main() {
   await connectDB();
+  // Crash recovery: jobs stuck in RUNNING from a previous process can never
+  // complete (in-process queue). Mark them FAILED so DB state stays truthful.
+  try {
+    const mongoose = require('mongoose');
+    if (mongoose.connection.readyState === 1) {
+      const Assessment = require('./src/models/Assessment');
+      const res = await Assessment.updateMany(
+        { status: { $in: ['RUNNING', 'QUEUED'] } },
+        { $set: { status: 'FAILED' } }
+      );
+      if (res.modifiedCount > 0) console.log(`[server] recovered ${res.modifiedCount} stale assessment(s) -> FAILED`);
+    }
+  } catch (e) {
+    console.warn('[server] recovery skipped:', e.message);
+  }
   const server = http.createServer(app);
   const io = new Server(server, { cors: { origin: env.clientUrl, methods: ['GET', 'POST', 'PATCH'] } });
   app.set('io', io);
