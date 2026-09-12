@@ -112,7 +112,7 @@ export function TopNavbar() {
           </button>
           <Avatar name={user?.name} onClick={() => navigate('/settings')} title={`${user?.name || 'Account'} · ${user?.role || ''} — open settings`} />
           <button
-            onClick={async () => { await logout(); navigate('/auth/login'); }}
+            onClick={async () => { await logout(); navigate('/', { replace: true }); }}
             className="hidden items-center gap-1.5 rounded-lg border border-white/[0.12] bg-gradient-to-br from-white/[0.08] to-white/[0.03] px-3 py-2 text-sm font-medium backdrop-blur transition duration-200 hover:-translate-y-0.5 hover:border-white/[0.2] hover:shadow-[0_0_20px_-6px_rgba(34,211,238,0.3)] sm:flex text-slate-300 hover:text-white"
           >
             <LogOut size={15} /> Logout
@@ -147,7 +147,7 @@ export function TopNavbar() {
                 <SettingsIcon size={15} /> Settings
               </NavLink>
               <button
-                onClick={async () => { setOpen(false); await logout(); navigate('/auth/login'); }}
+                onClick={async () => { setOpen(false); await logout(); navigate('/', { replace: true }); }}
                 className="flex items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/[0.15] sm:hidden"
               >
                 <LogOut size={15} /> Logout

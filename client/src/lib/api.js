@@ -16,7 +16,12 @@ api.interceptors.response.use(
   (err) => {
     if (err.response?.status === 401) {
       localStorage.removeItem('sentinelai_token');
-      if (!window.location.pathname.startsWith('/auth')) window.location.href = '/auth/login';
+      // Only redirect if we're not on a public page (landing, auth pages, etc)
+      const currentPath = window.location.pathname;
+      const isPublicPage = currentPath === '/' || currentPath.startsWith('/auth');
+      if (!isPublicPage && !currentPath.startsWith('/auth')) {
+        window.location.href = '/auth/login';
+      }
     }
     return Promise.reject(err);
   }

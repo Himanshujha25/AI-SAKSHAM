@@ -22,9 +22,10 @@ function Protected() {
 export default function App() {
   return (
     <QueryClientProvider client={qc}>
-      <AuthProvider>
-        <BrowserRouter>
+      <BrowserRouter>
+        <AuthProvider>
           <Routes>
+            <Route path="/" element={<Landing />} />
             <Route path="/auth/login" element={<Login />} />
             <Route path="/auth/register" element={<Register />} />
             <Route element={<Protected />}>
@@ -39,11 +40,10 @@ export default function App() {
               <Route path="/settings" element={<Settings />} />
               <Route path="/targets" element={<Navigate to="/projects" replace />} />
             </Route>
-            <Route path="/" element={<Landing />} />
             <Route path="*" element={<p className="p-8">Not found — <a className="underline" href="/dashboard">dashboard</a></p>} />
           </Routes>
-        </BrowserRouter>
-      </AuthProvider>
+        </AuthProvider>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 }
