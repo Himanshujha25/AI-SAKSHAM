@@ -25,7 +25,7 @@ function AuthThemeToggle() {
 
 function AuthNav({ mode }) {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200/60 bg-white/70 backdrop-blur-xl dark:border-slate-800/60 dark:bg-slate-950/70">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200/60 bg-white/70 backdrop-blur-xl dark:border-white/10 dark:bg-[#04060d]/70">
       <div className="flex h-16 w-full items-center justify-between px-4 md:px-8">
         <Link to="/" className="group flex min-w-0 items-center gap-2">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-900 text-white transition group-hover:scale-105 dark:bg-white dark:text-slate-900">
@@ -64,10 +64,11 @@ function AuthNav({ mode }) {
 
 function AuthShell({ mode, title, subtitle, children, switchHint, switchTo, switchLabel }) {
   return (
-    <div className="min-h-screen w-full overflow-x-clip bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+    <div className="min-h-screen w-full overflow-x-clip bg-slate-50 text-slate-900 dark:bg-[#04060d] dark:text-slate-100">
       <AuthNav mode={mode} />
       <div className="relative">
-        <div className="pointer-events-none absolute left-1/2 top-0 h-72 w-full max-w-[36rem] -translate-x-1/2 rounded-full bg-slate-300/40 blur-3xl dark:bg-slate-700/30" />
+        <div className="bg-grid pointer-events-none absolute inset-x-0 top-0 h-80 opacity-80" />
+        <div className="pointer-events-none absolute left-1/2 top-0 h-72 w-full max-w-[36rem] -translate-x-1/2 rounded-full bg-blue-600/15 blur-3xl dark:bg-blue-600/20" />
         <main className="relative mx-auto flex w-full max-w-md flex-col items-center px-4 pb-16 pt-12 md:pt-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

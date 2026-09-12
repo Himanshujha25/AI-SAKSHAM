@@ -3,7 +3,9 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 
-if (localStorage.getItem('sentinelai_theme') === 'dark') {
+const storedTheme = localStorage.getItem('sentinelai_theme');
+if (storedTheme === 'dark' || !storedTheme) {
+  // Cyber command theme is dark-first
   document.documentElement.classList.add('dark');
 }
 

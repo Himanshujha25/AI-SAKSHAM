@@ -36,7 +36,7 @@ export function Projects() {
       {(data.projects || []).length === 0 && <EmptyState title="No projects" hint="Create your first assessment workspace above." />}
       <div className="grid gap-3 md:grid-cols-2">
         {(data.projects || []).map((p) => (
-          <Link key={p._id} to={`/projects/${p._id}`} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-slate-300 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-600">
+          <Link key={p._id} to={`/projects/${p._id}`} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-slate-300 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900 dark:hover:border-cyan-400/30 dark:hover:shadow-[0_0_28px_-10px_rgba(34,211,238,0.5)]">
             <p className="font-medium">{p.name}</p>
             <p className="mt-1 line-clamp-2 text-sm text-slate-500">{p.description || 'No description'}</p>
             <p className="mt-2 text-xs text-slate-400">{p.status} · {new Date(p.updatedAt).toLocaleString()}</p>
@@ -69,7 +69,7 @@ export function ProjectDetail() {
       <PageHeader title={data.project.name} subtitle={data.project.description} />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {['totalAssessments', 'critical', 'high', 'verified'].map((k) => (
-          <div key={k} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
+          <div key={k} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
             <p className="text-xs uppercase text-slate-500">{k}</p>
             <p className="text-2xl font-semibold">{data.overview?.[k] ?? 0}</p>
           </div>

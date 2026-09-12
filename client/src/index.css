@@ -2,6 +2,86 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Minimal app-level tweaks only — all layout uses Tailwind utilities. */
+/* ——— SentinelAI Cyber Command theme ———
+   All layout uses Tailwind utilities. Below is ONLY theme-level
+   keyframes / textures / scrollbar that Tailwind can't express. */
+
 html, body, #root { height: 100%; }
-body { @apply bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100; }
+
+body {
+  @apply bg-[#04060d] text-slate-100 antialiased;
+}
+
+::selection { background: rgba(34, 211, 238, 0.35); }
+
+/* Slim techy scrollbars */
+* { scrollbar-width: thin; scrollbar-color: rgba(100, 116, 139, 0.5) transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.45); border-radius: 8px; }
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* Blueprint grid texture for hero / command panels */
+@utility bg-grid {
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.09) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: radial-gradient(ellipse 90% 80% at 50% 20%, black 40%, transparent 100%);
+}
+
+/* Neon text glow */
+@utility text-glow-cyan {
+  text-shadow: 0 0 18px rgba(34, 211, 238, 0.65), 0 0 60px rgba(34, 211, 238, 0.25);
+}
+@utility text-glow-red {
+  text-shadow: 0 0 18px rgba(248, 113, 113, 0.65), 0 0 60px rgba(248, 113, 113, 0.25);
+}
+
+/* Live status dot */
+@keyframes ping-soft {
+  0% { transform: scale(1); opacity: 0.9; }
+  80%, 100% { transform: scale(2.4); opacity: 0; }
+}
+.live-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: currentColor;
+  animation: ping-soft 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Slow orbital rotation for the command orb */
+@keyframes spin-slower { to { transform: rotate(360deg); } }
+.animate-spin-slower { animation: spin-slower 28s linear infinite; }
+.animate-spin-slower-rev { animation: spin-slower 44s linear infinite reverse; }
+
+/* Gentle breathing glow for the command orb */
+@keyframes orb-breathe {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+.animate-orb-breathe { animation: orb-breathe 4.5s ease-in-out infinite; }
+
+/* Streaming data-flow dashes (screenshot-style flow lines) */
+@keyframes dash-flow {
+  to { stroke-dashoffset: -28; }
+}
+.animate-flow { animation: dash-flow 2.2s linear infinite; }
+.animate-flow-slow { animation: dash-flow 3.8s linear infinite; }
+
+/* Gentle float for hero cards */
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.animate-float-y { animation: float-y 5s ease-in-out infinite; }
+
+/* Scanline sweep across panels */
+@keyframes scan-y {
+  0% { top: -10%; opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { top: 110%; opacity: 0; }
+}
+.scanline { animation: scan-y 6s ease-in-out infinite; }
