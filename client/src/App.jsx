@@ -10,6 +10,8 @@ import { Findings, FindingDetail } from './pages/findings/findings';
 import { Reports, Settings } from './pages/reports/reports';
 import { Landing } from './pages/landing/Landing';
 
+import { ToastProvider } from './context/ToastContext';
+
 const qc = new QueryClient();
 
 function Protected() {
@@ -22,28 +24,30 @@ function Protected() {
 export default function App() {
   return (
     <QueryClientProvider client={qc}>
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/auth/login" element={<Login />} />
-            <Route path="/auth/register" element={<Register />} />
-            <Route element={<Protected />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/projects" element={<Projects />} />
-              <Route path="/projects/:id" element={<ProjectDetail />} />
-              <Route path="/assessments" element={<Assessments />} />
-              <Route path="/assessments/:id" element={<AssessmentDetail />} />
-              <Route path="/findings" element={<Findings />} />
-              <Route path="/findings/:id" element={<FindingDetail />} />
-              <Route path="/reports" element={<Reports />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/targets" element={<Navigate to="/projects" replace />} />
-            </Route>
-            <Route path="*" element={<p className="p-8">Not found — <a className="underline" href="/dashboard">dashboard</a></p>} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
+      <ToastProvider>
+        <BrowserRouter>
+          <AuthProvider>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/auth/login" element={<Login />} />
+              <Route path="/auth/register" element={<Register />} />
+              <Route element={<Protected />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/projects" element={<Projects />} />
+                <Route path="/projects/:id" element={<ProjectDetail />} />
+                <Route path="/assessments" element={<Assessments />} />
+                <Route path="/assessments/:id" element={<AssessmentDetail />} />
+                <Route path="/findings" element={<Findings />} />
+                <Route path="/findings/:id" element={<FindingDetail />} />
+                <Route path="/reports" element={<Reports />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/targets" element={<Navigate to="/projects" replace />} />
+              </Route>
+              <Route path="*" element={<p className="p-8">Not found — <a className="underline" href="/dashboard">dashboard</a></p>} />
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </ToastProvider>
     </QueryClientProvider>
   );
 }

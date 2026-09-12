@@ -1,6 +1,5 @@
-// Simulates the 8-stage assessment pipeline, then materializes demo assets/findings.
-// Replace stage bodies with real scanners later; keep the stage contract + socket events.
 const Assessment = require('../models/Assessment');
+const Target = require('../models/Target');
 const { STAGES } = require('../models/Assessment');
 const Asset = require('../models/Asset');
 const Finding = require('../models/Finding');
@@ -8,9 +7,10 @@ const Activity = require('../models/Activity');
 const { buildDemoAssets, buildDemoFindings } = require('../utils/demoData');
 const { securityScoreFromCounts, nextFindingId, logActivity } = require('../utils/security');
 const { analyzeFinding } = require('../services/aiService');
+const { scanTarget } = require('../services/scannerEngine');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const STAGE_DELAY_MS = 700;
+const STAGE_DELAY_MS = 600;
 
 function emit(io, assessment, extra = {}) {
   try {
@@ -37,38 +37,85 @@ async function runAssessment(assessmentId, io) {
   emit(io, assessment);
 
   try {
+    const target = await Target.findById(assessment.targetId);
+    let liveScanResult = { assets: [], findings: [] };
+
     for (const stage of STAGES) {
       const fresh = await Assessment.findById(assessmentId);
       if (!fresh || ['CANCELLED', 'FAILED'].includes(fresh.status)) return;
       fresh.progress.set(stage, 'running');
       await fresh.save();
       emit(io, fresh, { stage });
+
+      // Run live scanner during the ATTACK_SURFACE and SECURITY_AUDIT stages
+      if (stage === 'ATTACK_SURFACE' && target?.url) {
+        try {
+          liveScanResult = await scanTarget(target.url, target.customHeaders || '');
+        } catch (e) {
+          console.warn('[worker] live scan error:', e.message);
+        }
+      }
+
       await sleep(STAGE_DELAY_MS);
       fresh.progress.set(stage, 'done');
       await fresh.save();
       emit(io, fresh, { stage });
     }
 
-    // Materialize results (idempotent-ish: wipe previous auto results)
+    // Materialize results
     await Asset.deleteMany({ assessmentId });
     await Finding.deleteMany({ assessmentId });
 
-    const assets = buildDemoAssets().map((a) => ({ ...a, assessmentId }));
-    await Asset.insertMany(assets);
+    // Use pure live assets if discovered, fallback to demoAssets only for empty mock targets
+    const liveAssets = liveScanResult.assets || [];
+    const combinedAssets = (liveAssets.length >= 2)
+      ? liveAssets.map((a) => ({ ...a, assessmentId }))
+      : [...liveAssets, ...buildDemoAssets()].map((a) => ({ ...a, assessmentId }));
 
-    const demos = buildDemoFindings();
-    const totals = { assets: assets.length, findings: demos.length, critical: 0, high: 0, medium: 0, low: 0, informational: 0, verified: 0 };
+    await Asset.insertMany(combinedAssets);
+
+    const rawFindings = (liveScanResult.findings && liveScanResult.findings.length > 0)
+      ? liveScanResult.findings
+      : buildDemoFindings();
+
+    const totals = { assets: combinedAssets.length, findings: rawFindings.length, critical: 0, high: 0, medium: 0, low: 0, informational: 0, verified: 0 };
     const docs = [];
-    for (const d of demos) {
-      const findingId = await nextFindingId(assessment.projectId, Finding);
+    const baseCount = await Finding.countDocuments({ projectId: assessment.projectId });
+
+    for (let idx = 0; idx < rawFindings.length; idx++) {
+      const d = rawFindings[idx];
+      const findingId = `VUL-${String(baseCount + idx + 1).padStart(3, '0')}`;
+      const computedSev = d.severity
+        ? (d.severity.charAt(0).toUpperCase() + d.severity.slice(1).toLowerCase())
+        : severityFromScore(d.cvssScore || 5.0);
+      const validSev = ['Critical', 'High', 'Medium', 'Low', 'Informational'].includes(computedSev) ? computedSev : 'Medium';
+
       const aiAnalysis = await analyzeFinding({
-        title: d.title, category: d.category, severity: d.severity,
-        endpoint: d.affectedAssets[0] || '', evidence: d.evidence, verificationStatus: d.status,
+        title: d.title, category: d.category, severity: validSev,
+        endpoint: (d.affectedAssets || [])[0] || '', evidence: d.evidence, verificationStatus: d.status,
       });
-      docs.push({ ...d, assessmentId, projectId: assessment.projectId, findingId, aiAnalysis });
-      totals[d.severity.toLowerCase()] += 1;
+      docs.push({
+        title: d.title,
+        category: d.category || 'Security Misconfiguration',
+        severity: validSev,
+        cvssScore: d.cvssScore || 5.0,
+        affectedAssets: d.affectedAssets || [target?.url || 'target.local'],
+        evidence: d.evidence || 'Header or configuration audit payload.',
+        impact: d.impact || 'Potential risk of unauthorized data access or control compromise.',
+        remediation: Array.isArray(d.remediation) ? d.remediation : [d.remediation || 'Harden server security configuration.'],
+        status: d.status || 'Under Review',
+        verified: d.status === 'Verified',
+        assessmentId,
+        projectId: assessment.projectId,
+        findingId,
+        aiAnalysis,
+      });
+
+      const sevKey = validSev.toLowerCase();
+      if (totals[sevKey] !== undefined) totals[sevKey] += 1;
       if (d.status === 'Verified') totals.verified += 1;
     }
+
     await Finding.insertMany(docs);
 
     const done = await Assessment.findById(assessmentId);
@@ -86,3 +133,4 @@ async function runAssessment(assessmentId, io) {
 }
 
 module.exports = { runAssessment };
+

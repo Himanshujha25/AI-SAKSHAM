@@ -1,0 +1,242 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Bell, CheckCheck, Trash2, ShieldAlert, ArrowRight, X } from 'lucide-react';
+import { playCyberSound } from '../../lib/playCyberSound';
+
+const INITIAL_NOTIFICATIONS = [
+  {
+    id: 'n1',
+    severity: 'High',
+    title: 'Exposed authentication endpoint',
+    desc: 'Unprotected OAuth route discovered during API sweep',
+    time: '2 min ago',
+    read: false,
+    findingId: 'VUL-001',
+  },
+  {
+    id: 'n2',
+    severity: 'Medium',
+    title: 'Missing security header detected',
+    desc: 'Strict-Transport-Security header omitted on production target',
+    time: '8 min ago',
+    read: false,
+    findingId: 'VUL-002',
+  },
+  {
+    id: 'n3',
+    severity: 'Verified',
+    title: 'Finding resolved successfully',
+    desc: 'Broken Access Control issue verified mitigated',
+    time: '14 min ago',
+    read: true,
+    findingId: 'VUL-003',
+  },
+  {
+    id: 'n4',
+    severity: 'Critical',
+    title: 'IDOR Vulnerability Confirmed',
+    desc: 'Tenant data isolation check failed on endpoint /api/v1/user/data',
+    time: '25 min ago',
+    read: false,
+    findingId: 'VUL-004',
+  },
+];
+
+export function NotificationCenter() {
+  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+  const navigate = useNavigate();
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener('mousedown', handleOutsideClick);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, [isOpen]);
+
+  const toggleOpen = () => {
+    playCyberSound('click');
+    setIsOpen((prev) => !prev);
+  };
+
+  const markAsRead = (id) => {
+    playCyberSound('click');
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+    );
+  };
+
+  const markAllAsRead = () => {
+    playCyberSound('click');
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  };
+
+  const clearAll = () => {
+    playCyberSound('click');
+    setNotifications([]);
+  };
+
+  const handleAlertClick = (n) => {
+    markAsRead(n.id);
+    setIsOpen(false);
+    navigate('/findings');
+  };
+
+  const getSeverityStyle = (sev) => {
+    switch (sev?.toLowerCase()) {
+      case 'critical':
+        return { dot: 'bg-red-500', badge: 'bg-red-500/10 border-red-500/30 text-red-400', label: 'CRITICAL' };
+      case 'high':
+        return { dot: 'bg-orange-500', badge: 'bg-orange-500/10 border-orange-500/30 text-orange-400', label: 'HIGH' };
+      case 'medium':
+        return { dot: 'bg-amber-500', badge: 'bg-amber-500/10 border-amber-500/30 text-amber-400', label: 'MEDIUM' };
+      case 'verified':
+        return { dot: 'bg-cyan-500', badge: 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400', label: 'VERIFIED' };
+      default:
+        return { dot: 'bg-emerald-500', badge: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400', label: 'LOW' };
+    }
+  };
+
+  return (
+    <div ref={containerRef} className="relative inline-block">
+      {/* Bell Trigger Button */}
+      <button
+        type="button"
+        onClick={toggleOpen}
+        className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-slate-800 bg-slate-900 text-slate-300 transition hover:border-slate-700 hover:bg-slate-800 hover:text-white"
+        title="Security Alerts"
+      >
+        <Bell size={15} />
+        {unreadCount > 0 && (
+          <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 font-mono text-[10px] font-bold text-white shadow-sm animate-pulse">
+            {unreadCount}
+          </span>
+        )}
+      </button>
+
+      {/* Popover Alert Center Panel */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 6, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 6, scale: 0.98 }}
+            transition={{ duration: 0.15 }}
+            className="absolute right-0 top-full z-[999] mt-2 w-80 sm:w-96 rounded-xl border border-slate-800 bg-[#090f1f] p-4 shadow-2xl backdrop-blur-xl"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+              <div className="flex items-center gap-2">
+                <ShieldAlert size={16} className="text-cyan-400" />
+                <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-white">
+                  Security Alerts
+                </h3>
+                {unreadCount > 0 && (
+                  <span className="rounded bg-red-500/10 border border-red-500/30 px-1.5 py-0.2 font-mono text-[10px] font-bold text-red-400">
+                    {unreadCount} UNREAD
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                {unreadCount > 0 && (
+                  <button
+                    onClick={markAllAsRead}
+                    className="flex items-center gap-1 text-[11px] font-medium text-slate-400 hover:text-cyan-400 transition"
+                    title="Mark all as read"
+                  >
+                    <CheckCheck size={13} />
+                  </button>
+                )}
+                {notifications.length > 0 && (
+                  <button
+                    onClick={clearAll}
+                    className="flex items-center gap-1 text-[11px] font-medium text-slate-400 hover:text-rose-400 transition"
+                    title="Clear notifications"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Notification Alert List */}
+            <div className="mt-3 max-h-80 overflow-y-auto space-y-2 pr-0.5">
+              {notifications.length === 0 ? (
+                <div className="py-8 text-center text-xs text-slate-500">
+                  No active security alerts
+                </div>
+              ) : (
+                notifications.map((n) => {
+                  const style = getSeverityStyle(n.severity);
+                  return (
+                    <div
+                      key={n.id}
+                      onClick={() => handleAlertClick(n)}
+                      className={`group relative flex flex-col gap-1.5 rounded-lg border p-3 transition duration-150 cursor-pointer ${
+                        !n.read
+                          ? 'border-slate-700/80 bg-slate-900/90 shadow-sm'
+                          : 'border-slate-800/60 bg-[#060a14] opacity-75 hover:opacity-100 hover:bg-slate-900/40'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className={`inline-flex items-center gap-1 rounded border px-1.5 py-0.2 font-mono text-[9px] font-bold ${style.badge}`}>
+                          <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
+                          {style.label}
+                        </span>
+                        <span className="font-mono text-[10px] text-slate-400">{n.time}</span>
+                      </div>
+
+                      <h4 className="font-semibold text-xs text-white truncate group-hover:text-cyan-300 transition">
+                        {n.title}
+                      </h4>
+                      <p className="text-[11px] text-slate-400 leading-snug">{n.desc}</p>
+
+                      <div className="mt-1 flex items-center justify-between">
+                        <span className="text-[10px] font-mono text-cyan-400 font-medium">
+                          {n.findingId}
+                        </span>
+                        <span className="flex items-center gap-1 text-[10px] font-bold text-slate-400 group-hover:text-cyan-300 transition">
+                          View Finding <ArrowRight size={10} />
+                        </span>
+                      </div>
+
+                      {!n.read && (
+                        <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-cyan-400" />
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="mt-3 border-t border-slate-800/80 pt-2 text-center">
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  navigate('/findings');
+                }}
+                className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition"
+              >
+                View Security Findings Center →
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+

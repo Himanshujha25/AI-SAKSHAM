@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { useQuery } from '@tanstack/react-query';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShieldCheck, Radar, Bug, BrainCircuit, Gauge, FileText,
-  ArrowRight, Play, Moon, Sun, Check, Sparkles, Lock, TrendingUp,
+  ArrowRight, Check, Lock, Fingerprint, KeyRound, Terminal,
+  Play, Pause, Volume2, Maximize2, Sparkles, Search, ShieldAlert, CheckCircle2, Cpu, Code2, RotateCcw, TrendingUp, ChevronRight, Monitor
 } from 'lucide-react';
-import api from '../../lib/api';
 import { useAuth } from '../../store/auth';
 
 const fadeUp = {
@@ -17,64 +16,75 @@ const fadeUp = {
 };
 
 const features = [
-  { icon: Radar, title: 'Attack Surface Discovery', desc: 'Routes, APIs, JS, tech, headers and deps organized into a visual map — not a raw dump.' },
-  { icon: Bug, title: 'Findings with Evidence', desc: 'Every VUL-001… carries endpoint, evidence and verification status. Scanner signal ≠ verified finding.' },
-  { icon: Check, title: 'Verification Workflow', desc: 'Potential → Under Review → Verified / False Positive with confidence, reviewer and notes.' },
-  { icon: BrainCircuit, title: 'AI Security Analyst', desc: 'Structured finding → classification, impact, dev-friendly fix and priority reason. Assistance, not truth.' },
-  { icon: Gauge, title: 'CVSS Risk Scoring', desc: '0–10 scores mapped to Critical/High/Medium/Low with security score 0–100 for the whole project.' },
-  { icon: FileText, title: 'Professional Reports', desc: 'Executive / Technical / Summary PDFs with scope, severity charts, evidence and remediation.' },
+  { code: 'MOD.01', icon: Radar, title: 'Attack Surface Discovery', desc: 'Routes, APIs, JS, tech, headers and deps organized into a visual map — not a raw dump.' },
+  { code: 'MOD.02', icon: Bug, title: 'Findings with Evidence', desc: 'Every VUL-001… carries endpoint, evidence and verification status. Scanner signal ≠ verified finding.' },
+  { code: 'MOD.03', icon: Check, title: 'Verification Workflow', desc: 'Potential → Under Review → Verified / False Positive with confidence, reviewer and notes.' },
+  { code: 'MOD.04', icon: BrainCircuit, title: 'AI Security Analyst', desc: 'Structured finding → classification, impact, dev-friendly fix and priority reason. Assistance, not truth.' },
+  { code: 'MOD.05', icon: Gauge, title: 'CVSS Risk Scoring', desc: '0–10 scores mapped to Critical/High/Medium/Low with a security score for the whole project.' },
+  { code: 'MOD.06', icon: FileText, title: 'Professional Reports', desc: 'Executive / Technical / Summary PDFs with scope, severity charts, evidence and remediation.' },
 ];
 
 const steps = ['Project', 'Authorized Target', 'Assessment', 'Attack Surface', 'Findings + Evidence', 'Verification', 'AI Analysis', 'CVSS + Remediation', 'Report'];
 
-function ThemeToggle() {
-  const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'));
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', dark);
-    localStorage.setItem('sentinelai_theme', dark ? 'dark' : 'light');
-  }, [dark]);
+function CyberChrome() {
   return (
-    <button
-      onClick={() => setDark((d) => !d)}
-      className="rounded-lg border border-white/[0.12] bg-gradient-to-br from-white/[0.08] to-white/[0.03] p-2 backdrop-blur transition duration-200 hover:scale-110 hover:border-white/[0.2] hover:shadow-[0_0_20px_-6px_rgba(34,211,238,0.3)]"
-      title="Toggle theme"
-    >
-      {dark ? <Sun size={16} className="text-amber-300" /> : <Moon size={16} className="text-slate-700" />}
-    </button>
+    <style>{`
+      @keyframes scan-sweep {
+        0% { transform: translateY(-100%); opacity: 0; }
+        12% { opacity: .6; }
+        88% { opacity: .6; }
+        100% { transform: translateY(700%); opacity: 0; }
+      }
+      @keyframes cursor-blink {
+        0%, 49% { opacity: 1; }
+        50%, 100% { opacity: 0; }
+      }
+      .hud-grid {
+        background-image:
+          linear-gradient(rgba(34, 211, 238, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(34, 211, 238, 0.04) 1px, transparent 1px);
+        background-size: 48px 48px;
+        -webkit-mask-image: radial-gradient(ellipse 85% 60% at 50% 0%, black 40%, transparent 100%);
+        mask-image: radial-gradient(ellipse 85% 60% at 50% 0%, black 40%, transparent 100%);
+      }
+      .scan-sweep { animation: scan-sweep 5s ease-in-out infinite; }
+      .cursor-blink { animation: cursor-blink 1s step-start infinite; }
+    `}</style>
   );
 }
 
 function LandingHeader() {
   const { user } = useAuth();
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-white/[0.08] bg-gradient-to-r from-[#04060d]/80 to-[#0a0f1e]/80 backdrop-blur-2xl shadow-lg shadow-black/20">
+    <header className="sticky top-0 z-50 w-full bg-gradient-to-r from-[#04060d]/90 via-[#070b16]/90 to-[#04060d]/90 backdrop-blur-2xl shadow-xl shadow-black/40">
       <div className="flex h-16 w-full items-center justify-between px-4 md:px-8">
-        <Link to="/" className="group flex min-w-0 items-center gap-2">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 text-slate-950 font-bold transition group-hover:scale-110 shadow-[0_0_24px_-6px_rgba(34,211,238,0.8)]">
-            <ShieldCheck size={18} />
-          </span>
-          <span className="truncate font-semibold tracking-tight text-white">SentinelAI</span>
+        <Link to="/" className="group flex min-w-0 items-center gap-3">
+          <img
+            src="/logo.jpg"
+            alt="Saksham AI Logo"
+            className="h-9 w-9 rounded-xl object-cover ring-1 ring-cyan-400/40 shadow-[0_0_20px_-4px_rgba(34,211,238,0.8)] transition duration-300 group-hover:scale-105"
+          />
+          <span className="truncate text-xl font-extrabold tracking-tight text-white">Saksham AI</span>
         </Link>
-        <nav className="hidden items-center gap-8 text-sm text-slate-300 md:flex">
-          {['Features', 'Stats', 'Workflow'].map((l) => (
-            <a key={l} href={`#${l.toLowerCase()}`} className="relative transition hover:text-white after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-cyan-400 after:transition-all hover:after:w-full">
-              {l}
+        <nav className="hidden items-center gap-8 text-sm font-medium text-slate-300 md:flex">
+          {['Demo-Video', 'Analyzer', 'Features', 'Workflow'].map((l) => (
+            <a key={l} href={`#${l.toLowerCase()}`} className="relative transition hover:text-white after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-0 after:bg-cyan-400 after:transition-all hover:after:w-full">
+              {l === 'Demo-Video' ? 'Live Video' : l}
             </a>
           ))}
         </nav>
         <div className="flex min-w-0 shrink-0 items-center gap-3">
-          <ThemeToggle />
           {user ? (
-            <Link to="/dashboard" className="rounded-lg bg-gradient-to-r from-cyan-400 to-blue-600 px-4 py-2 text-sm font-medium text-slate-950 transition hover:-translate-y-0.5 hover:shadow-[0_0_20px_-4px_rgba(34,211,238,0.6)]">
+            <Link to="/dashboard" className="rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:shadow-[0_0_24px_-4px_rgba(34,211,238,0.7)]">
               Dashboard
             </Link>
           ) : (
             <>
-              <Link to="/auth/login" className="hidden rounded-lg px-4 py-2 text-sm font-medium text-slate-300 transition hover:text-white hover:bg-white/[0.08] border border-white/[0.12] sm:block">
-                Sign in
+              <Link to="/auth/login" className="flex items-center gap-1.5 rounded-xl bg-white/[0.05] px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/[0.1] hover:text-white border border-white/10">
+                <KeyRound size={14} /> Sign in
               </Link>
-              <Link to="/auth/register" className="group rounded-lg bg-gradient-to-r from-cyan-400 to-blue-600 px-4 py-2 text-sm font-medium text-slate-950 transition hover:-translate-y-0.5 hover:shadow-[0_0_20px_-4px_rgba(34,211,238,0.6)]">
-                Get started <ArrowRight size={14} className="ml-1 inline transition group-hover:translate-x-0.5" />
+              <Link to="/auth/register" className="group rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 px-4 py-2 text-sm font-bold text-slate-950 transition hover:-translate-y-0.5 hover:shadow-[0_0_24px_-4px_rgba(34,211,238,0.7)]">
+                Request access <ArrowRight size={14} className="ml-1 inline transition group-hover:translate-x-0.5" />
               </Link>
             </>
           )}
@@ -84,113 +94,485 @@ function LandingHeader() {
   );
 }
 
-function Hero() {
-  const { user, loading } = useAuth();
-  
-  const { data, isLoading } = useQuery({
-    queryKey: ['landing-stats'],
-    queryFn: async () => {
-      try {
-        // Only fetch stats if user is authenticated
-        if (!user) return null;
-        return (await api.get('/dashboard/overview')).data;
-      } catch {
-        return null;
-      }
+// Mock Interactive Video Player Component
+function MockVideoPlayer() {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [activeScene, setActiveScene] = useState(0);
+
+  const scenes = [
+    {
+      title: 'Target Setup & Scope Check',
+      duration: '0:45',
+      log: 'Initializing assessment scope for World Monitor target URL...',
+      code: 'POST /api/v1/targets/register -> HTTP 200 OK (Authorization Checked)'
     },
-    staleTime: 60000,
-    enabled: !!user, // Only run query if user exists
-  });
+    {
+      title: 'Attack Surface Crawling',
+      duration: '1:15',
+      log: 'Discovered 42 endpoints, 18 public routes, 4 admin interfaces...',
+      code: 'CRAWLER: Found /api/v1/reports/:id (Requires Owner Validation)'
+    },
+    {
+      title: 'Verification Engine PoC',
+      duration: '2:10',
+      log: 'Executing controlled IDOR test with non-owner User B credentials...',
+      code: 'STATUS: VERIFIED (Confidence: 96%) -> Exposing Proof-of-Concept Evidence Payload'
+    },
+    {
+      title: 'AI Remediation & PDF Export',
+      duration: '3:05',
+      log: 'Gemini AI generating developer code fix & executive PDF report...',
+      code: 'GENERATE REPORT -> World_Monitor_Security_Assessment_2026.pdf (Downloaded)'
+    }
+  ];
 
   return (
-    <section className="relative w-full overflow-x-clip">
-      <div className="pointer-events-none fixed inset-0 z-0">
-        <div className="absolute inset-x-0 top-0 h-96 bg-gradient-to-b from-cyan-600/[0.15] via-blue-600/[0.08] to-transparent" />
-        <div className="absolute top-1/3 right-0 h-80 w-80 rounded-full bg-blue-600/[0.08] blur-3xl" />
-        <div className="absolute bottom-1/3 left-1/4 h-96 w-96 rounded-full bg-cyan-500/[0.06] blur-3xl" />
+    <section id="demo-video" className="relative z-10 mx-auto w-full max-w-6xl px-4 py-12 md:px-6">
+      <motion.div {...fadeUp} className="text-center">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-400/10 px-3.5 py-1 text-xs font-semibold text-cyan-300 ring-1 ring-cyan-400/20">
+          <Monitor size={13} className="text-cyan-400" /> Saksham AI Platform Demonstration
+        </span>
+        <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-white md:text-4xl">
+          Watch <span className="text-cyan-300">Saksham AI in Action</span>
+        </h2>
+        <p className="mx-auto mt-3 max-w-xl text-slate-300 text-sm md:text-base">
+          Interactive video simulation demonstrating the end-to-end security assessment lifecycle of the World Monitor application.
+        </p>
+      </motion.div>
+
+      {/* Video Container Frame */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, delay: 0.15 }}
+        className="mt-8 overflow-hidden rounded-2xl bg-gradient-to-br from-[#0a0f1e]/95 via-[#070b16] to-[#04060d] shadow-2xl backdrop-blur-2xl ring-1 ring-white/10"
+      >
+        {/* Video Top Bar */}
+        <div className="flex items-center justify-between border-b border-white/5 bg-black/40 px-4 py-3 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="h-3 w-3 rounded-full bg-red-500/80" />
+            <span className="h-3 w-3 rounded-full bg-amber-500/80" />
+            <span className="h-3 w-3 rounded-full bg-emerald-500/80" />
+            <span className="ml-2 font-mono text-slate-400">SakshamAI_Platform_Walkthrough.mp4</span>
+          </div>
+          <span className="rounded bg-cyan-500/20 px-2 py-0.5 font-mono text-[11px] text-cyan-300">HD 1080p</span>
+        </div>
+
+        {/* Video Screen Viewport */}
+        <div className="relative aspect-video w-full overflow-hidden bg-black/80 flex flex-col justify-between p-6">
+          <div className="hud-grid absolute inset-0 pointer-events-none opacity-40" />
+
+          <div className="relative z-10 flex items-start justify-between">
+            <div className="rounded-xl bg-black/60 p-3 backdrop-blur border border-white/10 max-w-md">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400">Scene {activeScene + 1} of 4:</span>
+              <h4 className="text-sm font-bold text-white mt-0.5">{scenes[activeScene].title}</h4>
+              <p className="mt-1 font-mono text-xs text-slate-300">{scenes[activeScene].log}</p>
+            </div>
+            <div className="flex items-center gap-1.5 rounded-full bg-red-500/20 px-3 py-1 text-xs font-bold text-red-400 border border-red-500/30">
+              <span className="h-2 w-2 rounded-full bg-red-400 animate-ping" /> REC · LIVE DEMO
+            </div>
+          </div>
+
+          {!isPlaying && (
+            <button
+              onClick={() => setIsPlaying(true)}
+              className="group absolute inset-0 m-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 text-slate-950 transition duration-300 hover:scale-110 shadow-[0_0_40px_rgba(34,211,238,0.8)] z-20"
+            >
+              <Play size={32} className="ml-1 fill-current" />
+            </button>
+          )}
+
+          <div className="relative z-10 rounded-xl bg-black/70 p-3 font-mono text-xs text-emerald-400 border border-white/5">
+            <code>&gt; {scenes[activeScene].code}</code>
+          </div>
+        </div>
+
+        {/* Video Scrubber & Control Bar */}
+        <div className="border-t border-white/10 bg-black/60 p-4">
+          <div className="relative h-1.5 w-full rounded-full bg-slate-800 cursor-pointer overflow-hidden mb-3">
+            <motion.div
+              className="h-full bg-gradient-to-r from-cyan-400 to-blue-500"
+              animate={{ width: isPlaying ? '100%' : `${((activeScene + 1) / 4) * 100}%` }}
+              transition={{ duration: isPlaying ? 8 : 0.5 }}
+              onAnimationComplete={() => {
+                if (isPlaying) {
+                  setActiveScene((prev) => (prev + 1) % 4);
+                }
+              }}
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-300">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setIsPlaying(!isPlaying)}
+                className="flex items-center gap-1.5 rounded-lg bg-cyan-500/20 px-3 py-1.5 font-bold text-cyan-300 transition hover:bg-cyan-500/30"
+              >
+                {isPlaying ? <Pause size={15} /> : <Play size={15} className="fill-current" />}
+                {isPlaying ? 'Pause' : 'Play Video'}
+              </button>
+              <span className="font-mono text-slate-400">01:42 / 03:15</span>
+            </div>
+
+            <div className="hidden sm:flex items-center gap-2">
+              {scenes.map((sc, idx) => (
+                <button
+                  key={sc.title}
+                  onClick={() => {
+                    setActiveScene(idx);
+                    setIsPlaying(false);
+                  }}
+                  className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition ${
+                    activeScene === idx ? 'bg-cyan-400/20 text-cyan-300 ring-1 ring-cyan-400/40' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {idx + 1}. {sc.title.split(' ')[0]}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-3 text-slate-400">
+              <Volume2 size={16} />
+              <Maximize2 size={16} />
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </section>
+  );
+}
+
+// Interactive Live Assessment Simulator for Landing Page
+function InteractiveAnalyzer() {
+  const [appName, setAppName] = useState('World Monitor');
+  const [targetUrl, setTargetUrl] = useState('http://world-monitor-demo.local');
+  const [scanning, setScanning] = useState(false);
+  const [phase, setPhase] = useState('IDLE');
+  const [progress, setProgress] = useState(0);
+  const [activeTab, setActiveTab] = useState('OVERVIEW');
+
+  const runSimulatedScan = () => {
+    if (scanning) return;
+    setScanning(true);
+    setPhase('DISCOVERY');
+    setProgress(15);
+    setActiveTab('OVERVIEW');
+
+    setTimeout(() => {
+      setPhase('ASSESSMENT');
+      setProgress(45);
+    }, 1200);
+
+    setTimeout(() => {
+      setPhase('VERIFICATION');
+      setProgress(75);
+    }, 2400);
+
+    setTimeout(() => {
+      setPhase('COMPLETED');
+      setProgress(100);
+      setScanning(false);
+    }, 3600);
+  };
+
+  const resetScan = () => {
+    setPhase('IDLE');
+    setProgress(0);
+    setScanning(false);
+  };
+
+  return (
+    <section id="analyzer" className="relative z-10 mx-auto w-full max-w-6xl px-4 py-12 md:px-6">
+      <motion.div {...fadeUp} className="text-center">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-400/10 px-3.5 py-1 text-xs font-semibold text-cyan-300 ring-1 ring-cyan-400/20">
+          <Sparkles size={13} className="text-cyan-400" /> Interactive Assessment Simulator
+        </span>
+        <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-white md:text-4xl">
+          Experience the <span className="text-cyan-300">Live Security Pipeline</span>
+        </h2>
+        <p className="mx-auto mt-3 max-w-xl text-slate-300 text-sm md:text-base">
+          Type an application target name & URL below to simulate an automated security assessment from attack surface map to verified finding.
+        </p>
+      </motion.div>
+
+      {/* Simulator Card */}
+      <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.15 }}
+        className="mt-8 overflow-hidden rounded-2xl bg-gradient-to-br from-[#0a0f1e]/90 via-[#070b16]/95 to-[#04060d]/90 p-6 md:p-8 shadow-2xl backdrop-blur-2xl ring-1 ring-white/10">
+        
+        {/* Input Bar */}
+        <div className="grid gap-4 md:grid-cols-12 md:items-center">
+          <div className="md:col-span-4">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Target App Name</label>
+            <div className="relative">
+              <input
+                type="text"
+                value={appName}
+                onChange={(e) => setAppName(e.target.value)}
+                disabled={scanning}
+                className="w-full rounded-xl bg-black/40 px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-400/50 disabled:opacity-60"
+                placeholder="World Monitor"
+              />
+            </div>
+          </div>
+          <div className="md:col-span-5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Target Application URL</label>
+            <div className="relative">
+              <input
+                type="text"
+                value={targetUrl}
+                onChange={(e) => setTargetUrl(e.target.value)}
+                disabled={scanning}
+                className="w-full rounded-xl bg-black/40 px-3.5 py-2.5 font-mono text-sm text-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 disabled:opacity-60"
+                placeholder="http://target-app.local"
+              />
+            </div>
+          </div>
+          <div className="md:col-span-3 md:mt-5">
+            {phase === 'COMPLETED' ? (
+              <button
+                onClick={resetScan}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-800 px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:bg-slate-700"
+              >
+                <RotateCcw size={15} /> Reset Simulator
+              </button>
+            ) : (
+              <button
+                onClick={runSimulatedScan}
+                disabled={scanning}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 px-4 py-2.5 text-sm font-bold text-slate-950 transition hover:-translate-y-0.5 hover:shadow-[0_0_24px_-4px_rgba(34,211,238,0.8)] disabled:opacity-50"
+              >
+                {scanning ? <Cpu size={16} className="animate-spin text-slate-950" /> : <Play size={16} className="fill-current" />}
+                {scanning ? 'Analyzing Target...' : 'Analyze Target'}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Scan Status & Pipeline Step Indicators */}
+        <div className="mt-6 border-t border-white/5 pt-5">
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2">
+              <span className={`inline-block h-2 w-2 rounded-full ${scanning ? 'bg-cyan-400 animate-ping' : phase === 'COMPLETED' ? 'bg-emerald-400' : 'bg-slate-600'}`} />
+              <span className="font-semibold uppercase tracking-wider text-slate-300">
+                Status: {phase === 'IDLE' ? 'Ready for Analysis' : phase === 'COMPLETED' ? 'Assessment Completed' : `Pipeline Stage: ${phase}`}
+              </span>
+            </div>
+            <span className="font-mono text-cyan-300">{progress}% Completed</span>
+          </div>
+          <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-black/50">
+            <motion.div
+              className="h-full bg-gradient-to-r from-cyan-400 to-blue-500"
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.5 }}
+            />
+          </div>
+        </div>
+
+        {/* Results Workspace */}
+        <div className="mt-6 rounded-xl bg-black/40 p-4 md:p-6">
+          <div className="flex flex-wrap items-center gap-2 border-b border-white/5 pb-3">
+            {[
+              { id: 'OVERVIEW', label: '1. Target Overview', icon: Radar },
+              { id: 'FINDINGS', label: '2. Security Findings', icon: Bug },
+              { id: 'EVIDENCE', label: '3. Proof Evidence', icon: Terminal },
+              { id: 'AI_FIX', label: '4. AI Remediation', icon: BrainCircuit },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                  activeTab === tab.id
+                    ? 'bg-cyan-500/20 text-cyan-300 ring-1 ring-cyan-400/40'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <tab.icon size={14} /> {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-4 min-h-[220px]">
+            <AnimatePresence mode="wait">
+              {activeTab === 'OVERVIEW' && (
+                <motion.div key="overview" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+                  <div className="grid gap-3 sm:grid-cols-4">
+                    <div className="rounded-xl bg-white/[0.02] p-3 text-center">
+                      <p className="text-xs text-slate-400 uppercase tracking-wider">Security Score</p>
+                      <p className="mt-1 text-2xl font-extrabold text-cyan-300">{phase === 'COMPLETED' ? '72/100' : '—'}</p>
+                    </div>
+                    <div className="rounded-xl bg-white/[0.02] p-3 text-center">
+                      <p className="text-xs text-slate-400 uppercase tracking-wider">Endpoints Discovered</p>
+                      <p className="mt-1 text-2xl font-extrabold text-white">{phase === 'IDLE' ? '0' : '42'}</p>
+                    </div>
+                    <div className="rounded-xl bg-white/[0.02] p-3 text-center">
+                      <p className="text-xs text-slate-400 uppercase tracking-wider">Critical / High</p>
+                      <p className="mt-1 text-2xl font-extrabold text-red-400">{phase === 'COMPLETED' ? '1 Critical, 3 High' : '—'}</p>
+                    </div>
+                    <div className="rounded-xl bg-white/[0.02] p-3 text-center">
+                      <p className="text-xs text-slate-400 uppercase tracking-wider">Verification Rate</p>
+                      <p className="mt-1 text-2xl font-extrabold text-emerald-400">{phase === 'COMPLETED' ? '96% Confirmed' : '—'}</p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl bg-white/[0.02] p-4 text-xs font-mono text-slate-300 leading-relaxed">
+                    <p className="text-slate-400">// Discovered Target Attack Surface ({appName}):</p>
+                    <p className="mt-1 text-cyan-300">➜ POST {targetUrl}/api/v1/auth/login <span className="text-slate-500">(Authentication API)</span></p>
+                    <p className="text-cyan-300">➜ GET {targetUrl}/api/v1/profile <span className="text-slate-500">(Authenticated Route)</span></p>
+                    <p className="text-amber-300">➜ GET {targetUrl}/api/v1/reports/:id <span className="text-red-400 font-bold">[VULNERABLE - IDOR Check Triggered]</span></p>
+                  </div>
+                </motion.div>
+              )}
+
+              {activeTab === 'FINDINGS' && (
+                <motion.div key="findings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
+                  <div className="flex items-center justify-between rounded-xl bg-white/[0.03] p-3.5">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs text-slate-400">VUL-001</span>
+                        <h4 className="font-bold text-white text-sm">Broken Access Control (IDOR)</h4>
+                        <span className="rounded bg-red-500/20 px-2 py-0.5 text-xs font-bold text-red-300">HIGH · CVSS 8.1</span>
+                      </div>
+                      <p className="mt-1 text-xs text-slate-400">Affected Route: <code className="text-cyan-300">/api/v1/reports/:id</code></p>
+                    </div>
+                    <span className="inline-flex items-center gap-1 rounded bg-emerald-500/20 px-2.5 py-1 text-xs font-medium text-emerald-300">
+                      <CheckCircle2 size={13} /> VERIFIED
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between rounded-xl bg-white/[0.02] p-3.5 opacity-80">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs text-slate-400">VUL-002</span>
+                        <h4 className="font-semibold text-white text-sm">Missing Security Header (Content-Security-Policy)</h4>
+                        <span className="rounded bg-amber-500/20 px-2 py-0.5 text-xs font-semibold text-amber-300">MEDIUM · CVSS 5.3</span>
+                      </div>
+                      <p className="mt-1 text-xs text-slate-400">Affected Route: <code className="text-cyan-300">/</code></p>
+                    </div>
+                    <span className="rounded bg-slate-700/50 px-2.5 py-1 text-xs text-slate-300">UNDER REVIEW</span>
+                  </div>
+                </motion.div>
+              )}
+
+              {activeTab === 'EVIDENCE' && (
+                <motion.div key="evidence" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3 font-mono text-xs">
+                  <div className="rounded-xl bg-black/60 p-4 leading-relaxed">
+                    <p className="text-slate-500">// PROOF-OF-CONCEPT EVIDENCE PAYLOAD (VUL-001):</p>
+                    <p className="text-cyan-300 mt-2">-- SENT TEST REQUEST (Session: User_B) --</p>
+                    <p className="text-slate-300">GET {targetUrl}/api/v1/reports/rep_userA_9921 HTTP/1.1</p>
+                    <p className="text-slate-300">Host: world-monitor-demo.local</p>
+                    <p className="text-slate-300">Authorization: Bearer eyJhbGciOiJIUzI1Ni... (User B Token)</p>
+                    
+                    <p className="text-red-400 mt-3">-- RECEIVED RESPONSE (200 OK - Access Isolation Failed!) --</p>
+                    <p className="text-slate-300">HTTP/1.1 200 OK</p>
+                    <p className="text-emerald-300">{`{ "reportId": "rep_userA_9921", "owner": "User_A", "confidentialData": "Sensitivie Operations Report" }`}</p>
+                  </div>
+                </motion.div>
+              )}
+
+              {activeTab === 'AI_FIX' && (
+                <motion.div key="aifix" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
+                  <div className="rounded-xl bg-cyan-950/20 p-4 ring-1 ring-cyan-500/30">
+                    <div className="flex items-center gap-2 text-cyan-300 text-xs font-bold uppercase tracking-wider">
+                      <BrainCircuit size={15} /> Saksham AI Security Guidance
+                    </div>
+                    <p className="mt-2 text-xs text-slate-300 leading-relaxed">
+                      <strong className="text-white">Impact Analysis:</strong> The backend endpoint does not validate resource ownership server-side. User B can access User A's private data simply by enumerating report IDs.
+                    </p>
+                    <p className="mt-3 text-xs font-bold text-emerald-300">Recommended Developer Fix Snippet:</p>
+                    <pre className="mt-2 overflow-x-auto rounded-lg bg-black/60 p-3 font-mono text-[11px] text-cyan-300 leading-relaxed">
+{`// Express.js Controller Fix:
+const report = await Report.findOne({ _id: req.params.id, ownerId: req.user.id });
+if (!report) {
+  return res.status(403).json({ error: "Access Denied: Resource ownership check failed" });
+}`}
+                    </pre>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </motion.div>
+    </section>
+  );
+}
+
+function AccessConsole() {
+  const lines = [
+    { text: 'operator@saksham:~$ authenticate --session', tone: 'command' },
+    { text: 'Verifying operator credentials... ok', tone: 'output' },
+    { text: 'Scope check: authorized target only', tone: 'output' },
+    { text: 'Loading pipeline: discover → verify → score → report', tone: 'output' },
+    { text: 'Access granted — session started', tone: 'success' },
+  ];
+  return (
+    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/[0.04] to-white/[0.01] p-6 shadow-2xl backdrop-blur-2xl">
+      <div className="scan-sweep pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-cyan-400/10 to-transparent" />
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <p className="flex items-center gap-2 text-sm font-semibold text-white">
+          <Terminal size={15} className="text-cyan-400" /> Session console
+        </p>
+        <span className="flex items-center gap-1 rounded-full bg-emerald-500/20 px-2.5 py-1 text-xs font-semibold text-emerald-300">
+          <span className="relative inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" /> Authorized
+        </span>
       </div>
-      
-      <div className="relative z-10 mx-auto grid w-full max-w-6xl min-w-0 gap-10 px-4 pb-16 pt-14 md:grid-cols-2 md:px-6 md:pt-20">
+      <div className="space-y-2 rounded-xl bg-black/50 p-4 font-mono text-[13px] leading-relaxed">
+        {lines.map((line, i) => (
+          <motion.p
+            key={line.text}
+            initial={{ opacity: 0, x: -6 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.25 + i * 0.35, duration: 0.3 }}
+            className={
+              line.tone === 'command' ? 'text-slate-400' : line.tone === 'success' ? 'text-emerald-300' : 'text-slate-300'
+            }
+          >
+            {line.text}
+          </motion.p>
+        ))}
+        <motion.span
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.25 + lines.length * 0.35 }}
+          className="cursor-blink inline-block h-3.5 w-2 translate-y-0.5 bg-cyan-400"
+        />
+      </div>
+      <div className="mt-4 flex items-center gap-2 rounded-xl bg-white/[0.02] px-3.5 py-2 text-xs text-slate-400">
+        <Lock size={13} className="text-emerald-400" /> Assessments run only against explicitly authorized targets.
+      </div>
+    </div>
+  );
+}
+
+function Hero() {
+  return (
+    <section className="relative w-full overflow-x-clip">
+      <div className="relative z-10 mx-auto grid w-full max-w-6xl min-w-0 gap-10 px-4 pb-12 pt-14 md:grid-cols-2 md:px-6 md:pt-20">
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="min-w-0">
-          <span className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.12] bg-gradient-to-r from-white/[0.08] to-white/[0.03] backdrop-blur px-3 py-1.5 text-xs font-medium text-slate-300">
-            <Sparkles size={12} className="text-cyan-400" /> AI-powered security assessment
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-400/10 px-3 py-1 text-xs font-semibold text-cyan-300">
+            <Fingerprint size={13} className="text-cyan-400" /> Saksham AI Security Platform
           </span>
-          <h1 className="mt-6 text-4xl font-bold leading-tight tracking-tight text-white md:text-5xl">
-            Turn security assessments into <span className="text-glow-cyan text-cyan-300">actionable reports</span>
+          <h1 className="mt-6 text-4xl font-extrabold leading-tight tracking-tight text-white md:text-5xl">
+            Turn security audits into <span className="text-cyan-300">verified, evidence-backed</span> reports
           </h1>
-          <p className="mt-4 max-w-md text-slate-300">
-            Discover attack surface, verify findings with evidence, prioritize risk with CVSS, and generate remediation reports — all in one platform.
+          <p className="mt-4 max-w-md text-slate-300 text-sm md:text-base leading-relaxed">
+            Map the attack surface, back every finding with raw PoC evidence, score risk with CVSS, and hand your team an actionable security report.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link to="/auth/register" className="group rounded-lg bg-gradient-to-r from-cyan-400 to-blue-600 px-5 py-3 text-sm font-medium text-slate-950 transition hover:-translate-y-0.5 hover:shadow-[0_0_24px_-6px_rgba(34,211,238,0.8)]">
-              Start assessment <ArrowRight size={15} className="ml-1 inline transition group-hover:translate-x-1" />
-            </Link>
-            <Link to="/auth/login" className="flex items-center gap-2 rounded-lg border border-white/[0.12] bg-gradient-to-br from-white/[0.08] to-white/[0.03] backdrop-blur px-5 py-3 text-sm font-medium text-slate-300 transition hover:-translate-y-0.5 hover:border-white/[0.2] hover:text-white">
-              <Play size={15} /> Live demo
-            </Link>
-          </div>
-          
-          {/* Live Stats */}
-          <div className="mt-10 grid max-w-sm grid-cols-3 gap-3">
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-              className="rounded-lg border border-white/[0.08] bg-white/[0.02] backdrop-blur p-4 text-center">
-              <p className="text-2xl font-bold text-cyan-300">{isLoading ? '—' : (data?.securityScore ?? 0)}</p>
-              <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-slate-400">Avg Score</p>
-            </motion.div>
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-              className="rounded-lg border border-white/[0.08] bg-white/[0.02] backdrop-blur p-4 text-center">
-              <p className="text-2xl font-bold text-cyan-300">{isLoading ? '—' : (data?.totalFindings ?? 0)}</p>
-              <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-slate-400">Findings</p>
-            </motion.div>
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-              className="rounded-lg border border-white/[0.08] bg-white/[0.02] backdrop-blur p-4 text-center">
-              <p className="text-2xl font-bold text-cyan-300">{isLoading ? '—' : (data?.recentAssessments?.length ?? 0)}</p>
-              <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-slate-400">Assessments</p>
-            </motion.div>
+            <a href="#demo-video" className="group rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 px-5 py-3 text-sm font-bold text-slate-950 transition hover:-translate-y-0.5 hover:shadow-[0_0_24px_-4px_rgba(34,211,238,0.8)] flex items-center gap-2">
+              <Play size={16} className="fill-current text-slate-950" /> See Live Demo <ArrowRight size={15} className="ml-1 inline transition group-hover:translate-x-1" />
+            </a>
+            <a href="#analyzer" className="flex items-center gap-2 rounded-xl bg-white/[0.04] px-5 py-3 text-sm font-semibold text-slate-200 transition hover:bg-white/[0.08] hover:text-white">
+              Try Interactive Simulator
+            </a>
           </div>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, delay: 0.15 }} className="relative min-w-0">
-          <div className="relative rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.05] to-white/[0.02] p-6 shadow-2xl backdrop-blur-xl">
-            <div className="mb-4 flex items-center justify-between gap-2">
-              <p className="truncate text-sm font-semibold text-white">Live Dashboard</p>
-              <span className="rounded-lg bg-gradient-to-r from-emerald-500/20 to-emerald-400/10 px-2 py-1 text-xs font-semibold text-emerald-300 ring-1 ring-emerald-400/30">
-                <span className="live-dot relative inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 mr-1" /> ACTIVE
-              </span>
-            </div>
-            <div className="space-y-3">
-              <div className="rounded-lg border border-white/[0.08] bg-white/[0.02] p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Security Score</p>
-                    <p className="mt-2 text-3xl font-bold text-white">{isLoading ? '—' : `${data?.securityScore ?? 0}/100`}</p>
-                  </div>
-                  <TrendingUp className="text-cyan-400" size={32} />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-lg border border-white/[0.08] bg-white/[0.02] p-3 text-center">
-                  <p className="text-sm text-slate-400">Critical</p>
-                  <p className="mt-1 text-xl font-bold text-red-400">{isLoading ? '—' : (data?.severity?.Critical ?? 0)}</p>
-                </div>
-                <div className="rounded-lg border border-white/[0.08] bg-white/[0.02] p-3 text-center">
-                  <p className="text-sm text-slate-400">High</p>
-                  <p className="mt-1 text-xl font-bold text-orange-400">{isLoading ? '—' : (data?.severity?.High ?? 0)}</p>
-                </div>
-                <div className="rounded-lg border border-white/[0.08] bg-white/[0.02] p-3 text-center">
-                  <p className="text-sm text-slate-400">Medium</p>
-                  <p className="mt-1 text-xl font-bold text-amber-400">{isLoading ? '—' : (data?.severity?.Medium ?? 0)}</p>
-                </div>
-                <div className="rounded-lg border border-white/[0.08] bg-white/[0.02] p-3 text-center">
-                  <p className="text-sm text-slate-400">Low</p>
-                  <p className="mt-1 text-xl font-bold text-emerald-400">{isLoading ? '—' : (data?.severity?.Low ?? 0)}</p>
-                </div>
-              </div>
-            </div>
-            <div className="mt-4 flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-xs text-slate-400">
-              <Lock size={12} className="text-emerald-400" /> Only authorized targets assessed
-            </div>
-          </div>
+          <AccessConsole />
         </motion.div>
       </div>
     </section>
@@ -200,23 +582,24 @@ function Hero() {
 function Features() {
   return (
     <section id="features" className="relative z-10 mx-auto w-full max-w-6xl px-4 py-16 md:px-6">
-      <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
-        <h2 className="text-3xl font-bold tracking-tight text-white md:text-4xl">Complete assessment workflow</h2>
-        <p className="mt-3 max-w-2xl text-slate-300">From attack surface discovery to verified findings to professional reports — all in one platform.</p>
+      <motion.div {...fadeUp}>
+        <h2 className="text-3xl font-extrabold tracking-tight text-white md:text-4xl">Complete Assessment Workflow</h2>
+        <p className="mt-3 max-w-2xl text-slate-300 text-sm md:text-base">From attack surface discovery to verified findings to professional reports — all in one platform.</p>
       </motion.div>
       <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {features.map((f, i) => (
-          <motion.div key={f.title} 
-            initial={{ opacity: 0, y: 20 }} 
-            whileInView={{ opacity: 1, y: 0 }} 
+          <motion.div key={f.title}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: i * 0.1, duration: 0.5 }}
-            className="group rounded-lg border border-white/[0.08] bg-gradient-to-br from-white/[0.05] to-white/[0.02] p-6 backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:border-white/[0.15]">
-            <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-600/10 ring-1 ring-cyan-400/30 transition group-hover:scale-110">
-              <f.icon size={20} className="text-cyan-300" />
+            transition={{ delay: i * 0.08, duration: 0.5 }}
+            className="group rounded-2xl bg-gradient-to-br from-white/[0.04] to-white/[0.01] p-6 backdrop-blur-2xl transition duration-300 hover:-translate-y-1 hover:bg-white/[0.06]">
+            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-600/10 text-cyan-300 transition group-hover:scale-105">
+              <f.icon size={22} />
             </span>
-            <h3 className="mt-4 font-semibold text-white">{f.title}</h3>
-            <p className="mt-2 text-sm text-slate-400">{f.desc}</p>
+            <p className="mt-4 font-mono text-[11px] text-cyan-400/60">{f.code}</p>
+            <h3 className="mt-1 font-bold text-white text-base">{f.title}</h3>
+            <p className="mt-2 text-xs md:text-sm text-slate-400 leading-relaxed">{f.desc}</p>
           </motion.div>
         ))}
       </div>
@@ -226,20 +609,20 @@ function Features() {
 
 function Workflow() {
   return (
-    <section id="workflow" className="relative z-10 w-full border-t border-white/[0.08] bg-gradient-to-b from-white/[0.02] to-transparent py-16 backdrop-blur">
+    <section id="workflow" className="relative z-10 w-full bg-gradient-to-b from-white/[0.01] to-transparent py-16 backdrop-blur">
       <div className="mx-auto w-full max-w-6xl px-4 md:px-6">
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
-          <h2 className="text-3xl font-bold tracking-tight text-white md:text-4xl">Nine-step security pipeline</h2>
-          <p className="mt-3 text-slate-300">A consistent workflow from project setup through to verified findings and reporting.</p>
+        <motion.div {...fadeUp}>
+          <h2 className="text-3xl font-extrabold tracking-tight text-white md:text-4xl">Nine-Step Security Pipeline</h2>
+          <p className="mt-3 text-slate-300 text-sm md:text-base">A consistent workflow from project setup through to verified findings and reporting.</p>
         </motion.div>
-        <div className="mt-10 flex flex-wrap gap-2">
+        <div className="mt-10 flex flex-wrap gap-2.5">
           {steps.map((s, i) => (
-            <motion.span key={s} 
-              initial={{ opacity: 0, y: 10 }} 
-              whileInView={{ opacity: 1, y: 0 }} 
+            <motion.span key={s}
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.05, duration: 0.4 }}
-              className="cursor-default rounded-lg border border-white/[0.08] bg-gradient-to-r from-white/[0.05] to-white/[0.02] px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:-translate-y-0.5 hover:border-white/[0.15]">
+              transition={{ delay: i * 0.04, duration: 0.4 }}
+              className="cursor-default rounded-xl bg-gradient-to-r from-white/[0.04] to-white/[0.02] px-4 py-2.5 text-sm font-semibold text-slate-300 transition hover:-translate-y-0.5 hover:bg-white/[0.08] hover:text-white">
               <span className="mr-2 font-mono text-xs text-slate-500">{i + 1}</span>{s}
             </motion.span>
           ))}
@@ -249,35 +632,55 @@ function Workflow() {
   );
 }
 
-function LiveDemo() {
+function WorkflowDemo() {
   return (
-    <section id="stats" className="relative z-10 mx-auto w-full max-w-6xl px-4 py-16 md:px-6">
-      <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
-        <h2 className="text-3xl font-bold tracking-tight text-white md:text-4xl">Real-time platform stats</h2>
-        <p className="mt-3 text-slate-300">Live data from active assessments and verified findings.</p>
+    <section id="demo" className="relative z-10 mx-auto w-full max-w-6xl px-4 py-16 md:px-6">
+      <motion.div {...fadeUp}>
+        <h2 className="text-3xl font-extrabold tracking-tight text-white md:text-4xl">From Discovery to Verified Finding</h2>
+        <p className="mt-3 max-w-2xl text-slate-300 text-sm md:text-base">A representative look at how a single finding moves through the pipeline.</p>
       </motion.div>
       <div className="mt-10 grid gap-4 md:grid-cols-3">
-        {[
-          ['Project Coverage', 'Authorized targets tracked with real-time assessment progress and findings across all security domains.', ShieldCheck],
-          ['Verified Findings', 'Every finding goes through verification workflow. Evidence stored, confidence scored, reviewer annotated.', Check],
-          ['Risk Scoring', 'CVSS-based scoring with automated classification. Security score reflects project-wide posture.', TrendingUp],
-        ].map(([t, d, Icon], i) => (
-          <motion.div key={t} 
-            initial={{ opacity: 0, y: 20 }} 
-            whileInView={{ opacity: 1, y: 0 }} 
-            viewport={{ once: true }}
-            transition={{ delay: i * 0.1, duration: 0.5 }}
-            className="rounded-lg border border-white/[0.08] bg-gradient-to-br from-white/[0.05] to-white/[0.02] p-6 backdrop-blur-xl transition hover:-translate-y-1 hover:border-white/[0.15]">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-500/20 ring-1 ring-cyan-400/30">
-              <Icon size={20} className="text-cyan-300" />
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}
+          className="rounded-2xl bg-gradient-to-br from-white/[0.04] to-white/[0.01] p-6 backdrop-blur-2xl">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-300">
+            <Radar size={20} />
+          </div>
+          <p className="mt-4 font-bold text-white">Attack Surface Mapped</p>
+          <div className="mt-3 space-y-1.5 rounded-xl bg-black/40 p-3 font-mono text-[12px] text-slate-400">
+            <p>/api/v2/auth <span className="text-cyan-400">POST</span></p>
+            <p>/api/v2/users/:id <span className="text-cyan-400">GET</span></p>
+            <p>react-router@6.21 <span className="text-slate-500">dependency</span></p>
+          </div>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1, duration: 0.5 }}
+          className="rounded-2xl bg-gradient-to-br from-white/[0.04] to-white/[0.01] p-6 backdrop-blur-2xl">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-300">
+            <Bug size={20} />
+          </div>
+          <p className="mt-4 font-bold text-white">Finding with Evidence</p>
+          <div className="mt-3 rounded-xl bg-black/40 p-3">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[11px] text-slate-500">VUL-014</span>
+              <span className="rounded bg-orange-500/20 px-1.5 py-0.5 font-mono text-[10px] text-orange-300">High · 7.4</span>
             </div>
-            <p className="mt-4 font-semibold text-white">{t}</p>
-            <p className="mt-2 text-sm text-slate-400">{d}</p>
-            <Link to="/auth/login" className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-cyan-300 transition hover:text-cyan-200 hover:gap-2">
-              Explore <ArrowRight size={14} />
-            </Link>
-          </motion.div>
-        ))}
+            <p className="mt-2 text-xs font-medium text-slate-300">Reflected XSS in search parameter</p>
+            <span className="mt-2 inline-flex items-center gap-1 rounded bg-emerald-500/20 px-1.5 py-0.5 text-[11px] text-emerald-300">
+              <Check size={11} /> Verified
+            </span>
+          </div>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2, duration: 0.5 }}
+          className="rounded-2xl bg-gradient-to-br from-white/[0.04] to-white/[0.01] p-6 backdrop-blur-2xl">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-300">
+            <BrainCircuit size={20} />
+          </div>
+          <p className="mt-4 font-bold text-white">Analyst AI Note Drafted</p>
+          <p className="mt-3 rounded-xl bg-black/40 p-3 font-mono text-[12px] leading-relaxed text-slate-400">
+            Classification: injection (CWE-79). Impact: session-token exposure. Fix: encode output and add a CSP. Priority: high.
+          </p>
+        </motion.div>
       </div>
     </section>
   );
@@ -286,21 +689,21 @@ function LiveDemo() {
 function CTA() {
   return (
     <section className="relative z-10 mx-auto w-full max-w-6xl px-4 py-16 md:px-6">
-      <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} 
-        className="relative w-full overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.08] via-white/[0.04] to-white/[0.02] p-8 backdrop-blur-xl md:p-12">
+      <motion.div {...fadeUp}
+        className="relative w-full overflow-hidden rounded-2xl bg-gradient-to-br from-white/[0.06] via-white/[0.03] to-white/[0.01] p-8 backdrop-blur-2xl md:p-12">
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-cyan-500/15 blur-3xl" />
           <div className="absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-blue-600/15 blur-3xl" />
         </div>
         <div className="relative">
-          <h2 className="max-w-xl text-3xl font-bold tracking-tight text-white md:text-4xl">Ready to secure your applications?</h2>
-          <p className="mt-4 max-w-lg text-slate-300">Start with authorized assessments, turn findings into verified risks, and generate reports your team trusts.</p>
+          <h2 className="max-w-xl text-3xl font-extrabold tracking-tight text-white md:text-4xl">Bring Your Team into Saksham AI</h2>
+          <p className="mt-4 max-w-lg text-slate-300 text-sm md:text-base">Every assessment is scoped to an authorized target, every finding is verified, and every report is ready for stakeholders.</p>
           <div className="relative mt-8 flex flex-wrap gap-4">
-            <Link to="/auth/register" className="rounded-lg bg-gradient-to-r from-cyan-400 to-blue-600 px-6 py-3 font-medium text-slate-950 transition hover:-translate-y-0.5 hover:shadow-[0_0_28px_-6px_rgba(34,211,238,0.8)]">
-              Get started
+            <Link to="/auth/register" className="rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 px-6 py-3 font-bold text-slate-950 transition hover:-translate-y-0.5 hover:shadow-[0_0_28px_-6px_rgba(34,211,238,0.8)]">
+              Request Access
             </Link>
-            <Link to="/auth/login" className="rounded-lg border border-white/[0.12] bg-gradient-to-br from-white/[0.08] to-white/[0.03] backdrop-blur px-6 py-3 font-medium text-slate-300 transition hover:-translate-y-0.5 hover:border-white/[0.2] hover:text-white">
-              Sign in
+            <Link to="/auth/login" className="rounded-xl bg-white/[0.04] px-6 py-3 font-semibold text-slate-200 transition hover:bg-white/[0.08] hover:text-white">
+              Operator Sign In
             </Link>
           </div>
         </div>
@@ -311,33 +714,31 @@ function CTA() {
 
 function LandingFooter() {
   return (
-    <footer className="relative z-10 w-full border-t border-white/[0.08] bg-gradient-to-b from-white/[0.02] to-transparent backdrop-blur">
+    <footer className="relative z-10 w-full bg-gradient-to-b from-white/[0.01] to-transparent backdrop-blur">
       <div className="grid w-full min-w-0 gap-8 px-4 py-12 sm:grid-cols-2 md:px-6 lg:grid-cols-4">
         <div>
-          <div className="flex items-center gap-2 font-semibold text-white">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 text-slate-950">
-              <ShieldCheck size={16} />
-            </span>
-            SentinelAI
+          <div className="flex items-center gap-3 font-bold text-white text-lg">
+            <img src="/logo.jpg" alt="Saksham AI Logo" className="h-8 w-8 rounded-xl object-cover ring-1 ring-cyan-400/40" />
+            Saksham AI
           </div>
-          <p className="mt-3 text-sm text-slate-400">AI-powered security assessment and vulnerability management platform.</p>
+          <p className="mt-3 text-xs text-slate-400 leading-relaxed">AI-Assisted Security Assessment & Vulnerability Management Platform.</p>
         </div>
         {[
-          ['Platform', ['Features', 'Workflow', 'Stats', 'Security']],
+          ['Platform', ['Demo-Video', 'Analyzer', 'Features', 'Workflow']],
           ['Product', ['Dashboard', 'Projects', 'Reports', 'Settings']],
           ['Support', ['Documentation', 'API Docs', 'Contact', 'Status']],
         ].map(([h, items]) => (
           <div key={h}>
             <p className="text-sm font-semibold text-white">{h}</p>
-            <ul className="mt-3 flex flex-col gap-2 text-sm text-slate-400">
-              {items.map((x) => <li key={x}><a href="#" className="transition hover:text-cyan-300">{x}</a></li>)}
+            <ul className="mt-3 flex flex-col gap-2 text-xs text-slate-400">
+              {items.map((x) => <li key={x}><a href={`#${x.toLowerCase()}`} className="transition hover:text-cyan-300">{x === 'Demo-Video' ? 'Live Video' : x}</a></li>)}
             </ul>
           </div>
         ))}
       </div>
-      <div className="border-t border-white/[0.08]">
+      <div className="border-t border-white/5">
         <p className="w-full px-4 py-4 text-xs text-slate-500 md:px-6">
-          © 2024 SentinelAI. Authorized testing only. <a href="#" className="hover:text-cyan-300 transition">Privacy Policy</a> · <a href="#" className="hover:text-cyan-300 transition">Terms of Service</a>
+          © 2026 Saksham AI (SIH 2026 Problem 26163). Authorized assessments only.
         </p>
       </div>
     </footer>
@@ -345,19 +746,27 @@ function LandingFooter() {
 }
 
 export function Landing() {
+  useEffect(() => {
+    document.documentElement.classList.add('dark');
+  }, []);
+
   return (
-    <div className="relative min-h-screen w-full overflow-x-clip bg-[#04060d] text-slate-100">
-      {/* Ambient gradients */}
+    <div className="relative min-h-screen w-full overflow-x-clip bg-[#04060d] text-slate-100 font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
+      <CyberChrome />
+      {/* Ambient Cyber Gradients & HUD Grid */}
       <div className="pointer-events-none fixed inset-0 z-0">
-        <div className="absolute inset-x-0 top-0 h-96 bg-gradient-to-b from-cyan-600/[0.15] via-blue-600/[0.08] to-transparent" />
-        <div className="absolute top-1/3 right-0 h-80 w-80 rounded-full bg-blue-600/[0.08] blur-3xl" />
-        <div className="absolute bottom-1/3 left-1/4 h-96 w-96 rounded-full bg-cyan-500/[0.06] blur-3xl" />
+        <div className="absolute inset-x-0 top-0 h-96 bg-gradient-to-b from-cyan-600/[0.12] via-blue-600/[0.06] to-transparent" />
+        <div className="absolute top-1/3 right-0 h-80 w-80 rounded-full bg-blue-600/[0.06] blur-3xl" />
+        <div className="absolute bottom-1/3 left-1/4 h-96 w-96 rounded-full bg-cyan-500/[0.05] blur-3xl" />
+        <div className="hud-grid absolute inset-0" />
       </div>
       <LandingHeader />
       <Hero />
+      <MockVideoPlayer />
+      <InteractiveAnalyzer />
       <Features />
       <Workflow />
-      <LiveDemo />
+      <WorkflowDemo />
       <CTA />
       <LandingFooter />
     </div>

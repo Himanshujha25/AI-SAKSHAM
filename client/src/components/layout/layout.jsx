@@ -1,9 +1,10 @@
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FolderKanban, FlaskConical, Bug, FileText, ShieldCheck, LogOut, Moon, Sun, Menu, X, Settings as SettingsIcon } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, FlaskConical, Bug, FileText, ShieldCheck, LogOut, Menu, X, Settings as SettingsIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../store/auth';
 import { cn } from '../../lib/utils';
+import { NotificationCenter } from './NotificationCenter';
 
 const links = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -15,33 +16,31 @@ const links = [
 
 function Brand() {
   return (
-    <Link to="/dashboard" className="group flex shrink-0 items-center gap-2.5">
-      <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-white shadow-sm transition group-hover:scale-105 dark:bg-gradient-to-br dark:from-cyan-400 dark:to-blue-600 dark:text-slate-950 dark:shadow-[0_0_24px_-6px_rgba(34,211,238,0.8)]">
+    <Link to="/dashboard" className="group flex shrink-0 items-center gap-3">
+      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-950 border border-cyan-500/40 text-cyan-400">
         <ShieldCheck size={18} />
-      </span>
-      <span className="leading-tight">
-        <span className="block truncate font-semibold tracking-tight">SentinelAI</span>
-        <span className="block text-[10px] font-medium uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Command Center</span>
-      </span>
+      </div>
+      <div className="leading-none">
+        <span className="block truncate font-bold text-sm text-slate-100 tracking-tight">Saksham AI</span>
+        <span className="block text-[10px] font-mono font-medium text-slate-400 uppercase tracking-wider mt-0.5">Command Center</span>
+      </div>
     </Link>
   );
 }
 
-// Frosted-glass pill (reference style) — bright, clear, no neon glow.
-function navPill(isActive) {
+function desktopPill(isActive) {
   return cn(
-    'relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition duration-200',
-    'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/[0.07] dark:hover:text-white',
-    isActive && 'bg-slate-900 text-white shadow-md hover:text-white dark:bg-white/[0.16] dark:text-white dark:ring-1 dark:ring-white/30 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.2),inset_0_-1px_0_rgba(0,0,0,0.25)] dark:hover:text-white'
+    'relative flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors duration-150',
+    'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60',
+    isActive && 'text-white bg-slate-800/90 border border-slate-700/60'
   );
 }
 
-// Desktop pill: frosted highlight SLIDES between tabs (layoutId).
-function desktopPill(isActive) {
+function navPill(isActive) {
   return cn(
-    'relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200',
-    'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white',
-    isActive && 'text-slate-900 dark:text-white'
+    'flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition duration-150',
+    'text-slate-400 hover:bg-slate-800 hover:text-slate-100',
+    isActive && 'bg-cyan-950 text-cyan-300 border border-cyan-500/30'
   );
 }
 
@@ -50,7 +49,7 @@ function Avatar({ name, onClick, title }) {
     <button
       onClick={onClick}
       title={title || 'Account settings'}
-      className="group flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400/20 to-blue-600/20 text-sm font-bold text-cyan-300 ring-1 ring-cyan-400/30 transition hover:scale-110 hover:shadow-lg hover:ring-cyan-400/60 dark:hover:shadow-[0_0_24px_-4px_rgba(34,211,238,0.5)]"
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-800 bg-slate-900 text-xs font-bold text-cyan-400 transition hover:border-slate-700 hover:bg-slate-800"
     >
       {(name || 'A').charAt(0).toUpperCase()}
     </button>
@@ -60,66 +59,40 @@ function Avatar({ name, onClick, title }) {
 export function TopNavbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'));
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', dark);
-    localStorage.setItem('sentinelai_theme', dark ? 'dark' : 'light');
-  }, [dark]);
-
-  useEffect(() => {
-    if (!localStorage.getItem('sentinelai_theme')) document.documentElement.classList.add('dark');
+    document.documentElement.classList.add('dark');
   }, []);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-white/[0.08] bg-gradient-to-r from-[#04060d]/80 to-[#0a0f1e]/80 backdrop-blur-2xl shadow-lg shadow-black/20 dark:shadow-[0_0_60px_-20px_rgba(34,211,238,0.2)]">
-      <div className="grid h-16 w-full grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 md:px-6">
-        <div className="flex min-w-0 justify-start">
+    <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-[#090d16]/95 backdrop-blur-md">
+      <div className="flex h-14 w-full items-center justify-between px-4 md:px-6">
+        <div className="flex items-center gap-6">
           <Brand />
+          {/* Desktop Navigation */}
+          <nav className="hidden items-center gap-1.5 lg:flex">
+            {links.map(({ to, label, icon: Icon }) => (
+              <NavLink key={to} to={to} className={({ isActive }) => desktopPill(isActive)}>
+                <Icon size={14} className="text-slate-400" />
+                <span>{label}</span>
+              </NavLink>
+            ))}
+          </nav>
         </div>
 
-        {/* Desktop nav — dead center */}
-        <nav className="hidden items-center justify-center gap-1 lg:flex">
-          {links.map(({ to, label, icon: Icon }) => (
-            <NavLink key={to} to={to} className={({ isActive }) => desktopPill(isActive)}>
-              {({ isActive }) => (
-                <>
-                  {isActive && (
-                    <motion.span
-                      layoutId="nav-active-pill"
-                      className="absolute inset-0 rounded-lg bg-gradient-to-r from-cyan-400/20 to-blue-500/10 ring-1 ring-cyan-400/30 shadow-[0_0_24px_-8px_rgba(34,211,238,0.4)]"
-                      transition={{ type: 'spring', bounce: 0.16, duration: 0.55 }}
-                    />
-                  )}
-                  <Icon size={16} className="relative" /> <span className="relative text-sm">{label}</span>
-                </>
-              )}
-            </NavLink>
-          ))}
-        </nav>
-
-        <div className="flex items-center justify-end gap-2.5">
-          <span className="hidden items-center gap-1.5 rounded-lg border border-emerald-400/30 bg-gradient-to-r from-emerald-500/10 to-emerald-400/5 px-3 py-1.5 text-[11px] font-semibold text-emerald-300 xl:inline-flex shadow-[0_0_12px_-4px_rgba(52,211,153,0.3)]">
-            <span className="live-dot relative inline-block h-2 w-2 rounded-full bg-current" /> API LIVE
-          </span>
-          <button
-            onClick={() => setDark((d) => !d)}
-            className="rounded-lg border border-white/[0.12] bg-gradient-to-br from-white/[0.08] to-white/[0.03] p-2 backdrop-blur transition duration-200 hover:scale-110 hover:border-white/[0.2] hover:shadow-[0_0_20px_-6px_rgba(34,211,238,0.3)]"
-            title="Toggle theme"
-          >
-            {dark ? <Sun size={16} className="text-amber-300" /> : <Moon size={16} className="text-slate-700" />}
-          </button>
-          <Avatar name={user?.name} onClick={() => navigate('/settings')} title={`${user?.name || 'Account'} · ${user?.role || ''} — open settings`} />
+        <div className="flex items-center gap-3">
+          <NotificationCenter />
+          <Avatar name={user?.name} onClick={() => navigate('/settings')} title={`${user?.name || 'Account'} · ${user?.role || ''} — settings`} />
           <button
             onClick={async () => { await logout(); navigate('/', { replace: true }); }}
-            className="hidden items-center gap-1.5 rounded-lg border border-white/[0.12] bg-gradient-to-br from-white/[0.08] to-white/[0.03] px-3 py-2 text-sm font-medium backdrop-blur transition duration-200 hover:-translate-y-0.5 hover:border-white/[0.2] hover:shadow-[0_0_20px_-6px_rgba(34,211,238,0.3)] sm:flex text-slate-300 hover:text-white"
+            className="hidden items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900/80 px-2.5 py-1.5 text-xs font-semibold text-slate-300 transition hover:border-slate-700 hover:bg-slate-800 hover:text-white sm:flex"
           >
-            <LogOut size={15} /> Logout
+            <LogOut size={13} /> Logout
           </button>
           <button
             onClick={() => setOpen((o) => !o)}
-            className="rounded-lg border border-white/[0.12] bg-gradient-to-br from-white/[0.08] to-white/[0.03] p-2 backdrop-blur transition duration-200 hover:border-white/[0.2] hover:shadow-[0_0_20px_-6px_rgba(34,211,238,0.3)] lg:hidden"
+            className="rounded-lg border border-slate-800 p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white lg:hidden"
             title="Menu"
           >
             {open ? <X size={17} /> : <Menu size={17} />}
@@ -134,23 +107,23 @@ export function TopNavbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.22 }}
-            className="overflow-hidden border-t border-white/[0.08] lg:hidden bg-gradient-to-b from-white/[0.05] to-transparent"
+            transition={{ duration: 0.18 }}
+            className="overflow-hidden border-t border-slate-800 bg-[#090d16] lg:hidden"
           >
-            <div className="grid grid-cols-2 gap-2 p-4">
+            <div className="grid grid-cols-2 gap-2 p-3">
               {links.map(({ to, label, icon: Icon }) => (
                 <NavLink key={to} to={to} onClick={() => setOpen(false)} className={({ isActive }) => navPill(isActive)}>
-                  <Icon size={15} /> {label}
+                  <Icon size={14} /> {label}
                 </NavLink>
               ))}
               <NavLink to="/settings" onClick={() => setOpen(false)} className={({ isActive }) => navPill(isActive)}>
-                <SettingsIcon size={15} /> Settings
+                <SettingsIcon size={14} /> Settings
               </NavLink>
               <button
                 onClick={async () => { setOpen(false); await logout(); navigate('/', { replace: true }); }}
-                className="flex items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/[0.15] sm:hidden"
+                className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-slate-400 hover:bg-slate-800 hover:text-white border border-slate-800 sm:hidden"
               >
-                <LogOut size={15} /> Logout
+                <LogOut size={14} /> Logout
               </button>
             </div>
           </motion.nav>
@@ -163,20 +136,14 @@ export function TopNavbar() {
 export function AppLayout({ children }) {
   const { pathname } = useLocation();
   return (
-    <div className="relative min-h-screen w-full overflow-x-clip bg-[#04060d] text-slate-100">
-      {/* Premium ambient gradient effects */}
-      <div className="pointer-events-none fixed inset-0 z-0">
-        <div className="absolute inset-x-0 top-0 h-96 bg-gradient-to-b from-cyan-600/[0.15] via-blue-600/[0.08] to-transparent" />
-        <div className="absolute top-1/3 right-0 h-80 w-80 rounded-full bg-blue-600/[0.08] blur-3xl" />
-        <div className="absolute bottom-1/3 left-1/4 h-96 w-96 rounded-full bg-cyan-500/[0.06] blur-3xl" />
-      </div>
+    <div className="min-h-screen w-full bg-[#050811] text-slate-100 font-sans selection:bg-cyan-500/20 selection:text-cyan-200">
       <TopNavbar />
       <motion.main
         key={pathname}
-        initial={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
-        className="relative z-10 mx-auto w-full max-w-7xl min-w-0 flex-1 p-5 md:p-8"
+        transition={{ duration: 0.25, ease: 'easeOut' }}
+        className="mx-auto w-full max-w-7xl min-w-0 flex-1 px-4 md:px-6 lg:px-8 pt-2 pb-6 md:pb-8"
       >
         {children}
       </motion.main>

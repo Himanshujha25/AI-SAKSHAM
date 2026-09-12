@@ -1,12 +1,24 @@
 const Target = require('../models/Target');
+const Project = require('../models/Project');
 const { asyncHandler } = require('../middleware/errors');
+const { hasProjectAccess } = require('../middleware/auth');
 
 const listByProject = asyncHandler(async (req, res) => {
+  const project = await Project.findById(req.params.projectId);
+  if (!project) return res.status(404).json({ message: 'Project not found' });
+  if (!hasProjectAccess(req.user, project)) {
+    return res.status(403).json({ message: 'Access denied: not authorized to view targets for this project' });
+  }
   const targets = await Target.find({ projectId: req.params.projectId }).sort({ updatedAt: -1 });
   res.json({ targets });
 });
 
 const create = asyncHandler(async (req, res) => {
+  const project = await Project.findById(req.params.projectId);
+  if (!project) return res.status(404).json({ message: 'Project not found' });
+  if (!hasProjectAccess(req.user, project)) {
+    return res.status(403).json({ message: 'Access denied: not authorized to add targets to this project' });
+  }
   const { name, url, environment, authorizationConfirmed, description, metadata } = req.body;
   if (!name || !url) return res.status(400).json({ message: 'name, url required' });
   const target = await Target.create({
@@ -21,19 +33,43 @@ const create = asyncHandler(async (req, res) => {
 const get = asyncHandler(async (req, res) => {
   const target = await Target.findById(req.params.id);
   if (!target) return res.status(404).json({ message: 'Target not found' });
+  const project = await Project.findById(target.projectId);
+  if (!project || !hasProjectAccess(req.user, project)) {
+    return res.status(403).json({ message: 'Access denied: not authorized to view this target' });
+  }
   res.json({ target });
 });
 
 const update = asyncHandler(async (req, res) => {
-  const target = await Target.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+  const target = await Target.findById(req.params.id);
   if (!target) return res.status(404).json({ message: 'Target not found' });
-  res.json({ target });
+  const project = await Project.findById(target.projectId);
+  if (!project || !hasProjectAccess(req.user, project)) {
+    return res.status(403).json({ message: 'Access denied: not authorized to update this target' });
+  }
+  const { name, url, environment, authorizationConfirmed, description, metadata } = req.body;
+  const updateData = {};
+  if (name !== undefined) updateData.name = name;
+  if (url !== undefined) updateData.url = url;
+  if (environment !== undefined) updateData.environment = environment;
+  if (authorizationConfirmed !== undefined) updateData.authorizationConfirmed = !!authorizationConfirmed;
+  if (description !== undefined) updateData.description = description;
+  if (metadata !== undefined) updateData.metadata = metadata;
+
+  const updated = await Target.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });
+  res.json({ target: updated });
 });
 
 const remove = asyncHandler(async (req, res) => {
-  const target = await Target.findByIdAndDelete(req.params.id);
+  const target = await Target.findById(req.params.id);
   if (!target) return res.status(404).json({ message: 'Target not found' });
+  const project = await Project.findById(target.projectId);
+  if (!project || !hasProjectAccess(req.user, project)) {
+    return res.status(403).json({ message: 'Access denied: not authorized to delete this target' });
+  }
+  await Target.findByIdAndDelete(req.params.id);
   res.json({ message: 'Target deleted' });
 });
 
 module.exports = { listByProject, create, get, update, remove };
+

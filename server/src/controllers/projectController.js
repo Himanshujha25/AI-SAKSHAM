@@ -4,18 +4,20 @@ const Finding = require('../models/Finding');
 const Assessment = require('../models/Assessment');
 const { asyncHandler } = require('../middleware/errors');
 const { logActivity } = require('../utils/security');
+const { hasProjectAccess } = require('../middleware/auth');
 
 const list = asyncHandler(async (req, res) => {
-  const projects = await Project.find({
-    $or: [{ owner: req.user._id }, { members: req.user._id }],
-  }).sort({ updatedAt: -1 });
+  const query = req.user.role === 'ADMIN'
+    ? {}
+    : { $or: [{ owner: req.user._id }, { members: req.user._id }] };
+  const projects = await Project.find(query).sort({ updatedAt: -1 });
   res.json({ projects });
 });
 
 const create = asyncHandler(async (req, res) => {
-  const { name, description, status } = req.body;
+  const { name, description, status, image } = req.body;
   if (!name) return res.status(400).json({ message: 'name required' });
-  const project = await Project.create({ name, description: description || '', status: status || 'Active', owner: req.user._id, members: [req.user._id] });
+  const project = await Project.create({ name, description: description || '', image: image || '', status: status || 'Active', owner: req.user._id, members: [req.user._id] });
   await logActivity(Activity, { projectId: project._id, actor: req.user._id, action: 'Project Created', detail: name });
   res.status(201).json({ project });
 });
@@ -23,6 +25,9 @@ const create = asyncHandler(async (req, res) => {
 const get = asyncHandler(async (req, res) => {
   const project = await Project.findById(req.params.id).populate('owner members', 'name email role');
   if (!project) return res.status(404).json({ message: 'Project not found' });
+  if (!hasProjectAccess(req.user, project)) {
+    return res.status(403).json({ message: 'Access denied: not a member of this project' });
+  }
   const [assessments, findings] = await Promise.all([
     Assessment.find({ projectId: project._id }).sort({ createdAt: -1 }).limit(20),
     Finding.find({ projectId: project._id }).sort({ cvssScore: -1 }).limit(50),
@@ -38,15 +43,31 @@ const get = asyncHandler(async (req, res) => {
 });
 
 const update = asyncHandler(async (req, res) => {
-  const project = await Project.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-  if (!project) return res.status(404).json({ message: 'Project not found' });
+  const existing = await Project.findById(req.params.id);
+  if (!existing) return res.status(404).json({ message: 'Project not found' });
+  if (!hasProjectAccess(req.user, existing)) {
+    return res.status(403).json({ message: 'Access denied: not authorized to update this project' });
+  }
+  const { name, description, status, image } = req.body;
+  const updateData = {};
+  if (name !== undefined) updateData.name = name;
+  if (description !== undefined) updateData.description = description;
+  if (status !== undefined) updateData.status = status;
+  if (image !== undefined) updateData.image = image;
+
+  const project = await Project.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });
   res.json({ project });
 });
 
 const remove = asyncHandler(async (req, res) => {
-  const project = await Project.findByIdAndDelete(req.params.id);
-  if (!project) return res.status(404).json({ message: 'Project not found' });
+  const existing = await Project.findById(req.params.id);
+  if (!existing) return res.status(404).json({ message: 'Project not found' });
+  if (String(existing.owner) !== String(req.user._id) && req.user.role !== 'ADMIN') {
+    return res.status(403).json({ message: 'Access denied: only project owner can delete project' });
+  }
+  await Project.findByIdAndDelete(req.params.id);
   res.json({ message: 'Project deleted' });
 });
 
 module.exports = { list, create, get, update, remove };
+
