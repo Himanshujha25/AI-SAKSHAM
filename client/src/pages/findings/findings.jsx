@@ -209,14 +209,17 @@ export function Findings() {
     },
   ];
 
-  const findingsList = fetchedFindings.length > 0
-    ? fetchedFindings.map((f) => ({
-        ...f,
-        detectedDate: f.detectedDate || f.createdAt || new Date().toISOString(),
-        updatedDate: f.updatedDate || f.updatedAt || f.createdAt || new Date().toISOString(),
-        firstSeen: f.firstSeen || f.createdAt || new Date().toISOString(),
-        lastSeen: f.lastSeen || f.updatedAt || f.createdAt || new Date().toISOString(),
-      }))
+  const hasFetched = Array.isArray(data?.findings);
+  const findingsList = hasFetched
+    ? (data.findings.length > 0
+        ? data.findings.map((f) => ({
+            ...f,
+            detectedDate: f.detectedDate || f.createdAt || new Date().toISOString(),
+            updatedDate: f.updatedDate || f.updatedAt || f.createdAt || new Date().toISOString(),
+            firstSeen: f.firstSeen || f.createdAt || new Date().toISOString(),
+            lastSeen: f.lastSeen || f.updatedAt || f.createdAt || new Date().toISOString(),
+          }))
+        : [])
     : defaultFindings;
 
   // Calculate stats dynamically
@@ -528,6 +531,7 @@ export function Findings() {
 
             <button
               onClick={handleClearFilters}
+              title="Reset all search and filter dropdowns"
               className="rounded-md border border-slate-700/60 bg-slate-800/80 px-2.5 py-1.5 text-xs text-slate-400 transition hover:bg-slate-700 hover:text-white"
             >
               Clear Filters
@@ -547,7 +551,7 @@ export function Findings() {
               <thead className="border-b border-slate-800 bg-slate-950/60 font-mono text-[11px] uppercase tracking-wider text-slate-400">
                 <tr>
                   <th className="w-10 px-4 py-3 text-center">
-                    <input type="checkbox" className="rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0" />
+                    <input type="checkbox" title="Select all findings" className="rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0" />
                   </th>
                   <th className="px-3 py-3">ID</th>
                   <th className="px-4 py-3">TITLE</th>
@@ -565,13 +569,14 @@ export function Findings() {
                   <tr
                     key={item._id}
                     onClick={() => setSelectedFinding(item)}
+                    title={`Click to inspect details for ${item.findingId}: ${item.title}`}
                     className={cn(
                       'group cursor-pointer transition duration-150 hover:bg-slate-800/60',
                       selectedFinding?._id === item._id && 'bg-slate-800/80 border-l-2 border-cyan-400'
                     )}
                   >
                     <td className="px-4 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
-                      <input type="checkbox" className="rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0" />
+                      <input type="checkbox" title={`Select ${item.findingId}`} className="rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0" />
                     </td>
                     <td className="px-3 py-3.5 font-mono font-medium text-slate-400 group-hover:text-cyan-400">{item.findingId}</td>
                     <td className="px-4 py-3.5">
@@ -584,9 +589,9 @@ export function Findings() {
                     <td className="px-3 py-3.5 font-mono font-semibold text-slate-200">{item.cvssScore}</td>
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-1.5 font-mono text-[11px]">
-                        <span className="text-cyan-400">{item.affectedAssets?.[0] || 'N/A'}</span>
+                        <span className="text-cyan-400" title={`Endpoint asset path: ${item.affectedAssets?.[0]}`}>{item.affectedAssets?.[0] || 'N/A'}</span>
                         {item.httpMethod && (
-                          <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[9px] font-bold uppercase text-slate-300">
+                          <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[9px] font-bold uppercase text-slate-300" title={`HTTP Method: ${item.httpMethod}`}>
                             {item.httpMethod}
                           </span>
                         )}
@@ -608,7 +613,7 @@ export function Findings() {
                       </span>
                     </td>
                     <td className="px-3 py-3.5 text-center text-slate-500 hover:text-slate-200" onClick={(e) => e.stopPropagation()}>
-                      <button className="rounded p-1 hover:bg-slate-800">
+                      <button className="rounded p-1 hover:bg-slate-800" title="More options">
                         <MoreVertical className="h-4 w-4" />
                       </button>
                     </td>

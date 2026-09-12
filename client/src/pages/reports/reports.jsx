@@ -555,22 +555,29 @@ export function Reports() {
                               target="_blank"
                               rel="noreferrer"
                               download
+                              title={`Download ${item.format} report for ${item.name}`}
                               className="flex items-center gap-1 rounded border border-cyan-500/40 bg-cyan-500/10 px-2.5 py-1 text-[11px] font-bold text-cyan-300 hover:bg-cyan-500/20"
                             >
                               <Download className="h-3 w-3" /> Download
                             </a>
                           )}
                           {isRun && (
-                            <button className="flex items-center gap-1 rounded border border-blue-500/40 bg-blue-500/10 px-2.5 py-1 text-[11px] font-bold text-blue-300 hover:bg-blue-500/20">
+                            <button
+                              title="Inspect live generation progress"
+                              className="flex items-center gap-1 rounded border border-blue-500/40 bg-blue-500/10 px-2.5 py-1 text-[11px] font-bold text-blue-300 hover:bg-blue-500/20"
+                            >
                               View Progress
                             </button>
                           )}
                           {isFail && (
-                            <button className="flex items-center gap-1 rounded border border-slate-700 bg-slate-800 px-2.5 py-1 text-[11px] font-bold text-slate-300 hover:bg-slate-700">
+                            <button
+                              title="Retry report generation"
+                              className="flex items-center gap-1 rounded border border-slate-700 bg-slate-800 px-2.5 py-1 text-[11px] font-bold text-slate-300 hover:bg-slate-700"
+                            >
                               <RotateCcw className="h-3 w-3" /> Retry
                             </button>
                           )}
-                          <button className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-white">
+                          <button className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-white" title={`Report options for ${item.name}`}>
                             <MoreVertical className="h-3.5 w-3.5" />
                           </button>
                         </div>

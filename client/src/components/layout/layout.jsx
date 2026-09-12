@@ -73,7 +73,7 @@ export function TopNavbar() {
           {/* Desktop Navigation */}
           <nav className="hidden items-center gap-1.5 lg:flex">
             {links.map(({ to, label, icon: Icon }) => (
-              <NavLink key={to} to={to} className={({ isActive }) => desktopPill(isActive)}>
+              <NavLink key={to} to={to} title={`Navigate to ${label}`} className={({ isActive }) => desktopPill(isActive)}>
                 <Icon size={14} className="text-slate-400" />
                 <span>{label}</span>
               </NavLink>
@@ -83,9 +83,10 @@ export function TopNavbar() {
 
         <div className="flex items-center gap-3">
           <NotificationCenter />
-          <Avatar name={user?.name} onClick={() => navigate('/settings')} title={`${user?.name || 'Account'} · ${user?.role || ''} — settings`} />
+          <Avatar name={user?.name} onClick={() => navigate('/settings')} title={`${user?.name || 'Account'} (${user?.role || 'User'}) — Click to view settings`} />
           <button
             onClick={async () => { await logout(); navigate('/', { replace: true }); }}
+            title="Log out of Saksham AI Command Center"
             className="hidden items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900/80 px-2.5 py-1.5 text-xs font-semibold text-slate-300 transition hover:border-slate-700 hover:bg-slate-800 hover:text-white sm:flex"
           >
             <LogOut size={13} /> Logout

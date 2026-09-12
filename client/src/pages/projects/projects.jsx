@@ -148,17 +148,19 @@ export function Projects() {
     },
   ];
 
-  const fetchedProjects = data?.projects || [];
-  const rawProjectsList = fetchedProjects.length > 0
-    ? fetchedProjects.map((p, idx) => ({
-        ...p,
-        tags: p.tags || ['Web Application', 'API'],
-        avatarBg: idx % 3 === 0 ? 'bg-cyan-600' : idx % 3 === 1 ? 'bg-purple-600' : 'bg-emerald-600',
-        avatarChar: (p.name || 'P').charAt(0).toUpperCase(),
-        targets: p.targets || { count: 1, sample: p.name ? `${p.name.toLowerCase()}.com` : 'target.com' },
-        assessments: p.assessments || { total: 2, completed: 1 },
-        findings: p.findings || { total: 5, critical: 0, high: 2, medium: 2, low: 1 },
-      }))
+  const hasFetchedProjects = Array.isArray(data?.projects);
+  const rawProjectsList = hasFetchedProjects
+    ? (data.projects.length > 0
+        ? data.projects.map((p, idx) => ({
+            ...p,
+            tags: p.tags || ['Web Application', 'API'],
+            avatarBg: idx % 3 === 0 ? 'bg-cyan-600' : idx % 3 === 1 ? 'bg-purple-600' : 'bg-emerald-600',
+            avatarChar: (p.name || 'P').charAt(0).toUpperCase(),
+            targets: p.targets || { count: 1, sample: p.name ? `${p.name.toLowerCase()}.com` : 'target.com' },
+            assessments: p.assessments || { total: 2, completed: 1 },
+            findings: p.findings || { total: 5, critical: 0, high: 2, medium: 2, low: 1 },
+          }))
+        : [])
     : defaultProjects;
 
   // Filter projects dynamically
@@ -187,19 +189,6 @@ export function Projects() {
           title="Security Projects"
           subtitle="Workspace containers for multi-target security auditing and attack surface management."
         />
-
-        {/* Feature Banner Card */}
-        <div className="flex items-center gap-3 rounded-xl border border-cyan-500/30 bg-gradient-to-r from-cyan-950/60 to-slate-900 p-3.5 shadow-lg backdrop-blur shrink-0 max-w-md">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-cyan-400/40 bg-cyan-500/20 text-cyan-300">
-            <Target className="h-5 w-5" />
-          </div>
-          <div>
-            <h4 className="text-xs font-bold text-white tracking-wide">Organize. Assess. Secure.</h4>
-            <p className="text-[11px] text-slate-400">
-              Create projects, run assessments, and manage your attack surface in one place.
-            </p>
-          </div>
-        </div>
       </div>
 
       {/* Top Executive Metric Summary Cards (4 Columns) */}
@@ -347,6 +336,7 @@ export function Projects() {
             {/* Create Project Primary Action Button */}
             <button
               onClick={() => setShowCreateModal(true)}
+              title="Create a new security audit project container"
               className="flex items-center gap-1.5 rounded-md bg-cyan-600 hover:bg-cyan-500 px-3.5 py-1.5 text-xs font-bold text-white transition shadow-sm border border-cyan-400/30"
             >
               <Plus className="h-4 w-4" />
@@ -379,10 +369,11 @@ export function Projects() {
                       <img
                         src={p.image || p.avatarUrl}
                         alt={p.name}
+                        title={`Project icon for ${p.name}`}
                         className="h-11 w-11 shrink-0 rounded-xl object-cover border border-cyan-500/40 shadow-sm ring-1 ring-cyan-500/20"
                       />
                     ) : (
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-950 to-slate-900 border border-cyan-500/30 text-cyan-400 font-extrabold text-base shadow-sm">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-950 to-slate-900 border border-cyan-500/30 text-cyan-400 font-extrabold text-base shadow-sm" title={`Project avatar for ${p.name}`}>
                         {p.name.charAt(0).toUpperCase()}
                       </div>
                     )}
@@ -390,6 +381,7 @@ export function Projects() {
                       <div className="flex items-center gap-2">
                         <Link
                           to={`/projects/${p._id}`}
+                          title={`Open ${p.name} security workspace`}
                           className="font-bold text-white text-sm hover:text-cyan-300 transition"
                         >
                           {p.name}
@@ -404,6 +396,7 @@ export function Projects() {
                         {(Array.isArray(p.tags) ? p.tags : [p.tags || 'Web Application']).map((t, idx) => (
                           <span
                             key={idx}
+                            title={`Project Tag: ${t}`}
                             className="rounded border border-slate-800 bg-slate-950/80 px-2 py-0.5 font-mono text-[10px] text-slate-400"
                           >
                             {t}
@@ -414,7 +407,7 @@ export function Projects() {
                   </div>
 
                   {/* Column 2: Target Stats */}
-                  <div className="min-w-[140px] text-xs">
+                  <div className="min-w-[140px] text-xs" title={`Target URL scope for ${p.name}`}>
                     <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
                       <Globe className="h-3.5 w-3.5 text-cyan-400" />
                       <span>TARGETS</span>
@@ -428,7 +421,7 @@ export function Projects() {
                   </div>
 
                   {/* Column 3: Assessments Count */}
-                  <div className="min-w-[130px] text-xs">
+                  <div className="min-w-[130px] text-xs" title={`Assessment runs for ${p.name}`}>
                     <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
                       <Activity className="h-3.5 w-3.5 text-blue-400" />
                       <span>ASSESSMENTS</span>
@@ -442,7 +435,7 @@ export function Projects() {
                   </div>
 
                   {/* Column 4: Findings Breakdown */}
-                  <div className="min-w-[140px] text-xs">
+                  <div className="min-w-[140px] text-xs" title={`Security findings breakdown for ${p.name}`}>
                     <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
                       <ShieldCheck className="h-3.5 w-3.5 text-amber-400" />
                       <span>FINDINGS</span>
@@ -451,16 +444,16 @@ export function Projects() {
                       {p.findingCount || 5}
                     </div>
                     <div className="flex items-center gap-2 mt-0.5 text-[10px] font-mono">
-                      <span className="flex items-center gap-0.5 text-red-400 font-bold">
+                      <span className="flex items-center gap-0.5 text-red-400 font-bold" title="Critical Findings">
                         <span className="h-1.5 w-1.5 rounded-full bg-red-500" /> {p.findings?.critical || 0}
                       </span>
-                      <span className="flex items-center gap-0.5 text-orange-400 font-bold">
+                      <span className="flex items-center gap-0.5 text-orange-400 font-bold" title="High Findings">
                         <span className="h-1.5 w-1.5 rounded-full bg-orange-500" /> {p.findings?.high || 2}
                       </span>
-                      <span className="flex items-center gap-0.5 text-amber-400 font-bold">
+                      <span className="flex items-center gap-0.5 text-amber-400 font-bold" title="Medium Findings">
                         <span className="h-1.5 w-1.5 rounded-full bg-amber-500" /> {p.findings?.medium || 2}
                       </span>
-                      <span className="flex items-center gap-0.5 text-emerald-400 font-bold">
+                      <span className="flex items-center gap-0.5 text-emerald-400 font-bold" title="Low Findings">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> {p.findings?.low || 1}
                       </span>
                     </div>
@@ -490,6 +483,7 @@ export function Projects() {
                   <div className="flex items-center gap-2">
                     <Link
                       to={`/projects/${p._id}`}
+                      title={`Open project workspace for ${p.name}`}
                       className="flex items-center gap-1 rounded-md border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-xs font-bold text-cyan-300 transition hover:bg-cyan-500/20"
                     >
                       Open Project <ArrowRight className="h-3.5 w-3.5" />
@@ -501,7 +495,7 @@ export function Projects() {
                           setActiveMenuProjectId((prev) => (prev === p._id ? null : p._id));
                         }}
                         className="rounded p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition"
-                        title="Project actions"
+                        title={`Manage options for ${p.name}`}
                       >
                         <MoreVertical className="h-4 w-4" />
                       </button>
