@@ -68,8 +68,7 @@ const verify = asyncHandler(async (req, res) => {
   res.json({ finding });
 });
 
-const aiAnalysis = asyncHandler(async (req, res) => {
-  const finding = await Finding.findById(req.params.id);
+const aiAnalysis = asyncHandler(async (req, res) => {  const finding = await Finding.findById(req.params.id);
   if (!finding) return res.status(404).json({ message: 'Finding not found' });
   const project = await Project.findById(finding.projectId);
   if (!project || !hasProjectAccess(req.user, project)) {
@@ -97,5 +96,36 @@ const aiAnalysis = asyncHandler(async (req, res) => {
   res.json({ finding, meta: result._meta });
 });
 
-module.exports = { list, get, update, verify, aiAnalysis };
+const retest = asyncHandler(async (req, res) => {
+  const { result, notes } = req.body; // result: REQUIRED | PASSED | FAILED
+  const finding = await Finding.findById(req.params.id);
+  if (!finding) return res.status(404).json({ message: 'Finding not found' });
+  const project = await Project.findById(finding.projectId);
+  if (!project || !hasProjectAccess(req.user, project)) {
+    return res.status(403).json({ message: 'Access denied: not authorized to retest this finding' });
+  }
+  if (result === 'REQUIRED') {
+    finding.retestStatus = 'REQUIRED';
+    if (finding.status === 'Resolved') finding.status = 'Under Review';
+  } else if (result === 'PASSED') {
+    finding.retestStatus = 'PASSED';
+    finding.status = 'Verified';
+    finding.verified = true;
+    finding.verifiedBy = req.user._id;
+    finding.verificationDate = new Date();
+  } else if (result === 'FAILED') {
+    finding.retestStatus = 'FAILED';
+    if (finding.status === 'Resolved' || finding.status === 'Verified') finding.status = 'Under Review';
+    finding.verified = false;
+  } else {
+    return res.status(400).json({ message: 'result must be REQUIRED, PASSED or FAILED' });
+  }
+  if (notes !== undefined) finding.retestNotes = String(notes);
+  finding.retestDate = new Date();
+  await finding.save();
+  await logActivity(Activity, { projectId: finding.projectId, actor: req.user._id, action: `Retest ${finding.retestStatus}`, detail: `${finding.findingId} ${finding.title}` });
+  res.json({ finding });
+});
+
+module.exports = { list, get, update, verify, aiAnalysis, retest };
 

@@ -4,8 +4,7 @@ const { STAGES } = require('../models/Assessment');
 const Asset = require('../models/Asset');
 const Finding = require('../models/Finding');
 const Activity = require('../models/Activity');
-const { buildDemoAssets, buildDemoFindings } = require('../utils/demoData');
-const { securityScoreFromCounts, nextFindingId, logActivity } = require('../utils/security');
+const { securityScoreFromCounts, nextFindingId, logActivity, slaDueAt } = require('../utils/security');
 const { analyzeFinding } = require('../services/aiService');
 const { scanTarget } = require('../services/scannerEngine');
 
@@ -47,8 +46,9 @@ async function runAssessment(assessmentId, io) {
       await fresh.save();
       emit(io, fresh, { stage });
 
-      // Run live scanner during the ATTACK_SURFACE and SECURITY_AUDIT stages
-      if (stage === 'ATTACK_SURFACE' && target?.url) {
+      // Run the live scanner once discovery begins (stage names are the
+      // camelCase STAGES from the Assessment model).
+      if (stage === 'endpointDiscovery' && target?.url) {
         try {
           liveScanResult = await scanTarget(target.url, target.customHeaders || '');
         } catch (e) {
@@ -62,21 +62,17 @@ async function runAssessment(assessmentId, io) {
       emit(io, fresh, { stage });
     }
 
-    // Materialize results
+    // Materialize results — live scan data only. Never fabricate findings:
+    // an empty scan honestly yields zero assets/findings, not demo data.
     await Asset.deleteMany({ assessmentId });
     await Finding.deleteMany({ assessmentId });
 
-    // Use pure live assets if discovered, fallback to demoAssets only for empty mock targets
     const liveAssets = liveScanResult.assets || [];
-    const combinedAssets = (liveAssets.length >= 2)
-      ? liveAssets.map((a) => ({ ...a, assessmentId }))
-      : [...liveAssets, ...buildDemoAssets()].map((a) => ({ ...a, assessmentId }));
+    const combinedAssets = liveAssets.map((a) => ({ ...a, assessmentId }));
 
     await Asset.insertMany(combinedAssets);
 
-    const rawFindings = (liveScanResult.findings && liveScanResult.findings.length > 0)
-      ? liveScanResult.findings
-      : buildDemoFindings();
+    const rawFindings = liveScanResult.findings || [];
 
     const totals = { assets: combinedAssets.length, findings: rawFindings.length, critical: 0, high: 0, medium: 0, low: 0, informational: 0, verified: 0 };
     const docs = [];
@@ -90,21 +86,41 @@ async function runAssessment(assessmentId, io) {
         : severityFromScore(d.cvssScore || 5.0);
       const validSev = ['Critical', 'High', 'Medium', 'Low', 'Informational'].includes(computedSev) ? computedSev : 'Medium';
 
-      const aiAnalysis = await analyzeFinding({
-        title: d.title, category: d.category, severity: validSev,
-        endpoint: (d.affectedAssets || [])[0] || '', evidence: d.evidence, verificationStatus: d.status,
-      });
+      let aiAnalysis;
+      try {
+        aiAnalysis = await analyzeFinding({
+          title: d.title, category: d.category, severity: validSev,
+          endpoint: (d.affectedAssets || [])[0] || '', evidence: d.evidence, verificationStatus: d.status,
+        });
+      } catch (err) {
+        // AI outage must never fail the assessment or fabricate analysis.
+        console.warn('[worker] AI analysis unavailable for finding:', d.title, '-', err.message);
+        aiAnalysis = {
+          summary: 'AI analysis unavailable — providers unreachable.',
+          classification: d.category || 'Unclassified',
+          confidence: 0,
+          impact: d.impact || '',
+          technicalExplanation: '',
+          remediation: [],
+          priorityReason: 'Retry AI analysis when providers recover.',
+          _meta: { model: 'none', provider: 'unavailable', note: err.message },
+        };
+      }
       docs.push({
         title: d.title,
         category: d.category || 'Security Misconfiguration',
         severity: validSev,
         cvssScore: d.cvssScore || 5.0,
+        cwe: d.cwe || '',
+        owasp: d.owasp || '',
         affectedAssets: d.affectedAssets || [target?.url || 'target.local'],
         evidence: d.evidence || 'Header or configuration audit payload.',
         impact: d.impact || 'Potential risk of unauthorized data access or control compromise.',
         remediation: Array.isArray(d.remediation) ? d.remediation : [d.remediation || 'Harden server security configuration.'],
         status: d.status || 'Under Review',
         verified: d.status === 'Verified',
+        httpTrace: d.httpTrace || { method: 'GET', url: (d.affectedAssets || [])[0] || target?.url || '' },
+        slaDueAt: slaDueAt(validSev),
         assessmentId,
         projectId: assessment.projectId,
         findingId,

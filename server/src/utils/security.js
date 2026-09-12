@@ -26,4 +26,11 @@ async function logActivity(Activity, { projectId = null, assessmentId = null, ac
   }
 }
 
-module.exports = { severityFromScore, securityScoreFromCounts, nextFindingId, logActivity };
+// Remediation SLA windows: Critical 24h, High 7d, Medium 30d, Low/Info 90d
+const SLA_HOURS = { Critical: 24, High: 168, Medium: 720, Low: 2160, Informational: 2160 };
+function slaDueAt(severity, from = new Date()) {
+  const hours = SLA_HOURS[severity] || 720;
+  return new Date(new Date(from).getTime() + hours * 3600 * 1000);
+}
+
+module.exports = { severityFromScore, securityScoreFromCounts, nextFindingId, logActivity, slaDueAt, SLA_HOURS };

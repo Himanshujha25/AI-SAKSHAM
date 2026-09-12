@@ -101,93 +101,6 @@ export function Assessments() {
     },
   });
 
-  // Default mock assessment records if database is empty for visual fidelity
-  const defaultAssessments = [
-    {
-      _id: 'ass_66001',
-      title: 'Comprehensive Security Assessment',
-      hash: 'b5608d',
-      project: 'claude',
-      projectBg: 'bg-cyan-600',
-      target: 'https://claude.ai',
-      profile: 'Standard',
-      status: 'COMPLETED',
-      progress: 100,
-      score: 83,
-      createdAt: '2026-09-12T20:44:45Z',
-      duration: '18m 24s',
-    },
-    {
-      _id: 'ass_66002',
-      title: 'Quick Security Assessment',
-      hash: '20d029',
-      project: 'World Monitor',
-      projectBg: 'bg-purple-600',
-      target: 'https://worldmonitor.com',
-      profile: 'Quick Scan',
-      status: 'RUNNING',
-      progress: 65,
-      score: null,
-      createdAt: '2026-09-12T20:40:20Z',
-      duration: '12m 10s',
-    },
-    {
-      _id: 'ass_66003',
-      title: 'Comprehensive Security Assessment',
-      hash: '99368d',
-      project: 'djfbjher',
-      projectBg: 'bg-emerald-600',
-      target: 'https://internal.app',
-      profile: 'Deep Audit',
-      status: 'FAILED',
-      progress: 100,
-      score: null,
-      createdAt: '2026-09-12T20:38:55Z',
-      duration: '22m 16s',
-    },
-    {
-      _id: 'ass_66004',
-      title: 'Quick Security Assessment',
-      hash: 'a1005f',
-      project: 'claude',
-      projectBg: 'bg-cyan-600',
-      target: 'https://api.claude.ai',
-      profile: 'Standard',
-      status: 'FAILED',
-      progress: 100,
-      score: null,
-      createdAt: '2026-09-12T20:12:18Z',
-      duration: '10m 42s',
-    },
-    {
-      _id: 'ass_66005',
-      title: 'API Security Audit',
-      hash: 'f0732e',
-      project: 'djfbjher',
-      projectBg: 'bg-emerald-600',
-      target: 'https://api.internal',
-      profile: 'API Audit',
-      status: 'COMPLETED',
-      progress: 100,
-      score: 81,
-      createdAt: '2026-09-11T16:20:11Z',
-      duration: '25m 05s',
-    },
-    {
-      _id: 'ass_66006',
-      title: 'Infrastructure Assessment',
-      hash: 'e49901',
-      project: 'World Monitor',
-      projectBg: 'bg-purple-600',
-      target: 'https://staging.worldmonitor.com',
-      profile: 'Infrastructure',
-      status: 'COMPLETED',
-      progress: 100,
-      score: 76,
-      createdAt: '2026-09-10T11:42:07Z',
-      duration: '31m 14s',
-    },
-  ];
 
   const fetchedList = list.data?.assessments || [];
   const rawList = fetchedList.length > 0
@@ -217,7 +130,7 @@ export function Assessments() {
           duration: '18m 24s',
         };
       })
-    : defaultAssessments;
+    : [];
 
   // Tab & Search Filtering
   const filteredList = useMemo(() => {

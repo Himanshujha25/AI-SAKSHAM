@@ -5,8 +5,10 @@ const Assessment = require('../models/Assessment');
 const Finding = require('../models/Finding');
 const { asyncHandler } = require('../middleware/errors');
 const { generateReportFile } = require('../services/reportService');
-const { executiveSummary } = require('../services/aiService');
+const { executiveSummary, generateExecutiveSummary } = require('../services/aiService');
 const { getUserProjectIds, hasProjectAccess } = require('../middleware/auth');
+const Activity = require('../models/Activity');
+const { logActivity } = require('../utils/security');
 
 const generate = asyncHandler(async (req, res) => {
   const { assessmentId, type, format } = req.body;
@@ -22,11 +24,29 @@ const generate = asyncHandler(async (req, res) => {
     Target.findById(assessment.targetId),
     Finding.find({ assessmentId }).sort({ cvssScore: -1 }),
   ]);
-  const summary = executiveSummary({
-    projectName: project?.name || 'Target',
-    score: assessment.summary?.securityScore ?? 0,
-    totals: assessment.summary?.totals || { critical: 0, high: 0, medium: 0, low: 0 },
-  });
+  const totals = assessment.summary?.totals || { critical: 0, high: 0, medium: 0, low: 0 };
+  // Prefer an AI-written summary grounded in real findings; fall back to the
+  // factual template only when all AI providers are unreachable.
+  let summary;
+  let summarySource = 'template';
+  try {
+    const ai = await generateExecutiveSummary({
+      projectName: project?.name || 'Target',
+      targetUrl: target?.url,
+      score: assessment.summary?.securityScore ?? 0,
+      totals,
+      topFindings: findings,
+    });
+    summary = ai.text;
+    summarySource = `ai:${ai.provider}`;
+  } catch (e) {
+    console.warn('[reports] AI summary unavailable, using template:', e.message);
+    summary = executiveSummary({
+      projectName: project?.name || 'Target',
+      score: assessment.summary?.securityScore ?? 0,
+      totals,
+    });
+  }
   const reportType = ['Executive', 'Technical', 'Summary'].includes(type) ? type : 'Technical';
   const reportFormat = String(format || 'PDF').toUpperCase().includes('HTML')
     ? 'HTML'
@@ -38,7 +58,9 @@ const generate = asyncHandler(async (req, res) => {
   const report = await Report.create({
     projectId: assessment.projectId, assessmentId, type: reportType, format: reportFormat,
     generatedBy: req.user._id, fileUrl, fileName, status: 'Ready', executiveSummary: summary,
+    summarySource,
   });
+  await logActivity(Activity, { projectId: assessment.projectId, assessmentId, actor: req.user._id, action: 'Report Generated', detail: `${reportType} ${reportFormat} (${summarySource})` });
   res.status(201).json({ report });
 });
 

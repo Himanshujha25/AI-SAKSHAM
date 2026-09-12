@@ -1,5 +1,5 @@
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FolderKanban, FlaskConical, Bug, FileText, ShieldCheck, LogOut, Menu, X, Settings as SettingsIcon } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, FlaskConical, Bug, FileText, ShieldCheck, LogOut, Menu, X, Settings as SettingsIcon, FlaskRound, ScrollText } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../store/auth';
@@ -12,6 +12,8 @@ const links = [
   { to: '/assessments', label: 'Assessments', icon: FlaskConical },
   { to: '/findings', label: 'Findings', icon: Bug },
   { to: '/reports', label: 'Reports', icon: FileText },
+  { to: '/api-tester', label: 'API Tester', icon: FlaskRound },
+  { to: '/activity', label: 'Activity', icon: ScrollText },
 ];
 
 function Brand() {
@@ -71,7 +73,7 @@ export function TopNavbar() {
         <div className="flex items-center gap-6">
           <Brand />
           {/* Desktop Navigation */}
-          <nav className="hidden items-center gap-1.5 lg:flex">
+          <nav className="hidden items-center gap-1.5 xl:flex">
             {links.map(({ to, label, icon: Icon }) => (
               <NavLink key={to} to={to} title={`Navigate to ${label}`} className={({ isActive }) => desktopPill(isActive)}>
                 <Icon size={14} className="text-slate-400" />
@@ -93,7 +95,7 @@ export function TopNavbar() {
           </button>
           <button
             onClick={() => setOpen((o) => !o)}
-            className="rounded-lg border border-slate-800 p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white lg:hidden"
+            className="rounded-lg border border-slate-800 p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white xl:hidden"
             title="Menu"
           >
             {open ? <X size={17} /> : <Menu size={17} />}
@@ -109,7 +111,7 @@ export function TopNavbar() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.18 }}
-            className="overflow-hidden border-t border-slate-800 bg-[#090d16] lg:hidden"
+            className="overflow-hidden border-t border-slate-800 bg-[#090d16] xl:hidden"
           >
             <div className="grid grid-cols-2 gap-2 p-3">
               {links.map(({ to, label, icon: Icon }) => (

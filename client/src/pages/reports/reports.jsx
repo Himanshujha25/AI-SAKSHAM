@@ -58,79 +58,6 @@ export function Reports() {
 
   const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1').replace(/\/api\/v1$/, '');
 
-  // Default mock reports list if database is empty for visual fidelity
-  const defaultReports = [
-    {
-      _id: 'rep_101',
-      idx: 1,
-      name: 'Technical Security Report',
-      subtitle: 'Detailed technical findings and remediation',
-      assessment: 'Comprehensive Security Assessment',
-      type: 'Technical',
-      typeColor: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
-      format: 'PDF',
-      status: 'Completed',
-      generatedOn: '2026-09-12T23:04:00Z',
-      size: '2.4 MB',
-      fileUrl: '/api/v1/reports/rep_101/download',
-    },
-    {
-      _id: 'rep_102',
-      idx: 2,
-      name: 'Executive Summary',
-      subtitle: 'High-level overview for stakeholders',
-      assessment: 'World Monitor Assessment',
-      type: 'Executive',
-      typeColor: 'bg-purple-500/10 text-purple-400 border-purple-500/30',
-      format: 'PDF',
-      status: 'Completed',
-      generatedOn: '2026-09-11T19:32:00Z',
-      size: '1.1 MB',
-      fileUrl: '/api/v1/reports/rep_102/download',
-    },
-    {
-      _id: 'rep_103',
-      idx: 3,
-      name: 'Vulnerability Report',
-      subtitle: 'All findings with evidence',
-      assessment: 'API Security Audit',
-      type: 'Technical',
-      typeColor: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
-      format: 'PDF',
-      status: 'In Progress',
-      generatedOn: '2026-09-12T18:21:00Z',
-      size: '—',
-      fileUrl: null,
-    },
-    {
-      _id: 'rep_104',
-      idx: 4,
-      name: 'Remediation Report',
-      subtitle: 'Step-by-step fix recommendations',
-      assessment: 'External Infrastructure Scan',
-      type: 'Remediation',
-      typeColor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
-      format: 'PDF',
-      status: 'Failed',
-      generatedOn: '2026-09-11T11:08:00Z',
-      size: '—',
-      fileUrl: null,
-    },
-    {
-      _id: 'rep_105',
-      idx: 5,
-      name: 'Compliance Report',
-      subtitle: 'Security posture & compliance status',
-      assessment: 'Internal Web Application',
-      type: 'Compliance',
-      typeColor: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
-      format: 'PDF',
-      status: 'Completed',
-      generatedOn: '2026-09-10T10:45:00Z',
-      size: '1.8 MB',
-      fileUrl: '/api/v1/reports/rep_105/download',
-    },
-  ];
 
   const fetchedReports = list.data?.reports || [];
   const rawList = fetchedReports.length > 0
@@ -148,8 +75,7 @@ export function Reports() {
         size: '2.1 MB',
         fileUrl: r.fileUrl ? `${apiBase}${r.fileUrl}` : null,
       }))
-    : defaultReports;
-
+    : [];
   // Tab & Search Filter
   const filteredList = useMemo(() => {
     return rawList.filter((item) => {

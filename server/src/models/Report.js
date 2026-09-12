@@ -11,6 +11,7 @@ const reportSchema = new mongoose.Schema(
     fileName: { type: String, default: '' },
     status: { type: String, enum: ['Generating', 'Ready', 'Failed'], default: 'Ready' },
     executiveSummary: { type: String, default: '' },
+    summarySource: { type: String, default: 'template' }, // e.g. 'ai:gemini' | 'ai:groq' | 'ai:openrouter' | 'template'
     meta: { type: mongoose.Schema.Types.Mixed, default: {} },
   },
   { timestamps: { createdAt: true, updatedAt: false } }

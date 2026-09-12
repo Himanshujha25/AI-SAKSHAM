@@ -11,6 +11,7 @@ const FINDING_STATUSES = [
   'Accepted Risk',
 ];
 const REMEDIATION_STATUSES = ['OPEN', 'IN PROGRESS', 'RESOLVED', 'ACCEPTED RISK'];
+const RETEST_STATUSES = ['NOT_REQUIRED', 'REQUIRED', 'PASSED', 'FAILED'];
 
 const findingSchema = new mongoose.Schema(
   {
@@ -29,6 +30,17 @@ const findingSchema = new mongoose.Schema(
     impact: { type: String, default: '' },
     remediation: { type: [String], default: [] },
     remediationStatus: { type: String, enum: REMEDIATION_STATUSES, default: 'OPEN' },
+    cwe: { type: String, default: '', trim: true, maxlength: 20 }, // e.g. CWE-639
+    owasp: { type: String, default: '', trim: true, maxlength: 40 }, // e.g. A01:2021
+    httpTrace: {
+      method: { type: String, default: 'GET' },
+      url: { type: String, default: '' },
+      statusCode: { type: Number, default: null },
+    },
+    retestStatus: { type: String, enum: RETEST_STATUSES, default: 'NOT_REQUIRED', index: true },
+    retestNotes: { type: String, default: '' },
+    retestDate: { type: Date, default: null },
+    slaDueAt: { type: Date, default: null, index: true },
     aiAnalysis: {
       summary: { type: String, default: '' },
       classification: { type: String, default: '' },
@@ -52,3 +64,4 @@ module.exports = mongoose.model('Finding', findingSchema);
 module.exports.SEVERITIES = SEVERITIES;
 module.exports.FINDING_STATUSES = FINDING_STATUSES;
 module.exports.REMEDIATION_STATUSES = REMEDIATION_STATUSES;
+module.exports.RETEST_STATUSES = RETEST_STATUSES;

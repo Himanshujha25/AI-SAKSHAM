@@ -14,6 +14,8 @@ const assessmentRoutes = require('./routes/assessmentRoutes');
 const findingRoutes = require('./routes/findingRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const activityRoutes = require('./routes/activityRoutes');
+const toolsRoutes = require('./routes/toolsRoutes');
 
 const app = express();
 app.set('io', null);
@@ -36,6 +38,8 @@ app.use('/api/v1/assessments', assessmentRoutes);
 app.use('/api/v1/findings', findingRoutes);
 app.use('/api/v1/reports', reportRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
+app.use('/api/v1/activity', activityRoutes);
+app.use('/api/v1/tools', toolsRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

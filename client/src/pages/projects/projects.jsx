@@ -102,51 +102,6 @@ export function Projects() {
     },
   });
 
-  // Default mock projects if API returns empty list for demo preview
-  const defaultProjects = [
-    {
-      _id: 'proj_1',
-      name: 'claude',
-      status: 'Active',
-      description: 'Security assessment for claude',
-      tags: ['Web Application', 'API', 'Reconnaissance'],
-      avatarBg: 'bg-cyan-600',
-      avatarChar: 'C',
-      targets: { count: 1, sample: 'claude.ai' },
-      assessments: { total: 4, completed: 2 },
-      findings: { total: 12, critical: 1, high: 5, medium: 3, low: 3 },
-      createdAt: '2026-09-10T10:00:00Z',
-      updatedAt: '2026-09-12T15:20:00Z',
-    },
-    {
-      _id: 'proj_2',
-      name: 'World Monitor Project',
-      status: 'Active',
-      description: 'Security assessment for World Monitor Service',
-      tags: ['Web Application', 'Monitoring', 'External'],
-      avatarBg: 'bg-purple-600',
-      avatarChar: 'W',
-      targets: { count: 2, sample: 'worldmonitor.com +1 more' },
-      assessments: { total: 3, completed: 1 },
-      findings: { total: 8, critical: 0, high: 3, medium: 3, low: 2 },
-      createdAt: '2026-09-08T14:30:00Z',
-      updatedAt: '2026-09-12T11:15:00Z',
-    },
-    {
-      _id: 'proj_3',
-      name: 'djfbjher',
-      status: 'Active',
-      description: 'Internal infrastructure and target scanning container',
-      tags: ['API', 'Testing', 'Internal'],
-      avatarBg: 'bg-emerald-600',
-      avatarChar: 'D',
-      targets: { count: 1, sample: 'internal' },
-      assessments: { total: 1, completed: 0 },
-      findings: { total: 3, critical: 0, high: 1, medium: 1, low: 1 },
-      createdAt: '2026-09-05T09:10:00Z',
-      updatedAt: '2026-09-12T10:00:00Z',
-    },
-  ];
 
   const hasFetchedProjects = Array.isArray(data?.projects);
   const rawProjectsList = hasFetchedProjects
@@ -161,7 +116,7 @@ export function Projects() {
             findings: p.findings || { total: 5, critical: 0, high: 2, medium: 2, low: 1 },
           }))
         : [])
-    : defaultProjects;
+    : [];
 
   // Filter projects dynamically
   const filteredProjects = rawProjectsList.filter((p) => {

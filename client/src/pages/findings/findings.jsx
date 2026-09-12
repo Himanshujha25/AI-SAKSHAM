@@ -26,15 +26,18 @@ import {
   ChevronLeft,
   ArrowLeft,
   MoreVertical,
+  Copy,
+  Check,
+  Timer,
+  RotateCcw,
 } from 'lucide-react';
 import api from '../../lib/api';
-import { errMsg, cn } from '../../lib/utils';
+import { errMsg, cn, buildCurl, slaCountdown } from '../../lib/utils';
 import CustomSelect from '../../components/ui/CustomSelect';
 import { PageHeader, LoadingState, ErrorState, EmptyState, SeverityBadge, StatusBadge } from '../../components/shared/shared';
 import { Button, Card, Input } from '../../components/ui/primitives';
 
-function formatDateTime(val) {
-  if (!val) val = new Date().toISOString();
+function formatDateTime(val) {  if (!val) val = new Date().toISOString();
   const d = new Date(val);
   const valid = !isNaN(d.getTime()) ? d : new Date();
   return {
@@ -48,6 +51,44 @@ function formatDateTime(val) {
       minute: '2-digit',
     }),
   };
+}
+
+// One-click PoC cURL exporter — copies a reproducible curl for the finding.
+function CopyCurlButton({ finding, className }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(buildCurl(finding));
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        } catch (e) {
+          setCopied(false);
+        }
+      }}
+      className={cn(
+        'inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800/80 px-3 py-1.5 font-mono text-[11px] text-slate-200 transition hover:border-cyan-500/50 hover:text-white',
+        className
+      )}
+      title="Copy reproducible PoC cURL command"
+    >
+      {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5 text-cyan-400" />}
+      {copied ? 'Copied!' : 'Copy cURL PoC'}
+    </button>
+  );
+}
+
+function SlaBadge({ dueAt }) {
+  const { text, overdue } = slaCountdown(dueAt);
+  return (
+    <span className={cn(
+      'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 font-mono text-[11px] font-semibold',
+      overdue ? 'bg-red-500/15 text-red-300 ring-1 ring-red-400/40' : 'bg-amber-500/15 text-amber-300 ring-1 ring-amber-400/40'
+    )}>
+      <Timer className="h-3 w-3" /> SLA: {text}
+    </span>
+  );
 }
 
 export function Findings() {
@@ -66,11 +107,15 @@ export function Findings() {
   // Selected finding for the right slide-over drawer
   const [selectedFinding, setSelectedFinding] = useState(null);
   const [drawerTab, setDrawerTab] = useState('details'); // 'details' | 'evidence' | 'remediation' | 'timeline'
-  const [toastMessage, setToastMessage] = useState({ show: true, id: 'VUL-003', text: 'Finding verified successfully' });
 
   const queryString = new URLSearchParams(
     Object.fromEntries(
-      Object.entries(filters).filter(([, val]) => val !== '' && val !== 'all')
+      Object.entries({
+        severity: filters.severity,
+        status: filters.status,
+        projectId: filters.project,
+        search: filters.search,
+      }).filter(([, val]) => val !== '' && val !== 'all')
     )
   ).toString();
 
@@ -79,134 +124,13 @@ export function Findings() {
     queryFn: async () => (await api.get(`/findings?${queryString}`)).data,
   });
 
-  const fetchedFindings = data?.findings || [];
-  const defaultFindings = [
-    {
-      _id: '1',
-      findingId: 'VUL-003',
-      title: 'Broken Access Control',
-      description: 'Improper access control allows unauthorized access to protected resources.',
-      severity: 'High',
-      cvssScore: 8.1,
-      affectedAssets: ['/api/assets'],
-      httpMethod: 'GET',
-      project: 'SahakarGig',
-      technology: 'Node.js (Express)',
-      cweId: 'CWE-862',
-      owaspCategory: 'A01:2021',
-      status: 'Verified',
-      detectedDate: '2026-09-12T14:32:00Z',
-      updatedDate: '2026-09-12T15:08:00Z',
-      firstSeen: '2026-09-10T11:23:00Z',
-      lastSeen: '2026-09-12T15:08:00Z',
-      evidence: 'GET /api/assets HTTP/1.1\nHost: target.com\nAuthorization: Bearer unprivileged_user_token\n\nHTTP/1.1 200 OK\n[{"id":"admin_secret_asset_99"}]',
-      remediation: ['Implement role-based authorization check middleware on GET /api/assets.', 'Enforce tenant isolation on resource queries.'],
-    },
-    {
-      _id: '2',
-      findingId: 'VUL-004',
-      title: 'Missing Security Header (CSP)',
-      description: 'Content Security Policy header is not present on login page.',
-      severity: 'Medium',
-      cvssScore: 5.4,
-      affectedAssets: ['/login'],
-      httpMethod: 'GET',
-      project: 'Sentinel AI',
-      technology: 'React / Vite',
-      cweId: 'CWE-693',
-      owaspCategory: 'A05:2021',
-      status: 'Under Review',
-      detectedDate: '2026-09-12T12:00:00Z',
-      updatedDate: '2026-09-12T12:10:00Z',
-      firstSeen: '2026-09-12T12:00:00Z',
-      lastSeen: '2026-09-12T12:10:00Z',
-      evidence: 'Response headers missing Content-Security-Policy header.',
-      remediation: ['Add Content-Security-Policy header to web server response headers.'],
-    },
-    {
-      _id: '3',
-      findingId: 'VUL-005',
-      title: 'Verbose Error Message',
-      description: 'Unhandled error response exposes internal stack trace.',
-      severity: 'Low',
-      cvssScore: 3.2,
-      affectedAssets: ['/auth'],
-      httpMethod: 'POST',
-      project: 'Main Target',
-      technology: 'Node.js',
-      cweId: 'CWE-209',
-      owaspCategory: 'A04:2021',
-      status: 'Potential',
-      detectedDate: '2026-09-11T10:45:00Z',
-      updatedDate: '2026-09-11T10:45:00Z',
-      firstSeen: '2026-09-11T10:45:00Z',
-      lastSeen: '2026-09-11T10:45:00Z',
-      evidence: '500 Internal Server Error: Error at /app/server.js:42:10',
-      remediation: ['Sanitize error messages in production environment.'],
-    },
-    {
-      _id: '4',
-      findingId: 'VUL-002',
-      title: 'Insecure Direct Object Reference',
-      description: 'IDOR vulnerability in user profile access route.',
-      severity: 'High',
-      cvssScore: 7.3,
-      affectedAssets: ['/api/profile'],
-      httpMethod: 'GET',
-      project: 'SahakarGig',
-      technology: 'Express.js',
-      cweId: 'CWE-639',
-      owaspCategory: 'A01:2021',
-      status: 'Open',
-      detectedDate: '2026-09-11T13:15:00Z',
-      updatedDate: '2026-09-11T13:15:00Z',
-      firstSeen: '2026-09-11T13:15:00Z',
-      lastSeen: '2026-09-11T13:15:00Z',
-      evidence: 'GET /api/profile?userId=102 returns profile of admin user 102.',
-      remediation: ['Verify user session ID against requested profile ID.'],
-    },
-    {
-      _id: '5',
-      findingId: 'VUL-006',
-      title: 'Outdated Dependency',
-      description: 'Vulnerable library version detected in package.json.',
-      severity: 'Low',
-      cvssScore: 2.3,
-      affectedAssets: ['package.json'],
-      httpMethod: 'N/A',
-      project: 'SahakarGig',
-      technology: 'npm / Node',
-      cweId: 'CWE-1104',
-      owaspCategory: 'A06:2021',
-      status: 'Verified',
-      detectedDate: '2026-09-10T09:20:00Z',
-      updatedDate: '2026-09-12T09:30:00Z',
-      firstSeen: '2026-09-10T09:20:00Z',
-      lastSeen: '2026-09-12T09:30:00Z',
-      evidence: 'axios@0.21.1 has known vulnerability CVE-2021-3749.',
-      remediation: ['Upgrade package to latest safe release version.'],
-    },
-    {
-      _id: '6',
-      findingId: 'VUL-007',
-      title: 'SQL Injection (Potential)',
-      description: 'Raw SQL input not sanitized in search endpoint.',
-      severity: 'Critical',
-      cvssScore: 9.1,
-      affectedAssets: ['/search'],
-      httpMethod: 'POST',
-      project: 'Sentinel AI',
-      technology: 'PostgreSQL',
-      cweId: 'CWE-89',
-      owaspCategory: 'A03:2021',
-      status: 'Open',
-      detectedDate: '2026-09-10T09:20:00Z',
-      updatedDate: '2026-09-10T09:20:00Z',
-      firstSeen: '2026-09-10T09:20:00Z',
-      lastSeen: '2026-09-10T09:20:00Z',
-      evidence: "POST /search payload q=1' OR '1'='1 returns all database rows.",
-      remediation: ['Use parameterized queries or ORM bindings.'],
-    },
+  const projectsQuery = useQuery({
+    queryKey: ['projects-mini'],
+    queryFn: async () => (await api.get('/projects')).data,
+  });
+  const projectOptions = [
+    { label: 'All projects', value: '' },
+    ...(projectsQuery.data?.projects || []).map((p) => ({ label: p.name, value: p._id })),
   ];
 
   const hasFetched = Array.isArray(data?.findings);
@@ -220,7 +144,7 @@ export function Findings() {
             lastSeen: f.lastSeen || f.updatedAt || f.createdAt || new Date().toISOString(),
           }))
         : [])
-    : defaultFindings;
+    : [];
 
   // Calculate stats dynamically
   const totalCount = findingsList.length;
@@ -489,12 +413,7 @@ export function Findings() {
             <FilterSelect
               value={filters.project}
               onChange={(v) => setFilters({ ...filters, project: v })}
-              options={[
-                { label: 'All projects', value: '' },
-                { label: 'SahakarGig', value: 'SahakarGig' },
-                { label: 'Sentinel AI', value: 'Sentinel AI' },
-                { label: 'Main Target', value: 'Main Target' },
-              ]}
+              options={projectOptions}
             />
 
             <FilterSelect
@@ -624,25 +543,9 @@ export function Findings() {
           </div>
         )}
 
-        {/* Table Footer with Toast Alert Banner and Pagination */}
+        {/* Table Footer with Pagination */}
         <div className="flex flex-wrap items-center justify-between border-t border-slate-800 bg-slate-950/70 px-4 py-3">
-          {/* Toast alert banner inside bottom left */}
-          {toastMessage.show ? (
-            <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-950/80 px-3 py-1.5 text-xs text-emerald-300 shadow-lg animate-in fade-in">
-              <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-              <span>
-                <b>Finding verified successfully:</b> {toastMessage.id} has been marked as verified.
-              </span>
-              <button
-                onClick={() => setToastMessage({ ...toastMessage, show: false })}
-                className="ml-2 text-emerald-400 hover:text-emerald-200"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          ) : (
-            <div />
-          )}
+          <div />
 
           {/* Pagination */}
           <div className="flex items-center gap-2 text-xs text-slate-400">
@@ -763,7 +666,7 @@ export function Findings() {
                         </div>
                         <div>
                           <span className="text-slate-400 font-sans block text-[11px]">Project</span>
-                          <span className="text-slate-200">{selectedFinding.project || 'SahakarGig'}</span>
+                          <span className="text-slate-200">{selectedFinding.project || '—'}</span>
                         </div>
                         <div>
                           <span className="text-slate-400 font-sans block text-[11px]">Technology</span>
@@ -812,7 +715,10 @@ export function Findings() {
                     <div className="rounded-xl border border-slate-800 bg-slate-900/90 p-4">
                       <h4 className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
                         <span>HTTP Request Trace</span>
-                        <span className="font-mono text-[10px] text-cyan-400">Captured Log</span>
+                        <span className="flex items-center gap-2">
+                          <CopyCurlButton finding={selectedFinding} />
+                          <span className="font-mono text-[10px] text-cyan-400">Captured Log</span>
+                        </span>
                       </h4>
                       <pre className="overflow-x-auto rounded-lg bg-slate-950 p-3 font-mono text-xs text-emerald-400 border border-slate-800">
                         {selectedFinding.evidence || 'No payload log captured.'}
@@ -969,22 +875,19 @@ export function FindingDetail() {
     },
   });
 
-  if (isLoading) return <LoadingState label="Loading detailed vulnerability breakdown..." />;
-  if (isError) return <ErrorState message="Finding record not found." onRetry={() => refetch()} />;
+  const retest = useMutation({
+    mutationFn: async ({ result, notes }) => (await api.post(`/findings/${id}/retest`, { result, notes })).data,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['finding', id] });
+      qc.invalidateQueries({ queryKey: ['findings'] });
+      qc.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+  });
 
-  const v = data?.finding || {
-    _id: id,
-    findingId: 'VUL-003',
-    title: 'Broken Access Control',
-    category: 'Authorization',
-    description: 'Improper access control allows unauthorized users to read or mutate protected resources.',
-    cvssScore: 8.1,
-    severity: 'High',
-    status: 'Verified',
-    affectedAssets: ['/api/assets'],
-    evidence: 'GET /api/assets HTTP/1.1\nHost: target.com\nAuthorization: Bearer unprivileged_user_token\n\nHTTP/1.1 200 OK',
-    remediation: ['Enforce middleware authentication on resource queries.', 'Verify user ID matches session token.'],
-  };
+  if (isLoading) return <LoadingState label="Loading detailed vulnerability breakdown..." />;
+  if (isError || !data?.finding) return <ErrorState message="Finding record not found." onRetry={() => refetch()} />;
+
+  const v = data.finding;
 
   return (
     <div className="space-y-6 pb-12">
@@ -1023,6 +926,25 @@ export function FindingDetail() {
             <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400">Overview</h3>
             <p className="text-sm text-slate-200">{v.description || 'No description available.'}</p>
 
+            <div className="flex flex-wrap items-center gap-2">
+              {(v.cwe || v.cweId) && (
+                <span className="rounded-md bg-slate-800 px-2 py-1 font-mono text-[11px] font-semibold text-cyan-300" title="Common Weakness Enumeration">
+                  {v.cwe || v.cweId}
+                </span>
+              )}
+              {(v.owasp || v.owaspCategory) && (
+                <span className="rounded-md bg-slate-800 px-2 py-1 font-mono text-[11px] font-semibold text-purple-300" title="OWASP Top 10 mapping">
+                  {v.owasp || v.owaspCategory}
+                </span>
+              )}
+              {v.retestStatus && v.retestStatus !== 'NOT_REQUIRED' && (
+                <span className="rounded-md bg-sky-500/15 px-2 py-1 font-mono text-[11px] font-semibold text-sky-300 ring-1 ring-sky-400/40">
+                  RETEST: {v.retestStatus}
+                </span>
+              )}
+              {v.slaDueAt && <SlaBadge dueAt={v.slaDueAt} />}
+            </div>
+
             <div className="pt-2 border-t border-slate-800">
               <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Affected Endpoint</h4>
               <p className="font-mono text-xs text-cyan-300">{(v.affectedAssets || []).join(', ') || 'N/A'}</p>
@@ -1031,7 +953,10 @@ export function FindingDetail() {
 
           {/* Evidence */}
           <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-3">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400">Captured Evidence</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400">Captured Evidence</h3>
+              <CopyCurlButton finding={v} />
+            </div>
             <pre className="overflow-x-auto rounded-lg bg-slate-950 p-4 font-mono text-xs text-emerald-400 border border-slate-800">
               {v.evidence || 'No raw HTTP trace recorded.'}
             </pre>
@@ -1063,7 +988,7 @@ export function FindingDetail() {
           <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-cyan-400">
-                <Sparkles className="h-4 w-4 text-cyan-400" /> Gemini AI Analysis
+                <Sparkles className="h-4 w-4 text-cyan-400" /> AI Security Analysis
               </h3>
               <Button
                 variant="outline"
@@ -1114,6 +1039,26 @@ export function FindingDetail() {
               ))}
             </div>
             {verify.isError && <p className="text-xs text-red-400">{errMsg(verify.error)}</p>}
+          </Card>
+
+          {/* Fix Verification / Retest */}
+          <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-3">
+            <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
+              <RotateCcw className="h-3.5 w-3.5 text-cyan-400" /> Fix Verification
+            </h3>
+            {v.retestNotes && <p className="text-xs text-slate-400">Last retest: {v.retestNotes}</p>}
+            <div className="grid grid-cols-3 gap-2">
+              <Button variant="outline" disabled={retest.isPending} onClick={() => retest.mutate({ result: 'REQUIRED' })} className="text-xs py-1.5">
+                Request Retest
+              </Button>
+              <Button variant="outline" disabled={retest.isPending} onClick={() => retest.mutate({ result: 'PASSED', notes: 'Fix confirmed on retest' })} className="text-xs py-1.5 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/10">
+                Pass
+              </Button>
+              <Button variant="outline" disabled={retest.isPending} onClick={() => retest.mutate({ result: 'FAILED', notes: 'Issue still reproducible' })} className="text-xs py-1.5 border-red-500/40 text-red-300 hover:bg-red-500/10">
+                Fail
+              </Button>
+            </div>
+            {retest.isError && <p className="text-xs text-red-400">{errMsg(retest.error)}</p>}
           </Card>
         </div>
       </div>

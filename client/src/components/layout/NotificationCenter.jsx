@@ -1,50 +1,43 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, CheckCheck, Trash2, ShieldAlert, ArrowRight, X } from 'lucide-react';
 import { playCyberSound } from '../../lib/playCyberSound';
+import api from '../../lib/api';
 
-const INITIAL_NOTIFICATIONS = [
-  {
-    id: 'n1',
-    severity: 'High',
-    title: 'Exposed authentication endpoint',
-    desc: 'Unprotected OAuth route discovered during API sweep',
-    time: '2 min ago',
-    read: false,
-    findingId: 'VUL-001',
-  },
-  {
-    id: 'n2',
-    severity: 'Medium',
-    title: 'Missing security header detected',
-    desc: 'Strict-Transport-Security header omitted on production target',
-    time: '8 min ago',
-    read: false,
-    findingId: 'VUL-002',
-  },
-  {
-    id: 'n3',
-    severity: 'Verified',
-    title: 'Finding resolved successfully',
-    desc: 'Broken Access Control issue verified mitigated',
-    time: '14 min ago',
-    read: true,
-    findingId: 'VUL-003',
-  },
-  {
-    id: 'n4',
-    severity: 'Critical',
-    title: 'IDOR Vulnerability Confirmed',
-    desc: 'Tenant data isolation check failed on endpoint /api/v1/user/data',
-    time: '25 min ago',
-    read: false,
-    findingId: 'VUL-004',
-  },
-];
+function timeAgo(iso) {
+  const d = new Date(iso).getTime();
+  if (isNaN(d)) return 'recently';
+  const m = Math.floor((Date.now() - d) / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m} min ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
 
 export function NotificationCenter() {
-  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+  // Real alerts derived from live findings: newest critical/high first.
+  const { data } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: async () => (await api.get('/findings')).data,
+    refetchInterval: 30000,
+  });
+  const live = (data?.findings || []).slice(0, 8).map((f) => ({
+    id: f._id,
+    severity: f.status === 'Verified' ? 'Verified' : f.severity,
+    title: f.title,
+    desc: (f.impact || f.description || '').slice(0, 90),
+    time: timeAgo(f.updatedAt || f.createdAt),
+    findingId: f.findingId,
+    _realId: f._id,
+  }));
+  const [readIds, setReadIds] = useState([]);
+  const [dismissedIds, setDismissedIds] = useState([]);
+  const notifications = live
+    .filter((n) => !dismissedIds.includes(n.id))
+    .map((n) => ({ ...n, read: readIds.includes(n.id) }));
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
   const navigate = useNavigate();
@@ -72,25 +65,23 @@ export function NotificationCenter() {
 
   const markAsRead = (id) => {
     playCyberSound('click');
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
+    setReadIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
   };
 
   const markAllAsRead = () => {
     playCyberSound('click');
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    setReadIds((prev) => [...new Set([...prev, ...live.map((n) => n.id)])]);
   };
 
   const clearAll = () => {
     playCyberSound('click');
-    setNotifications([]);
+    setDismissedIds((prev) => [...new Set([...prev, ...live.map((n) => n.id)])]);
   };
 
   const handleAlertClick = (n) => {
     markAsRead(n.id);
     setIsOpen(false);
-    navigate('/findings');
+    navigate(n._realId ? `/findings/${n._realId}` : '/findings');
   };
 
   const getSeverityStyle = (sev) => {
