@@ -7,7 +7,7 @@ export function Card({ className, children }) {
       'rounded-xl border border-slate-800 bg-slate-900/90 p-5 shadow-sm transition duration-200',
       'hover:border-slate-700/80 hover:bg-slate-900 hover:shadow-md',
       className
-    )}>
+    )}> 
       {children}
     </div>
   );

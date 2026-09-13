@@ -47,16 +47,25 @@ function ResultPane({ title, tokenLabel, result, busy }) {
 }
 
 export function ApiTester() {
-  const [form, setForm] = useState({ url: '', method: 'GET', tokenA: '', tokenB: '' });
+  const [form, setForm] = useState({ url: '', method: 'GET', tokenA: '', tokenB: '', bodyData: '' });
   const [resA, setResA] = useState(null);
   const [resB, setResB] = useState(null);
 
   const run = useMutation({
     mutationFn: async ({ token }) => {
       const cleanToken = (token || '').trim().replace(/^Bearer\s+/i, '');
+      let parsedData = undefined;
+      if (['POST', 'PUT', 'PATCH'].includes(form.method) && form.bodyData.trim()) {
+        try {
+          parsedData = JSON.parse(form.bodyData);
+        } catch (e) {
+          parsedData = form.bodyData;
+        }
+      }
       return (await api.post('/tools/probe', {
         url: form.url,
         method: form.method,
+        data: parsedData,
         headers: cleanToken ? { Authorization: `Bearer ${cleanToken}` } : {},
       })).data;
     },
@@ -98,6 +107,20 @@ export function ApiTester() {
             </Select>
           </div>
         </div>
+
+        {['POST', 'PUT', 'PATCH'].includes(form.method) && (
+          <div className="mt-3">
+            <Label>Request Body Payload (JSON format)</Label>
+            <textarea
+              rows={3}
+              placeholder='{"amount": 100, "description": "topup"}'
+              value={form.bodyData}
+              onChange={(e) => setForm({ ...form, bodyData: e.target.value })}
+              className="w-full rounded-lg border border-slate-700 bg-slate-950 p-2.5 font-mono text-xs text-emerald-400 focus:border-cyan-500 focus:outline-none"
+            />
+          </div>
+        )}
+
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           <div>
             <Label>Role A token (e.g. low-priv user JWT)</Label>

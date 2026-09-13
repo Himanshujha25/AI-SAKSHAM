@@ -5,6 +5,8 @@ const targetSchema = new mongoose.Schema(
     projectId: { type: mongoose.Schema.Types.ObjectId, ref: 'Project', required: true, index: true },
     name: { type: String, required: true, trim: true, maxlength: 120 },
     url: { type: String, required: true, trim: true, maxlength: 500 },
+    method: { type: String, enum: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'ANY'], default: 'GET' },
+    requestBody: { type: String, default: '', maxlength: 5000 },
     environment: {
       type: String,
       enum: ['Testing', 'Staging', 'Demo', 'Production-authorized', 'Production'],

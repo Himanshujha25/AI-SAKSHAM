@@ -899,7 +899,7 @@ export function ProjectDetail() {
   const { id } = useParams();
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const [target, setTarget] = useState({ name: '', url: '', environment: 'Testing', customHeaders: '', authorizationConfirmed: false });
+  const [target, setTarget] = useState({ name: '', url: '', method: 'GET', requestBody: '', environment: 'Testing', customHeaders: '', authorizationConfirmed: false });
 
   const resolvedId = id;
   const { data, isLoading, isError, refetch } = useQuery({
@@ -910,7 +910,7 @@ export function ProjectDetail() {
   const addTarget = useMutation({
     mutationFn: async () => (await api.post(`/projects/${resolvedId}/targets`, target)).data,
     onSuccess: () => {
-      setTarget({ name: '', url: '', environment: 'Testing', customHeaders: '', authorizationConfirmed: false });
+      setTarget({ name: '', url: '', method: 'GET', requestBody: '', environment: 'Testing', customHeaders: '', authorizationConfirmed: false });
       qc.invalidateQueries({ queryKey: ['project', resolvedId] });
     },
   });
@@ -1001,11 +1001,16 @@ export function ProjectDetail() {
           <span>Register Authorized Target Environment</span>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
           <Input
             placeholder="Target Name (e.g., API Gateway)"
             value={target.name}
             onChange={(e) => setTarget({ ...target, name: e.target.value })}
+          />
+          <CustomSelect
+            value={target.method}
+            onChange={(e) => setTarget({ ...target, method: e.target.value })}
+            options={['GET', 'POST', 'PUT', 'PATCH', 'DELETE']}
           />
           <Input
             placeholder="https://target.example.com"
@@ -1025,6 +1030,18 @@ export function ProjectDetail() {
             {addTarget.isPending ? 'Adding...' : 'Add Target'}
           </button>
         </div>
+
+        {target.method !== 'GET' && (
+          <div className="mt-3">
+            <textarea
+              rows={3}
+              placeholder='JSON Payload (Optional): { "key": "value" }'
+              value={target.requestBody}
+              onChange={(e) => setTarget({ ...target, requestBody: e.target.value })}
+              className="w-full rounded-lg border border-slate-800 bg-slate-900/90 p-3 font-mono text-xs text-amber-300 focus:border-amber-500 focus:outline-none"
+            />
+          </div>
+        )}
 
         <div className="mt-3">
           <Input

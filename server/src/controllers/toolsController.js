@@ -12,7 +12,7 @@ const MAX_BODY = 50 * 1024; // 50KB cap
 // request from the backend (avoids browser CORS) and returns a safe,
 // truncated trace for evidence. Destructive testing stays out of scope.
 const probe = asyncHandler(async (req, res) => {
-  const { url, method = 'GET', headers = {}, projectId } = req.body || {};
+  const { url, method = 'GET', headers = {}, projectId, data: requestData } = req.body || {};
   if (!url || typeof url !== 'string') {
     return res.status(400).json({ message: 'url is required' });
   }
@@ -39,11 +39,16 @@ const probe = asyncHandler(async (req, res) => {
     }
   }
 
+  if (['POST', 'PUT', 'PATCH'].includes(verb) && requestData && !safeHeaders['Content-Type'] && !safeHeaders['content-type']) {
+    safeHeaders['Content-Type'] = 'application/json';
+  }
+
   const started = Date.now();
   try {
     const resp = await axios.request({
       url: parsed.toString(),
       method: verb,
+      data: requestData || undefined,
       headers: {
         'User-Agent': 'SentinelAI-Probe/1.0 (Authorized Security Assessment)',
         ...safeHeaders,

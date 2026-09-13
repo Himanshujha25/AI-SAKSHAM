@@ -50,7 +50,13 @@ async function runAssessment(assessmentId, io) {
       // camelCase STAGES from the Assessment model).
       if (stage === 'endpointDiscovery' && target?.url) {
         try {
-          liveScanResult = await scanTarget(target.url, target.customHeaders || '', assessment.type || 'Standard');
+          liveScanResult = await scanTarget(
+            target.url,
+            target.customHeaders || '',
+            assessment.type || 'Standard',
+            target.method || 'GET',
+            target.requestBody || ''
+          );
         } catch (e) {
           console.warn('[worker] live scan error:', e.message);
         }

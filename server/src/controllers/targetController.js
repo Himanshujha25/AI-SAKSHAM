@@ -19,13 +19,19 @@ const create = asyncHandler(async (req, res) => {
   if (!hasProjectAccess(req.user, project)) {
     return res.status(403).json({ message: 'Access denied: not authorized to add targets to this project' });
   }
-  const { name, url, environment, authorizationConfirmed, description, metadata } = req.body;
+  const { name, url, method, requestBody, environment, authorizationConfirmed, description, metadata, customHeaders } = req.body;
   if (!name || !url) return res.status(400).json({ message: 'name, url required' });
   const target = await Target.create({
     projectId: req.params.projectId,
-    name, url, environment: environment || 'Testing',
+    name,
+    url,
+    method: method || 'GET',
+    requestBody: requestBody || '',
+    environment: environment || 'Testing',
+    customHeaders: customHeaders || '',
     authorizationConfirmed: !!authorizationConfirmed,
-    description: description || '', metadata: metadata || {},
+    description: description || '',
+    metadata: metadata || {},
   });
   res.status(201).json({ target });
 });
@@ -47,11 +53,14 @@ const update = asyncHandler(async (req, res) => {
   if (!project || !hasProjectAccess(req.user, project)) {
     return res.status(403).json({ message: 'Access denied: not authorized to update this target' });
   }
-  const { name, url, environment, authorizationConfirmed, description, metadata } = req.body;
+  const { name, url, method, requestBody, environment, authorizationConfirmed, description, metadata, customHeaders } = req.body;
   const updateData = {};
   if (name !== undefined) updateData.name = name;
   if (url !== undefined) updateData.url = url;
+  if (method !== undefined) updateData.method = method;
+  if (requestBody !== undefined) updateData.requestBody = requestBody;
   if (environment !== undefined) updateData.environment = environment;
+  if (customHeaders !== undefined) updateData.customHeaders = customHeaders;
   if (authorizationConfirmed !== undefined) updateData.authorizationConfirmed = !!authorizationConfirmed;
   if (description !== undefined) updateData.description = description;
   if (metadata !== undefined) updateData.metadata = metadata;

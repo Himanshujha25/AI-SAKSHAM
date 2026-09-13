@@ -76,6 +76,8 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
   const [projectName, setProjectName] = useState('World Monitor Project');
   const [targetName, setTargetName] = useState('World Monitor Core API');
   const [targetUrl, setTargetUrl] = useState('http://localhost:5000');
+  const [method, setMethod] = useState('GET');
+  const [requestBody, setRequestBody] = useState('');
   const [environment, setEnvironment] = useState('Testing');
   const [scanType, setScanType] = useState('Standard');
   const [customHeaders, setCustomHeaders] = useState('');
@@ -113,6 +115,8 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
       const targetRes = await api.post(`/projects/${projectId}/targets`, {
         name: targetName,
         url: targetUrl,
+        method,
+        requestBody,
         environment,
         customHeaders,
         authorizationConfirmed: true,
@@ -193,18 +197,51 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Target URL</label>
-            <div className="relative">
-              <Globe size={14} className="absolute left-3 top-3 text-cyan-400" />
-              <input
-                type="text"
-                value={targetUrl}
-                onChange={(e) => setTargetUrl(e.target.value)}
-                className="w-full rounded-lg border border-slate-800 bg-slate-900/90 pl-9 pr-3.5 py-2 font-mono text-xs text-cyan-300 focus:border-cyan-500 focus:outline-none"
-                required
-              />
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Target Method & URL</label>
+            <div className="flex gap-2">
+              <select
+                value={method}
+                onChange={(e) => setMethod(e.target.value)}
+                className={`rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-bold font-mono focus:border-cyan-500 focus:outline-none ${
+                  method === 'GET' ? 'text-emerald-400' :
+                  method === 'POST' ? 'text-amber-400' :
+                  method === 'PUT' ? 'text-cyan-400' :
+                  method === 'DELETE' ? 'text-red-400' : 'text-purple-400'
+                }`}
+              >
+                <option value="GET" className="bg-slate-900 text-emerald-400 font-bold">GET</option>
+                <option value="POST" className="bg-slate-900 text-amber-400 font-bold">POST</option>
+                <option value="PUT" className="bg-slate-900 text-cyan-400 font-bold">PUT</option>
+                <option value="PATCH" className="bg-slate-900 text-purple-400 font-bold">PATCH</option>
+                <option value="DELETE" className="bg-slate-900 text-red-400 font-bold">DELETE</option>
+              </select>
+              <div className="relative flex-1">
+                <Globe size={14} className="absolute left-3 top-3 text-cyan-400" />
+                <input
+                  type="text"
+                  value={targetUrl}
+                  onChange={(e) => setTargetUrl(e.target.value)}
+                  className="w-full rounded-lg border border-slate-800 bg-slate-900/90 pl-9 pr-3.5 py-2 font-mono text-xs text-cyan-300 focus:border-cyan-500 focus:outline-none"
+                  required
+                />
+              </div>
             </div>
           </div>
+
+          {method !== 'GET' && (
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
+                JSON Request Body Payload (Optional)
+              </label>
+              <textarea
+                rows={3}
+                placeholder='{ "username": "admin", "role": "admin" }'
+                value={requestBody}
+                onChange={(e) => setRequestBody(e.target.value)}
+                className="w-full rounded-lg border border-slate-800 bg-slate-900/90 p-3 font-mono text-xs text-amber-300 focus:border-amber-500 focus:outline-none"
+              />
+            </div>
+          )}
 
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Scan Profile</label>

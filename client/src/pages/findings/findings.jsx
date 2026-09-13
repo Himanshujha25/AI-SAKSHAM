@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -30,6 +30,7 @@ import {
   Check,
   Timer,
   RotateCcw,
+  Folder,
 } from 'lucide-react';
 import api from '../../lib/api';
 import { errMsg, cn, buildCurl, slaCountdown } from '../../lib/utils';
@@ -91,6 +92,73 @@ function SlaBadge({ dueAt }) {
   );
 }
 
+function getCodeFixSnippet(finding) {
+  if (!finding) return '';
+  const title = (finding.title || '').toLowerCase();
+  const cat = (finding.category || '').toLowerCase();
+  const rawEp = finding.affectedAssets?.[0] || '/api/wallet';
+  const endpoint = rawEp.includes('://') ? new URL(rawEp).pathname : rawEp;
+
+  if (title.includes('rate-limit') || title.includes('rate limiting') || cat.includes('rate')) {
+    return `// Express.js Rate-Limiting Middleware Fix
+const rateLimit = require('express-rate-limit');
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 min window
+  max: 100, // Max 100 requests per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many requests, try again later.' }
+});
+
+app.use('${endpoint || '/api/wallet'}', apiLimiter);`;
+  }
+
+  if (title.includes('content-security-policy') || title.includes('csp') || title.includes('hsts') || cat.includes('header')) {
+    return `// Helmet Security Headers Fix for Node.js Express
+const helmet = require('helmet');
+
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "blob:"],
+    },
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true,
+  },
+}));`;
+  }
+
+  if (title.includes('idor') || title.includes('access control') || cat.includes('access')) {
+    return `// Ownership Authorization Middleware
+async function verifyOwnership(req, res, next) {
+  const resource = await Resource.findById(req.params.id);
+  if (!resource) return res.status(404).json({ message: 'Not found' });
+
+  // Enforce Tenant & Resource Owner Check
+  if (String(resource.owner) !== String(req.user._id) && req.user.role !== 'ADMIN') {
+    return res.status(403).json({ message: 'Forbidden: access denied' });
+  }
+  req.resource = resource;
+  next();
+}`;
+  }
+
+  return `// Express Hardening Middleware
+app.use('${endpoint || '/api/wallet'}', (req, res, next) => {
+  if (!req.headers.authorization) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+  next();
+});`;
+}
+
 export function Findings() {
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -106,7 +174,18 @@ export function Findings() {
 
   // Selected finding for the right slide-over drawer
   const [selectedFinding, setSelectedFinding] = useState(null);
-  const [drawerTab, setDrawerTab] = useState('details'); // 'details' | 'evidence' | 'remediation' | 'timeline'
+  const [drawerTab, setDrawerTab] = useState('details'); // 'details' | 'suggestions' | 'evidence' | 'remediation' | 'timeline'
+  const [copiedCode, setCopiedCode] = useState(false);
+
+  const drawerAiMutation = useMutation({
+    mutationFn: async (id) => (await api.post(`/findings/${id}/ai-analysis`, {}, { timeout: 60000 })).data,
+    onSuccess: (resData) => {
+      qc.invalidateQueries({ queryKey: ['findings'] });
+      if (resData?.finding) {
+        setSelectedFinding(resData.finding);
+      }
+    },
+  });
 
   const queryString = new URLSearchParams(
     Object.fromEntries(
@@ -134,17 +213,63 @@ export function Findings() {
   ];
 
   const hasFetched = Array.isArray(data?.findings);
-  const findingsList = hasFetched
-    ? (data.findings.length > 0
-        ? data.findings.map((f) => ({
-            ...f,
-            detectedDate: f.detectedDate || f.createdAt || new Date().toISOString(),
-            updatedDate: f.updatedDate || f.updatedAt || f.createdAt || new Date().toISOString(),
-            firstSeen: f.firstSeen || f.createdAt || new Date().toISOString(),
-            lastSeen: f.lastSeen || f.updatedAt || f.createdAt || new Date().toISOString(),
-          }))
-        : [])
-    : [];
+  const rawList = useMemo(() => {
+    return hasFetched
+      ? (data.findings.length > 0
+          ? data.findings.map((f) => ({
+              ...f,
+              detectedDate: f.detectedDate || f.createdAt || new Date().toISOString(),
+              updatedDate: f.updatedDate || f.updatedAt || f.createdAt || new Date().toISOString(),
+              firstSeen: f.firstSeen || f.createdAt || new Date().toISOString(),
+              lastSeen: f.lastSeen || f.updatedAt || f.createdAt || new Date().toISOString(),
+            }))
+          : [])
+      : [];
+  }, [hasFetched, data?.findings]);
+
+  const assetOptions = useMemo(() => {
+    const set = new Set();
+    rawList.forEach((f) => {
+      (f.affectedAssets || []).forEach((a) => {
+        if (a) set.add(a);
+      });
+    });
+    return [
+      { label: 'All assets', value: '' },
+      ...Array.from(set).map((a) => ({ label: a, value: a })),
+    ];
+  }, [rawList]);
+
+  const findingsList = useMemo(() => {
+    let list = [...rawList];
+
+    // Client-side asset filter
+    if (filters.asset) {
+      list = list.filter((f) =>
+        (f.affectedAssets || []).some((a) => String(a).toLowerCase().includes(filters.asset.toLowerCase()))
+      );
+    }
+
+    // Client-side dateRange filter
+    if (filters.dateRange === '7d') {
+      const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      list = list.filter((f) => new Date(f.detectedDate).getTime() >= cutoff);
+    } else if (filters.dateRange === '30d') {
+      const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+      list = list.filter((f) => new Date(f.detectedDate).getTime() >= cutoff);
+    }
+
+    // Client-side sorting
+    if (filters.sort === 'oldest') {
+      list.sort((a, b) => new Date(a.detectedDate).getTime() - new Date(b.detectedDate).getTime());
+    } else if (filters.sort === 'cvss_desc') {
+      list.sort((a, b) => (b.cvssScore || 0) - (a.cvssScore || 0));
+    } else if (filters.sort === 'newest') {
+      list.sort((a, b) => new Date(b.detectedDate).getTime() - new Date(a.detectedDate).getTime());
+    }
+
+    return list;
+  }, [rawList, filters.asset, filters.dateRange, filters.sort]);
 
   // Calculate stats dynamically
   const totalCount = findingsList.length;
@@ -173,6 +298,13 @@ export function Findings() {
       search: '',
     });
   };
+  const projectMap = useMemo(() => {
+    const map = {};
+    (projectsQuery.data?.projects || []).forEach((p) => {
+      map[String(p._id)] = p.name;
+    });
+    return map;
+  }, [projectsQuery.data]);
 
   return (
     <div className="relative min-h-screen pb-16 space-y-6">
@@ -192,7 +324,7 @@ export function Findings() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <MetricCard title="Total findings" value={totalCount} trend="+2 today" icon={Shield} color="cyan" />
         <MetricCard title="Critical" value={criticalCount} trend="+1" icon={AlertOctagon} color="red" badgeColor="bg-red-500" />
-        <MetricCard title="High" value={highCount} trend="-2" icon={AlertTriangle} color="orange" badgeColor="bg-orange-500" />
+        <MetricCard title="High" value={highCount} trend="+1" icon={AlertTriangle} color="orange" badgeColor="bg-orange-500" />
         <MetricCard title="Medium" value={mediumCount} trend="+1" icon={Activity} color="amber" badgeColor="bg-amber-500" />
         <MetricCard title="Low" value={lowCount} trend="-1" icon={Info} color="green" badgeColor="bg-emerald-500" />
         <MetricCard
@@ -419,13 +551,7 @@ export function Findings() {
             <FilterSelect
               value={filters.asset}
               onChange={(v) => setFilters({ ...filters, asset: v })}
-              options={[
-                { label: 'All assets', value: '' },
-                { label: '/api/assets', value: '/api/assets' },
-                { label: '/login', value: '/login' },
-                { label: '/auth', value: '/auth' },
-                { label: '/api/profile', value: '/api/profile' },
-              ]}
+              options={assetOptions}
             />
 
             <FilterSelect
@@ -465,22 +591,23 @@ export function Findings() {
         {isError && <ErrorState message="Could not fetch findings records." onRetry={() => refetch()} />}
 
         {!isLoading && !isError && (
-          <div className="overflow-x-auto">
+          <div className="w-full overflow-hidden">
             <table className="w-full text-left text-xs">
               <thead className="border-b border-slate-800 bg-slate-950/60 font-mono text-[11px] uppercase tracking-wider text-slate-400">
                 <tr>
-                  <th className="w-10 px-4 py-3 text-center">
+                  <th className="w-8 px-2 py-3 text-center">
                     <input type="checkbox" title="Select all findings" className="rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0" />
                   </th>
-                  <th className="px-3 py-3">ID</th>
-                  <th className="px-4 py-3">TITLE</th>
-                  <th className="px-3 py-3">SEVERITY</th>
-                  <th className="px-3 py-3">CVSS</th>
-                  <th className="px-4 py-3">ASSET / ENDPOINT</th>
-                  <th className="px-3 py-3">STATUS</th>
-                  <th className="px-4 py-3">DETECTED</th>
-                  <th className="px-4 py-3">UPDATED</th>
-                  <th className="w-12 px-3 py-3 text-center">ACTIONS</th>
+                  <th className="px-2 py-3">ID</th>
+                  <th className="px-3 py-3">TITLE</th>
+                  <th className="px-3 py-3">PROJECT</th>
+                  <th className="px-2 py-3">SEVERITY</th>
+                  <th className="px-2 py-3">CVSS</th>
+                  <th className="px-3 py-3">ASSET / ENDPOINT</th>
+                  <th className="px-2 py-3">STATUS</th>
+                  <th className="px-3 py-3">DETECTED</th>
+                  <th className="px-3 py-3">UPDATED</th>
+                  <th className="w-10 px-2 py-3 text-center">ACTIONS</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
@@ -494,21 +621,29 @@ export function Findings() {
                       selectedFinding?._id === item._id && 'bg-slate-800/80 border-l-2 border-cyan-400'
                     )}
                   >
-                    <td className="px-4 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
+                    <td className="px-2 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
                       <input type="checkbox" title={`Select ${item.findingId}`} className="rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0" />
                     </td>
-                    <td className="px-3 py-3.5 font-mono font-medium text-slate-400 group-hover:text-cyan-400">{item.findingId}</td>
-                    <td className="px-4 py-3.5">
-                      <div className="font-semibold text-slate-100 group-hover:text-cyan-300">{item.title}</div>
-                      <div className="truncate max-w-xs text-[11px] text-slate-400">{item.description}</div>
-                    </td>
+                    <td className="px-2 py-3.5 font-mono font-medium text-slate-400 group-hover:text-cyan-400 whitespace-nowrap">{item.findingId}</td>
                     <td className="px-3 py-3.5">
+                      <div className="font-semibold text-slate-100 group-hover:text-cyan-300 truncate max-w-[200px]">{item.title}</div>
+                      <div className="truncate max-w-[200px] text-[11px] text-slate-400">{item.description}</div>
+                    </td>
+                    <td className="px-3 py-3.5 whitespace-nowrap">
+                      <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-700/80 bg-slate-800/80 px-2 py-0.5 font-mono text-[11px] font-medium text-slate-200 shadow-sm">
+                        <Folder className="h-3 w-3 text-cyan-400 shrink-0" />
+                        <span className="truncate max-w-[100px]" title={item.projectId?.name || projectMap[String(item.projectId)] || 'Project'}>
+                          {item.projectId?.name || projectMap[String(item.projectId)] || 'Project'}
+                        </span>
+                      </span>
+                    </td>
+                    <td className="px-2 py-3.5">
                       <SeverityBadge severity={item.severity} />
                     </td>
-                    <td className="px-3 py-3.5 font-mono font-semibold text-slate-200">{item.cvssScore}</td>
-                    <td className="px-4 py-3.5">
-                      <div className="flex items-center gap-1.5 font-mono text-[11px]">
-                        <span className="text-cyan-400" title={`Endpoint asset path: ${item.affectedAssets?.[0]}`}>{item.affectedAssets?.[0] || 'N/A'}</span>
+                    <td className="px-2 py-3.5 font-mono font-semibold text-slate-200">{item.cvssScore}</td>
+                    <td className="px-3 py-3.5">
+                      <div className="flex items-center gap-1 font-mono text-[11px]">
+                        <span className="truncate max-w-[170px] text-cyan-400" title={`Endpoint asset path: ${item.affectedAssets?.[0]}`}>{item.affectedAssets?.[0] || 'N/A'}</span>
                         {item.httpMethod && (
                           <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[9px] font-bold uppercase text-slate-300" title={`HTTP Method: ${item.httpMethod}`}>
                             {item.httpMethod}
@@ -516,22 +651,22 @@ export function Findings() {
                         )}
                       </div>
                     </td>
-                    <td className="px-3 py-3.5">
+                    <td className="px-2 py-3.5">
                       <StatusBadge status={item.status} />
                     </td>
-                    <td className="px-4 py-3.5 text-slate-400 font-mono text-[11px]">
+                    <td className="px-3 py-3.5 text-slate-400 font-mono text-[11px] whitespace-nowrap">
                       {formatDateTime(item.detectedDate || item.createdAt).date}
                       <span className="block text-[10px] text-slate-500 font-semibold mt-0.5">
                         {formatDateTime(item.detectedDate || item.createdAt).time}
                       </span>
                     </td>
-                    <td className="px-4 py-3.5 text-slate-400 font-mono text-[11px]">
+                    <td className="px-3 py-3.5 text-slate-400 font-mono text-[11px] whitespace-nowrap">
                       {formatDateTime(item.updatedDate || item.updatedAt).date}
                       <span className="block text-[10px] text-slate-500 font-semibold mt-0.5">
                         {formatDateTime(item.updatedDate || item.updatedAt).time}
                       </span>
                     </td>
-                    <td className="px-3 py-3.5 text-center text-slate-500 hover:text-slate-200" onClick={(e) => e.stopPropagation()}>
+                    <td className="px-2 py-3.5 text-center text-slate-500 hover:text-slate-200" onClick={(e) => e.stopPropagation()}>
                       <button className="rounded p-1 hover:bg-slate-800" title="More options">
                         <MoreVertical className="h-4 w-4" />
                       </button>
@@ -603,19 +738,20 @@ export function Findings() {
                 <p className="mt-1 text-xs text-slate-400">{selectedFinding.description}</p>
 
                 {/* Drawer Nav Tabs */}
-                <div className="mt-5 flex border-b border-slate-800 gap-6 text-xs font-medium">
-                  {['details', 'evidence', 'remediation', 'timeline'].map((tab) => (
+                <div className="mt-5 flex border-b border-slate-800 gap-5 text-xs font-medium">
+                  {['details', 'suggestions', 'evidence', 'remediation', 'timeline'].map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setDrawerTab(tab)}
                       className={cn(
-                        'pb-2.5 capitalize transition border-b-2',
+                        'pb-2.5 capitalize transition border-b-2 flex items-center gap-1.5',
                         drawerTab === tab
                           ? 'border-cyan-400 font-semibold text-cyan-300'
                           : 'border-transparent text-slate-400 hover:text-slate-200'
                       )}
                     >
-                      {tab}
+                      {tab === 'suggestions' && <Sparkles className="h-3.5 w-3.5 text-cyan-400 animate-pulse" />}
+                      {tab === 'suggestions' ? 'AI Suggestions' : tab}
                     </button>
                   ))}
                 </div>
@@ -623,6 +759,85 @@ export function Findings() {
 
               {/* Drawer Body Scrollable Content */}
               <div className="flex-1 overflow-y-auto p-5 space-y-5">
+                {drawerTab === 'suggestions' && (
+                  <div className="space-y-4">
+                    <div className="rounded-xl border border-cyan-500/30 bg-gradient-to-b from-cyan-950/40 to-slate-900/90 p-4 space-y-3 shadow-md">
+                      <div className="flex items-center justify-between">
+                        <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-cyan-300">
+                          <Sparkles className="h-4 w-4 text-cyan-400" /> AI Security Suggestions & Analysis
+                        </h4>
+                        <button
+                          disabled={drawerAiMutation.isPending}
+                          onClick={() => drawerAiMutation.mutate(selectedFinding._id)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-500/40 bg-cyan-500/20 px-2.5 py-1 font-mono text-[10px] font-bold text-cyan-200 transition hover:bg-cyan-500/30 disabled:opacity-50"
+                        >
+                          <RefreshCw className={cn('h-3 w-3', drawerAiMutation.isPending && 'animate-spin')} />
+                          {drawerAiMutation.isPending ? 'Analyzing…' : 'Re-analyze with LLM'}
+                        </button>
+                      </div>
+
+                      {drawerAiMutation.isError && (
+                        <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-2.5 text-xs text-red-300">
+                          {errMsg(drawerAiMutation.error)}
+                        </div>
+                      )}
+
+                      <div className="rounded-lg bg-slate-950/80 p-3 border border-slate-800 text-xs space-y-1.5 text-slate-300">
+                        <p className="font-semibold text-white">Summary & Executive Impact:</p>
+                        <p className="text-slate-300 leading-relaxed">
+                          {selectedFinding.aiAnalysis?.summary || selectedFinding.impact || `Automated threat analysis for ${selectedFinding.title}.`}
+                        </p>
+                      </div>
+
+                      {selectedFinding.aiAnalysis?.priorityReason && (
+                        <div className="rounded-lg bg-amber-500/10 p-3 border border-amber-500/30 text-xs">
+                          <span className="font-bold text-amber-300 block mb-0.5">Priority Rationale:</span>
+                          <p className="text-amber-200/90">{selectedFinding.aiAnalysis.priorityReason}</p>
+                        </div>
+                      )}
+
+                      <div className="space-y-2 text-xs">
+                        <h5 className="font-bold text-slate-200 uppercase tracking-wider text-[11px]">Recommended Remediation Steps:</h5>
+                        <div className="space-y-1.5">
+                          {(selectedFinding.aiAnalysis?.remediation?.length > 0
+                            ? selectedFinding.aiAnalysis.remediation
+                            : selectedFinding.remediation || ['Check server-side input validation and security headers.']
+                          ).map((step, i) => (
+                            <div key={i} className="flex items-start gap-2 rounded-md bg-slate-900 p-2 border border-slate-800 text-slate-200">
+                              <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                              <span className="leading-snug">{step}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Dynamic Code Fix Generator Box */}
+                      <div className="mt-3 rounded-lg border border-slate-800 bg-slate-950 p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono text-[11px] font-bold text-cyan-400 flex items-center gap-1.5">
+                            <Code2 size={14} /> Express.js Code Fix Snippet
+                          </span>
+                          <button
+                            onClick={async () => {
+                              try {
+                                await navigator.clipboard.writeText(getCodeFixSnippet(selectedFinding));
+                                setCopiedCode(true);
+                                setTimeout(() => setCopiedCode(false), 2000);
+                              } catch (e) {}
+                            }}
+                            className="inline-flex items-center gap-1 rounded bg-slate-800 px-2 py-0.5 font-mono text-[10px] text-slate-300 hover:bg-slate-700 hover:text-white"
+                          >
+                            {copiedCode ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
+                            {copiedCode ? 'Copied!' : 'Copy Code'}
+                          </button>
+                        </div>
+                        <pre className="overflow-x-auto rounded bg-slate-900 p-2.5 font-mono text-[11px] text-emerald-400 border border-slate-800/80 leading-relaxed">
+                          {getCodeFixSnippet(selectedFinding)}
+                        </pre>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {drawerTab === 'details' && (
                   <div className="space-y-4">
                     {/* Risk Information Card */}

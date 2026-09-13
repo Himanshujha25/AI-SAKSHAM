@@ -4,7 +4,7 @@
  * Profiles tune depth: Quick = headers-only fast pass; Standard = full default;
  * Comprehensive = deeper endpoint capture; API Audit = API-focused; Infrastructure = headers/TLS/tech only.
  */
-async function scanTarget(targetUrl, customHeadersString = '', profile = 'Standard') {
+async function scanTarget(targetUrl, customHeadersString = '', profile = 'Standard', httpMethod = 'GET', requestBodyString = '') {
   const assets = [];
   const findings = [];
   // Endpoint capture depth + active screens per audit profile
@@ -31,6 +31,13 @@ async function scanTarget(targetUrl, customHeadersString = '', profile = 'Standa
     'User-Agent': 'SakshamAI-SecurityScanner/1.0 (Authorized Security Assessment)',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
   };
+
+  // Set default Content-Type to application/json if sending a payload and not specified
+  const effectiveMethod = (httpMethod || 'GET').toUpperCase();
+  const hasBody = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(effectiveMethod) && requestBodyString && requestBodyString.trim().length > 0;
+  if (hasBody) {
+    reqHeaders['Content-Type'] = 'application/json';
+  }
 
   // Parse custom user headers (e.g. Bearer token, Cookie, Admin Key)
   if (customHeadersString && typeof customHeadersString === 'string') {
@@ -63,11 +70,16 @@ async function scanTarget(targetUrl, customHeadersString = '', profile = 'Standa
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 8000);
-    response = await fetch(normalizedUrl, {
+    const fetchOptions = {
+      method: effectiveMethod,
       signal: controller.signal,
       redirect: 'follow',
       headers: reqHeaders,
-    });
+    };
+    if (hasBody) {
+      fetchOptions.body = requestBodyString;
+    }
+    response = await fetch(normalizedUrl, fetchOptions);
     clearTimeout(timeoutId);
     try {
       responseText = await response.text();
@@ -85,7 +97,7 @@ async function scanTarget(targetUrl, customHeadersString = '', profile = 'Standa
     name: `${hostname} (Root Target)`,
     type: 'api',
     value: normalizedUrl,
-    method: 'GET',
+    method: effectiveMethod,
     authentication: reqHeaders.Authorization || reqHeaders.authorization || reqHeaders.Cookie ? 'Authenticated' : 'Public',
     metadata: {
       status: response ? response.status : 'UNREACHABLE',
