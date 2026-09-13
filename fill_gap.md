@@ -69,6 +69,11 @@
 
 ---
 
+## 12. Local Demo Target (`demo-target/`) ✅
+- Intentionally vulnerable local app (`node server.js` → `http://127.0.0.1:5199`): login API, `/api/users/:id`, `/api/admin/users`, `/search`, weak headers.
+- Live scanner verified against it: **15 assets, 6 findings** (CSP, CORS wildcard, rate-limit, 2× IDOR, SQLi) — zero network dependency for SIH demos.
+- Demo creds: `admin@demo.local` / `demo1234` (for `/api-tester` role-compare practice).
+
 ## Test Evidence (Atlas, real keys)
 ```
 VUL-001 High CWE-862 | VUL-002 Medium CWE-693 | VUL-003 Low CWE-209 (SLA 7d/30d/90d ✓)

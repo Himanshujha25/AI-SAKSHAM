@@ -47,7 +47,7 @@ const generate = asyncHandler(async (req, res) => {
       totals,
     });
   }
-  const reportType = ['Executive', 'Technical', 'Summary'].includes(type) ? type : 'Technical';
+  const reportType = ['Executive', 'Technical', 'Summary', 'Vulnerability', 'Remediation', 'Compliance'].includes(type) ? type : 'Technical';
   const reportFormat = String(format || 'PDF').toUpperCase().includes('HTML')
     ? 'HTML'
     : String(format || '').toUpperCase().includes('JSON')

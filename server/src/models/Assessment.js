@@ -15,7 +15,7 @@ const assessmentSchema = new mongoose.Schema(
   {
     projectId: { type: mongoose.Schema.Types.ObjectId, ref: 'Project', required: true, index: true },
     targetId: { type: mongoose.Schema.Types.ObjectId, ref: 'Target', required: true, index: true },
-    type: { type: String, enum: ['Quick', 'Standard', 'Comprehensive'], default: 'Standard' },
+    type: { type: String, enum: ['Quick', 'Standard', 'Comprehensive', 'API Audit', 'Infrastructure'], default: 'Standard' },
     status: {
       type: String,
       enum: ['CREATED', 'QUEUED', 'RUNNING', 'PAUSED', 'COMPLETED', 'FAILED', 'CANCELLED'],

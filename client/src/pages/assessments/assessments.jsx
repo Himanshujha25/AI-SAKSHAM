@@ -72,7 +72,7 @@ export function Assessments() {
     targetId: '',
     type: 'Standard',
     customUrl: '',
-    authorizationConfirmed: true,
+    authorizationConfirmed: false,
   });
 
   // Filter & Search States
@@ -292,7 +292,7 @@ export function Assessments() {
       </div>
 
       {/* Launch New Assessment Control Panel */}
-      <Card className="relative z-20 border-slate-800 bg-slate-900/90 p-4 shadow-xl backdrop-blur">
+      <Card className="relative z-30 border-slate-800 bg-slate-900/90 p-4 shadow-xl backdrop-blur">
         <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
           <div className="flex items-center gap-2">
             <div className="flex h-6 w-6 items-center justify-center rounded bg-cyan-500/20 text-cyan-400 font-bold text-xs">
@@ -325,27 +325,31 @@ export function Assessments() {
               placeholder="Select project..."
               options={[
                 { value: '', label: 'Select project...' },
-                ...(projects.data?.projects || [
-                  { _id: 'p1', name: 'claude' },
-                  { _id: 'p2', name: 'World Monitor' },
-                  { _id: 'p3', name: 'djfbjher' },
-                ]).map((p) => ({ value: p._id, label: p.name })),
+                ...(projects.data?.projects || []).map((p) => ({ value: p._id, label: p.name })),
               ]}
             />
           </div>
 
-          {/* Target Asset Input */}
+          {/* Target Asset Dropdown (saved authorized targets only) */}
           <div>
             <label className="block text-[10px] font-mono uppercase text-slate-400 mb-1 font-semibold">
               Target Asset
             </label>
-            <input
-              type="text"
-              placeholder="Enter URL, domain, or select asset..."
-              value={form.customUrl}
-              onChange={(e) => setForm({ ...form, customUrl: e.target.value })}
-              className="w-full rounded-md border border-slate-700/80 bg-slate-950/80 px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:border-cyan-500/50 focus:outline-none"
+            <CustomSelect
+              value={form.targetId}
+              onChange={(e) => setForm({ ...form, targetId: e.target.value })}
+              placeholder={form.projectId ? 'Select target...' : 'Select a project first'}
+              disabled={!form.projectId || targets.isLoading}
+              options={[
+                { value: '', label: form.projectId ? 'Select target...' : 'Select a project first' },
+                ...(targets.data?.targets || []).map((t) => ({ value: t._id, label: `${t.name} — ${t.url}` })),
+              ]}
             />
+            {form.projectId && !targets.isLoading && (targets.data?.targets || []).length === 0 && (
+              <p className="mt-1 text-[11px] text-amber-400">
+                No targets yet — add one in Projects first.
+              </p>
+            )}
           </div>
 
           {/* Audit Profile Dropdown */}
@@ -370,7 +374,7 @@ export function Assessments() {
           <div className="flex items-end">
             <button
               onClick={() => startMutation.mutate()}
-              disabled={startMutation.isPending}
+              disabled={startMutation.isPending || !form.projectId || !form.targetId || !form.authorizationConfirmed}
               className="flex h-[34px] w-full items-center justify-center gap-2 rounded-md bg-cyan-600 hover:bg-cyan-500 font-bold text-xs text-white transition border border-cyan-400/30 shadow-md disabled:opacity-50"
             >
               {startMutation.isPending ? (
@@ -388,6 +392,15 @@ export function Assessments() {
           </div>
         </div>
         {startMutation.isError && <p className="mt-2 text-xs font-semibold text-red-400">{errMsg(startMutation.error)}</p>}
+        <label className="mt-2 flex cursor-pointer items-center gap-2 text-[11px] text-slate-400 transition hover:text-slate-200">
+          <input
+            type="checkbox"
+            checked={form.authorizationConfirmed}
+            onChange={(e) => setForm({ ...form, authorizationConfirmed: e.target.checked })}
+            className="h-3.5 w-3.5 rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0"
+          />
+          I confirm that I am authorized to assess the selected target.
+        </label>
       </Card>
 
       {/* Filter Tabs & Search Bar */}

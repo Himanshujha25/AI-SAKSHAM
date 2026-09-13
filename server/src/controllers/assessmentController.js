@@ -48,7 +48,9 @@ const list = asyncHandler(async (req, res) => {
     filter.projectId = req.query.projectId;
   }
   if (req.query.targetId) filter.targetId = req.query.targetId;
-  const assessments = await Assessment.find(filter).sort({ createdAt: -1 }).limit(100);
+  const assessments = await Assessment.find(filter).sort({ createdAt: -1 }).limit(100)
+    .populate('projectId', 'name')
+    .populate('targetId', 'name url');
   res.json({ assessments });
 });
 

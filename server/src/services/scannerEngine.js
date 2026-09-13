@@ -1,10 +1,15 @@
 /**
  * Live Security Probing Engine
  * Audits security headers, CORS, server banners, SSL/TLS, custom headers, and extracts live endpoints from HTML/JS.
+ * Profiles tune depth: Quick = headers-only fast pass; Standard = full default;
+ * Comprehensive = deeper endpoint capture; API Audit = API-focused; Infrastructure = headers/TLS/tech only.
  */
-async function scanTarget(targetUrl, customHeadersString = '') {
+async function scanTarget(targetUrl, customHeadersString = '', profile = 'Standard') {
   const assets = [];
   const findings = [];
+  // Endpoint capture depth + active screens per audit profile
+  const DEPTH = profile === 'Quick' ? 3 : profile === 'Comprehensive' ? 12 : 6;
+  const SCREENS_ON = !['Quick', 'Infrastructure'].includes(profile);
   let normalizedUrl = targetUrl;
 
   if (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
@@ -222,7 +227,7 @@ async function scanTarget(targetUrl, customHeadersString = '') {
       if (match && match[1]) jsUrls.add(match[1]);
     });
 
-    Array.from(jsUrls).slice(0, 5).forEach((jsPath) => {
+    Array.from(jsUrls).slice(0, DEPTH).forEach((jsPath) => {
       assets.push({
         name: `JS Asset: ${jsPath.slice(0, 45)}`,
         type: 'js',
@@ -245,7 +250,7 @@ async function scanTarget(targetUrl, customHeadersString = '') {
       }
     });
 
-    Array.from(routes).slice(0, 6).forEach((route) => {
+    Array.from(routes).slice(0, DEPTH).forEach((route) => {
       assets.push({
         name: `Route: ${route.slice(0, 40)}`,
         type: 'route',
@@ -259,13 +264,13 @@ async function scanTarget(targetUrl, customHeadersString = '') {
     const apiRegex = /(?:\/api\/|\/v1\/|\/v2\/|\/auth\/|\/admin\/|\/graphql)[a-zA-Z0-9_\-\/]+/g;
     const apiMatches = new Set(body.match(apiRegex) || []);
 
-    Array.from(apiMatches).slice(0, 6).forEach((apiRoute) => {
+    Array.from(apiMatches).slice(0, DEPTH).forEach((apiRoute) => {
       assets.push({
         name: `API Endpoint: ${apiRoute}`,
         type: 'api',
         value: apiRoute,
         method: apiRoute.includes('auth') || apiRoute.includes('login') ? 'POST' : 'GET',
-        authentication: apiRoute.includes('admin') ? 'Admin Required' : apiRoute.includes('auth') ? 'Public' : 'Required',
+        authentication: apiRoute.includes('admin') ? 'Admin' : apiRoute.includes('auth') ? 'Public' : 'Required',
       });
     });
   }
@@ -315,10 +320,10 @@ async function scanTarget(targetUrl, customHeadersString = '') {
     }
   }
 
-  // 3A. IDOR / BOLA screen: predictable numeric object IDs reachable WITHOUT auth
-  const idorCandidates = discoveredPaths
+  // 3A. IDOR / BOLA screen (skipped on Quick + Infrastructure profiles)
+  const idorCandidates = SCREENS_ON ? discoveredPaths
     .filter((p) => /\/\d+(\/|$|\?)|\bids?=\d+/i.test(p))
-    .slice(0, 3);
+    .slice(0, 3) : [];
   for (const p of idorCandidates) {
     const abs = toAbsolute(p);
     if (!abs) continue;
@@ -349,7 +354,7 @@ async function scanTarget(targetUrl, customHeadersString = '') {
   // 3B. SQL injection screen: single-quote probe, DB error-message signal only.
   // No UNION dumping, no stacked queries, no destructive payloads — one quote character.
   const SQL_ERROR_RE = /SQL syntax|mysql_|mysqli_|ORA-\d+|SQLite|sqlite3|psycopg2|pg_query|ODBC|JDBC|Unclosed quotation|quoted string not properly terminated|SQLSTATE/i;
-  const sqliCandidates = discoveredPaths.filter((p) => p.includes('?')).slice(0, 3);
+  const sqliCandidates = SCREENS_ON ? discoveredPaths.filter((p) => p.includes('?')).slice(0, 3) : [];
   for (const p of sqliCandidates) {
     const abs = toAbsolute(p);
     if (!abs) continue;

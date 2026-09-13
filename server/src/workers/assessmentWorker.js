@@ -50,7 +50,7 @@ async function runAssessment(assessmentId, io) {
       // camelCase STAGES from the Assessment model).
       if (stage === 'endpointDiscovery' && target?.url) {
         try {
-          liveScanResult = await scanTarget(target.url, target.customHeaders || '');
+          liveScanResult = await scanTarget(target.url, target.customHeaders || '', assessment.type || 'Standard');
         } catch (e) {
           console.warn('[worker] live scan error:', e.message);
         }
@@ -68,7 +68,17 @@ async function runAssessment(assessmentId, io) {
     await Finding.deleteMany({ assessmentId });
 
     const liveAssets = liveScanResult.assets || [];
-    const combinedAssets = liveAssets.map((a) => ({ ...a, assessmentId }));
+    // Sanitize enums so scanner output can never fail validation mid-assessment.
+    const VALID_AUTH = ['Public', 'Required', 'Admin'];
+    const VALID_ASSET_TYPES = ['route', 'api', 'technology', 'header', 'js', 'dependency'];
+    const VALID_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'ANY'];
+    const combinedAssets = liveAssets.map((a) => ({
+      ...a,
+      assessmentId,
+      type: VALID_ASSET_TYPES.includes(a.type) ? a.type : 'api',
+      method: VALID_METHODS.includes(a.method) ? a.method : 'GET',
+      authentication: VALID_AUTH.includes(a.authentication) ? a.authentication : 'Required',
+    }));
 
     await Asset.insertMany(combinedAssets);
 

@@ -214,7 +214,7 @@ export function Reports() {
       </div>
 
       {/* Generate New Report Control Panel */}
-      <Card className="relative z-20 border-slate-800 bg-slate-900/90 p-4 shadow-xl backdrop-blur">
+      <Card className="relative z-30 border-slate-800 bg-slate-900/90 p-4 shadow-xl backdrop-blur">
         <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
           <div className="flex items-center gap-2">
             <div className="flex h-6 w-6 items-center justify-center rounded bg-cyan-500/20 text-cyan-400 font-bold text-xs">
@@ -247,14 +247,15 @@ export function Reports() {
               placeholder="Select assessment..."
               options={[
                 { value: '', label: 'Select assessment...' },
-                ...(assessments.data?.assessments || [
-                  { _id: 'a1', type: 'Comprehensive Security Audit', status: 'COMPLETED' },
-                  { _id: 'a2', type: 'World Monitor Security Audit', status: 'COMPLETED' },
-                  { _id: 'a3', type: 'API Security Assessment', status: 'COMPLETED' },
-                ]).map((a) => ({
-                  value: a._id,
-                  label: `${a.type} · ${a.status}`,
-                })),
+                ...(assessments.data?.assessments || []).map((a) => {
+                  const proj = typeof a.projectId === 'object' && a.projectId !== null ? a.projectId.name : '';
+                  const tgt = typeof a.targetId === 'object' && a.targetId !== null ? a.targetId.name || a.targetId.url : '';
+                  const when = a.createdAt ? new Date(a.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+                  return {
+                    value: a._id,
+                    label: [proj || tgt || a.type, a.type && (proj || tgt) ? a.type : '', a.status, when].filter(Boolean).join(' · '),
+                  };
+                }),
               ]}
             />
           </div>

@@ -1,0 +1,13 @@
+{
+  "name": "sentinelai-demo-target",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Intentionally vulnerable LOCAL demo target for SentinelAI authorized assessments. NEVER expose to the internet.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
