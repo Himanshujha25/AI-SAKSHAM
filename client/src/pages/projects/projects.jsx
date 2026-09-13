@@ -50,7 +50,7 @@ export function Projects() {
 
   // Create Project Modal State
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [form, setForm] = useState({ name: '', description: '', status: 'Active', tags: 'Web Application', image: '' });
+  const [form, setForm] = useState({ name: '', description: '', status: 'Active', category: 'Web Application', image: '' });
 
   // Action Menu & Modal States
   const [activeMenuProjectId, setActiveMenuProjectId] = useState(null);
@@ -80,7 +80,7 @@ export function Projects() {
   const createMutation = useMutation({
     mutationFn: async () => (await api.post('/projects', form)).data,
     onSuccess: () => {
-      setForm({ name: '', description: '', status: 'Active', tags: 'Web Application', image: '' });
+                setForm({ name: '', description: '', status: 'Active', category: 'Web Application', image: '' });
       setShowCreateModal(false);
       qc.invalidateQueries({ queryKey: ['projects'] });
     },
@@ -108,7 +108,7 @@ export function Projects() {
     ? (data.projects.length > 0
         ? data.projects.map((p, idx) => ({
             ...p,
-            tags: p.tags || ['Web Application', 'API'],
+            tags: p.category ? [p.category] : ['Web Application'],
             avatarBg: idx % 3 === 0 ? 'bg-cyan-600' : idx % 3 === 1 ? 'bg-purple-600' : 'bg-emerald-600',
             avatarChar: (p.name || 'P').charAt(0).toUpperCase(),
             targets: p.targets || { count: 1, sample: p.name ? `${p.name.toLowerCase()}.com` : 'target.com' },
@@ -348,7 +348,7 @@ export function Projects() {
                       </p>
                       {/* Tags Pill */}
                       <div className="flex items-center gap-1.5 mt-2">
-                        {(Array.isArray(p.tags) ? p.tags : [p.tags || 'Web Application']).map((t, idx) => (
+                        {(p.tags && p.tags.length ? p.tags : [p.category || 'Web Application']).map((t, idx) => (
                           <span
                             key={idx}
                             title={`Project Tag: ${t}`}
@@ -468,7 +468,7 @@ export function Projects() {
                                 name: p.name,
                                 description: p.description || '',
                                 status: p.status || 'Active',
-                                tags: Array.isArray(p.tags) ? p.tags[0] || 'Web Application' : p.tags || 'Web Application',
+                                category: p.category || 'Web Application',
                               });
                             }}
                             className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition"
@@ -629,8 +629,8 @@ export function Projects() {
                   <div>
                     <label className="text-xs font-semibold text-slate-400 block mb-1">Project Category</label>
                     <CustomSelect
-                      value={form.tags}
-                      onChange={(e) => setForm({ ...form, tags: e.target.value })}
+                      value={form.category}
+                      onChange={(e) => setForm({ ...form, category: e.target.value })}
                       options={[
                         { value: 'Web Application', label: 'Web Application' },
                         { value: 'API', label: 'API' },
@@ -779,8 +779,8 @@ export function Projects() {
                   <div>
                     <label className="text-xs font-semibold text-slate-400 block mb-1">Category</label>
                     <CustomSelect
-                      value={editProject.tags}
-                      onChange={(e) => setEditProject({ ...editProject, tags: e.target.value })}
+                      value={editProject.category}
+                      onChange={(e) => setEditProject({ ...editProject, category: e.target.value })}
                       options={[
                         { value: 'Web Application', label: 'Web Application' },
                         { value: 'API', label: 'API' },
@@ -808,7 +808,7 @@ export function Projects() {
                         name: editProject.name,
                         description: editProject.description,
                         status: editProject.status,
-                        tags: [editProject.tags],
+                        category: editProject.category,
                         image: editProject.image,
                       },
                     })
