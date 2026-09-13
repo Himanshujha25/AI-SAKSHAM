@@ -21,6 +21,9 @@ const create = asyncHandler(async (req, res) => {
   }
   const { name, url, method, requestBody, environment, authorizationConfirmed, description, metadata, customHeaders } = req.body;
   if (!name || !url) return res.status(400).json({ message: 'name, url required' });
+
+  const headersString = Array.isArray(customHeaders) ? customHeaders.join('\n') : (typeof customHeaders === 'string' ? customHeaders : String(customHeaders || ''));
+
   const target = await Target.create({
     projectId: req.params.projectId,
     name,
@@ -28,7 +31,7 @@ const create = asyncHandler(async (req, res) => {
     method: method || 'GET',
     requestBody: requestBody || '',
     environment: environment || 'Testing',
-    customHeaders: customHeaders || '',
+    customHeaders: headersString,
     authorizationConfirmed: !!authorizationConfirmed,
     description: description || '',
     metadata: metadata || {},
@@ -60,7 +63,9 @@ const update = asyncHandler(async (req, res) => {
   if (method !== undefined) updateData.method = method;
   if (requestBody !== undefined) updateData.requestBody = requestBody;
   if (environment !== undefined) updateData.environment = environment;
-  if (customHeaders !== undefined) updateData.customHeaders = customHeaders;
+  if (customHeaders !== undefined) {
+    updateData.customHeaders = Array.isArray(customHeaders) ? customHeaders.join('\n') : (typeof customHeaders === 'string' ? customHeaders : String(customHeaders || ''));
+  }
   if (authorizationConfirmed !== undefined) updateData.authorizationConfirmed = !!authorizationConfirmed;
   if (description !== undefined) updateData.description = description;
   if (metadata !== undefined) updateData.metadata = metadata;

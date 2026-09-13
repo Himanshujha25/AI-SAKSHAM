@@ -242,4 +242,92 @@ async function generateReportFile({ project, target, assessment, findings = [], 
   return { fileName, fileUrl: `/uploads/reports/${fileName}` };
 }
 
-module.exports = { generatePdf: generateReportFile, generateReportFile };
+async function generateSingleFindingPdf({ project, finding }) {
+  const dir = path.join(__dirname, '..', '..', 'uploads', 'reports');
+  fs.mkdirSync(dir, { recursive: true });
+  const fileName = `vulnerability-${finding.findingId || 'VUL'}-${Date.now()}.pdf`;
+  const abs = path.join(dir, fileName);
+
+  await new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ margin: 48 });
+    const stream = fs.createWriteStream(abs);
+    doc.pipe(stream);
+
+    // Document Header
+    doc.fillColor('#0284c7').fontSize(20).text('SAKSHAM AI SECURITY VULNERABILITY REPORT', { align: 'center' });
+    doc.fillColor('#475569').fontSize(11).text(`Project: ${project?.name || 'Authorized Target'} | ID: ${finding.findingId}`, { align: 'center' });
+    doc.moveDown(1.5);
+
+    // 1. Title & Classification
+    doc.fillColor('#0f172a').fontSize(15).text(`${finding.findingId} · ${finding.title}`);
+    doc.fillColor('#dc2626').fontSize(11).text(`Severity: ${finding.severity?.toUpperCase()} (CVSS v3: ${finding.cvssScore}) | Status: ${finding.status}`);
+    doc.fillColor('#475569').fontSize(10).text(`Category: ${finding.category} | CWE: ${finding.cwe || 'CWE-200'} | OWASP: ${finding.owasp || 'A05:2021'}`);
+    doc.moveDown();
+
+    // 2. Affected Component
+    doc.fillColor('#0284c7').fontSize(12).text('AFFECTED COMPONENT / ENDPOINT');
+    doc.fillColor('#0f172a').fontSize(10).text((finding.affectedAssets || []).join(', ') || 'N/A');
+    doc.moveDown();
+
+    // 3. Description
+    doc.fillColor('#0284c7').fontSize(12).text('VULNERABILITY DESCRIPTION');
+    doc.fillColor('#334155').fontSize(10).text(finding.description || 'Detailed technical vulnerability finding.');
+    doc.moveDown();
+
+    // 4. Steps to Reproduce
+    const steps = finding.stepsToReproduce?.length ? finding.stepsToReproduce : finding.aiAnalysis?.stepsToReproduce;
+    if (steps && steps.length > 0) {
+      doc.fillColor('#0284c7').fontSize(12).text('STEPS TO REPRODUCE');
+      steps.forEach((step, idx) => {
+        doc.fillColor('#334155').fontSize(10).text(`${idx + 1}. ${step}`);
+      });
+      doc.moveDown();
+    }
+
+    // 5. Proof of Concept (PoC)
+    const poc = finding.proofOfConcept || finding.aiAnalysis?.proofOfConcept || finding.evidence;
+    if (poc) {
+      doc.fillColor('#0284c7').fontSize(12).text('PROOF OF CONCEPT (SAFE POC VALIDATION)');
+      doc.fillColor('#0f172a').fontSize(9).text(poc);
+      doc.moveDown();
+    }
+
+    // 6. Business Impact Assessment
+    const bImpact = finding.businessImpact || finding.aiAnalysis?.businessImpact || finding.impact;
+    if (bImpact) {
+      doc.fillColor('#0284c7').fontSize(12).text('BUSINESS IMPACT ASSESSMENT');
+      doc.fillColor('#b91c1c').fontSize(10).text(bImpact);
+      doc.moveDown();
+    }
+
+    // 7. Remediation Recommendations
+    const remedies = finding.remediation?.length ? finding.remediation : finding.aiAnalysis?.remediation;
+    if (remedies && remedies.length > 0) {
+      doc.fillColor('#0284c7').fontSize(12).text('REMEDIATION RECOMMENDATIONS');
+      remedies.forEach((r) => {
+        doc.fillColor('#15803d').fontSize(10).text(`• ${r}`);
+      });
+      doc.moveDown();
+    }
+
+    // 8. Testing Constraints & Rules of Engagement
+    doc.fillColor('#0284c7').fontSize(12).text('RULES OF ENGAGEMENT & ETHICAL CONSTRAINTS');
+    const constraints = finding.remediationConstraints || [
+      'Testing must be performed only on authorized systems.',
+      'No actions should affect production users or data.',
+      'Exploitation should be limited to proof-of-concept validation.',
+      'Compliance with applicable laws, policies, and ethical hacking guidelines is required.',
+    ];
+    constraints.forEach((c) => {
+      doc.fillColor('#475569').fontSize(9).text(`✔ ${c}`);
+    });
+
+    doc.end();
+    stream.on('finish', resolve);
+    stream.on('error', reject);
+  });
+
+  return { fileName, fileUrl: `/uploads/reports/${fileName}` };
+}
+
+module.exports = { generatePdf: generateReportFile, generateReportFile, generateSingleFindingPdf };

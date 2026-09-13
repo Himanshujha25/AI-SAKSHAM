@@ -34,8 +34,54 @@ export function slaCountdown(iso) {
   const abs = Math.abs(diff);
   const d = Math.floor(abs / 86400000);
   const h = Math.floor((abs % 86400000) / 3600000);
-  const text = d > 0 ? `${d}d ${h}h` : `${h}h ${Math.floor((abs % 3600000) / 60000)}m`;
+  const formatted = d > 0 ? `${d}d ${h}h` : `${h}h`;
   return diff < 0
-    ? { text: `OVERDUE by ${text}`, overdue: true }
-    : { text: `${text} left`, overdue: false };
+    ? { text: `OVERDUE by ${formatted}`, overdue: true }
+    : { text: `${formatted} left`, overdue: false };
+}
+
+// Parse raw cURL command strings into structured method, url, headers, and body
+export function parseCurlCommand(curlStr) {
+  if (!curlStr || typeof curlStr !== 'string') return null;
+  const result = {
+    method: 'GET',
+    url: '',
+    headers: '',
+    body: '',
+  };
+
+  const cleaned = curlStr.replace(/[\`\\\r\n]+/g, ' ').trim();
+
+  // Extract URL
+  const urlMatch = cleaned.match(/https?:\/\/[^\s"']+/i);
+  if (urlMatch) {
+    result.url = urlMatch[0];
+  }
+
+  // Extract Method
+  const methodMatch = cleaned.match(/-X\s+([A-Z]+)/i) || cleaned.match(/--request\s+([A-Z]+)/i);
+  if (methodMatch) {
+    result.method = methodMatch[1].toUpperCase();
+  } else if (cleaned.includes('-d ') || cleaned.includes('--data')) {
+    result.method = 'POST';
+  }
+
+  // Extract Headers
+  const headerRegex = /(?:-H|--header)\s+["']?([^"'\n]+)["']?/gi;
+  let hMatch;
+  const headerList = [];
+  while ((hMatch = headerRegex.exec(cleaned)) !== null) {
+    if (hMatch[1]) {
+      headerList.push(hMatch[1].trim());
+    }
+  }
+  result.headers = headerList.join('\n');
+
+  // Extract Body Data
+  const dataMatch = cleaned.match(/(?:-d|--data|--data-raw)\s+['"]?(\{[\s\S]*\}|[^"'\n]+)['"]?/i);
+  if (dataMatch) {
+    result.body = dataMatch[1].trim();
+  }
+
+  return result;
 }

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../store/auth';
 import { cn } from '../../lib/utils';
 import { NotificationCenter } from './NotificationCenter';
+import { SakshamLogo } from '../shared/SakshamLogo';
 
 const links = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, tone: 'text-cyan-300' },
@@ -19,17 +20,8 @@ const links = [
 
 function Brand() {
   return (
-    <Link to="/dashboard" className="group flex shrink-0 items-center gap-3">
-      <span className="flex h-9 items-center rounded-lg border border-slate-700/60 bg-white px-2 shadow-sm transition duration-300 group-hover:scale-[1.03]">
-        <img
-          src="/Logo.png"
-          alt="Saksham AI"
-          className="h-6 w-auto object-contain"
-        />
-      </span>
-      <div className="leading-none">
-        <span className="block font-mono text-[10px] font-bold text-slate-400 uppercase tracking-[0.18em] mt-0.5 group-hover:text-slate-300 transition">Command Center</span>
-      </div>
+    <Link to="/dashboard" className="group flex shrink-0 items-center gap-3 transition-transform hover:opacity-95">
+      <SakshamLogo size="md" variant="full" subtitle={true} />
     </Link>
   );
 }

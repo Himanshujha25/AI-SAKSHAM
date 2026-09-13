@@ -4,6 +4,34 @@
  * Profiles tune depth: Quick = headers-only fast pass; Standard = full default;
  * Comprehensive = deeper endpoint capture; API Audit = API-focused; Infrastructure = headers/TLS/tech only.
  */
+async function safeFetch(urlStr, options = {}) {
+  try {
+    return await fetch(urlStr, options);
+  } catch (err) {
+    if (urlStr.includes('localhost') || urlStr.includes('127.0.0.1') || urlStr.includes('[::1]')) {
+      const fallbacks = [];
+      if (urlStr.includes('localhost')) {
+        fallbacks.push(urlStr.replace('localhost', '127.0.0.1'));
+        fallbacks.push(urlStr.replace('localhost', '[::1]'));
+      } else if (urlStr.includes('127.0.0.1')) {
+        fallbacks.push(urlStr.replace('127.0.0.1', 'localhost'));
+        fallbacks.push(urlStr.replace('127.0.0.1', '[::1]'));
+      } else if (urlStr.includes('[::1]')) {
+        fallbacks.push(urlStr.replace('[::1]', 'localhost'));
+        fallbacks.push(urlStr.replace('[::1]', '127.0.0.1'));
+      }
+      for (const altUrl of fallbacks) {
+        try {
+          return await fetch(altUrl, options);
+        } catch (e2) {
+          // continue fallback loop
+        }
+      }
+    }
+    throw err;
+  }
+}
+
 async function scanTarget(targetUrl, customHeadersString = '', profile = 'Standard', httpMethod = 'GET', requestBodyString = '') {
   const assets = [];
   const findings = [];
@@ -39,21 +67,42 @@ async function scanTarget(targetUrl, customHeadersString = '', profile = 'Standa
     reqHeaders['Content-Type'] = 'application/json';
   }
 
+  function sanitizeHeaderPair(rawKey, rawVal) {
+    if (!rawKey || typeof rawKey !== 'string') return null;
+    let cleanKey = rawKey.trim().replace(/^["'`\s]+|["'`\s]+$/g, '');
+    cleanKey = cleanKey.replace(/[^\w-]/g, '');
+    if (!cleanKey) return null;
+
+    let cleanVal = typeof rawVal === 'string' ? rawVal.trim() : String(rawVal || '').trim();
+    if ((cleanVal.startsWith('"') && cleanVal.endsWith('"')) || (cleanVal.startsWith("'") && cleanVal.endsWith("'"))) {
+      cleanVal = cleanVal.slice(1, -1).trim();
+    }
+    cleanVal = cleanVal.replace(/[\r\n]/g, '');
+    return { key: cleanKey, val: cleanVal };
+  }
+
   // Parse custom user headers (e.g. Bearer token, Cookie, Admin Key)
   if (customHeadersString && typeof customHeadersString === 'string') {
     try {
-      if (customHeadersString.trim().startsWith('{')) {
-        const parsedObj = JSON.parse(customHeadersString);
-        Object.assign(reqHeaders, parsedObj);
+      const trimmed = customHeadersString.trim();
+      if (trimmed.startsWith('{')) {
+        const parsedObj = JSON.parse(trimmed);
+        for (const [k, v] of Object.entries(parsedObj)) {
+          const sanitized = sanitizeHeaderPair(k, v);
+          if (sanitized) reqHeaders[sanitized.key] = sanitized.val;
+        }
       } else {
-        customHeadersString.split('\n').forEach((line) => {
-          const colonIdx = line.indexOf(':');
+        trimmed.split('\n').forEach((line) => {
+          let cleanLine = line.replace(/^\s*-H\s+/i, '').trim();
+          if ((cleanLine.startsWith('"') && cleanLine.endsWith('"')) || (cleanLine.startsWith("'") && cleanLine.endsWith("'"))) {
+            cleanLine = cleanLine.slice(1, -1).trim();
+          }
+          const colonIdx = cleanLine.indexOf(':');
           if (colonIdx > 0) {
-            const key = line.substring(0, colonIdx).trim();
-            const val = line.substring(colonIdx + 1).trim();
-            if (key && val) {
-              reqHeaders[key] = val;
-            }
+            const key = cleanLine.substring(0, colonIdx);
+            const val = cleanLine.substring(colonIdx + 1);
+            const sanitized = sanitizeHeaderPair(key, val);
+            if (sanitized) reqHeaders[sanitized.key] = sanitized.val;
           }
         });
       }
@@ -79,7 +128,7 @@ async function scanTarget(targetUrl, customHeadersString = '', profile = 'Standa
     if (hasBody) {
       fetchOptions.body = requestBodyString;
     }
-    response = await fetch(normalizedUrl, fetchOptions);
+    response = await safeFetch(normalizedUrl, fetchOptions);
     clearTimeout(timeoutId);
     try {
       responseText = await response.text();
@@ -130,6 +179,60 @@ async function scanTarget(targetUrl, customHeadersString = '', profile = 'Standa
   }
   const status = response.status;
   const body = responseText || '';
+
+  // Attach response payload and headers to Root Target asset metadata for modal inspection
+  if (assets.length > 0) {
+    assets[0].metadata.responseBody = body;
+    assets[0].metadata.responseHeaders = headers;
+  }
+
+  // Flag probe errors if target responded with HTTP 4xx/5xx (e.g. 405 Method Not Allowed, 401, 403)
+  if (status >= 400) {
+    let faultTitle = `Target Returned HTTP ${status} Error`;
+    let faultSeverity = 'Medium';
+    let faultImpact = `The target API rejected the probe request with HTTP ${status}.`;
+    let faultRemediation = ['Verify HTTP Method, Bearer token/API key, and target route configuration.'];
+
+    if (status === 405) {
+      faultTitle = 'Target Method Mismatch (HTTP 405 Method Not Allowed)';
+      faultSeverity = 'High';
+      faultImpact = `The target endpoint rejected the ${effectiveMethod} request method with HTTP 405. The endpoint requires GET or a different method.`;
+      faultRemediation = [
+        'Switch the HTTP Method to GET (or appropriate method) in Step 1 of the assessment setup.',
+        'Verify API route documentation for allowed HTTP methods.',
+      ];
+    } else if (status === 401 || status === 403) {
+      faultTitle = `Target Authentication Failure (HTTP ${status})`;
+      faultSeverity = 'High';
+      faultImpact = `Target endpoint rejected probe due to missing or invalid authentication credentials (HTTP ${status}).`;
+      faultRemediation = [
+        'Check Bearer JWT session token or Developer API Key in Step 2 of the assessment setup.',
+        'Ensure token has not expired and has permissions to access target asset.',
+      ];
+    } else if (status === 404) {
+      faultTitle = 'Target Route Not Found (HTTP 404)';
+      faultSeverity = 'Medium';
+      faultImpact = `Target endpoint path returned HTTP 404 Not Found at ${normalizedUrl}.`;
+      faultRemediation = [
+        'Verify target URL endpoint path and ensure local API server is active.',
+      ];
+    }
+
+    findings.push({
+      title: faultTitle,
+      category: 'API Configuration & Protocol Error',
+      severity: faultSeverity,
+      cvssScore: status === 405 || status === 401 || status === 403 ? 7.2 : 5.0,
+      cwe: 'CWE-200',
+      owasp: 'A05:2021',
+      affectedAssets: [normalizedUrl],
+      evidence: `HTTP/${status} - Target server responded: "${body ? body.slice(0, 250) : 'Method Not Allowed / Auth Error'}"`,
+      impact: faultImpact,
+      status: 'Verified',
+      remediation: faultRemediation,
+      httpTrace: { method: effectiveMethod, url: normalizedUrl, statusCode: status },
+    });
+  }
 
   // 1. Security Header Audits
   // A. Content-Security-Policy
@@ -303,7 +406,7 @@ async function scanTarget(targetUrl, customHeadersString = '', profile = 'Standa
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 4000);
-      const r = await fetch(url, { signal: controller.signal, redirect: 'follow', headers });
+      const r = await safeFetch(url, { signal: controller.signal, redirect: 'follow', headers });
       clearTimeout(timeoutId);
       let text = '';
       try { text = (await r.text()).slice(0, 8000); } catch (e) { /* ignore */ }
@@ -389,6 +492,74 @@ async function scanTarget(targetUrl, customHeadersString = '', profile = 'Standa
         httpTrace: { method: 'GET', url: `${p}'`, statusCode: probe.status },
       });
     }
+  }
+
+  // 3C. Unauthenticated API Probe (Bypassing Auth on Protected Route)
+  if (reqHeaders.Authorization || reqHeaders.authorization || reqHeaders['X-API-Key'] || reqHeaders['x-api-key']) {
+    const unauthProbe = await probeGet(normalizedUrl, false);
+    if (unauthProbe.status === 200) {
+      findings.push({
+        title: 'Broken Authentication: API Endpoint Accessible Without Credentials',
+        category: 'Broken Authentication',
+        severity: 'Critical',
+        cvssScore: 9.1,
+        cwe: 'CWE-306',
+        owasp: 'A07:2021',
+        affectedAssets: [normalizedUrl],
+        evidence: `Unauthenticated request to ${normalizedUrl} returned HTTP 200 OK without valid Authorization header or API Key.`,
+        impact: 'Attacking users can access internal system resources or data payloads without authenticating.',
+        status: 'Verified',
+        remediation: [
+          'Enforce authentication middleware on all API routes.',
+          'Reject requests missing valid Authorization Bearer tokens or X-API-Key headers with HTTP 401 Unauthorized.',
+        ],
+        httpTrace: { method: effectiveMethod, url: normalizedUrl, statusCode: 200 },
+      });
+    }
+  }
+
+  // 3D. Sensitive Server Header Information Disclosure
+  const sensitiveHeaders = ['server', 'x-powered-by', 'x-aspnet-version', 'via'];
+  const leakedHeaders = sensitiveHeaders.filter((h) => headers[h]);
+  if (leakedHeaders.length > 0) {
+    findings.push({
+      title: 'Information Disclosure via Server & Framework Headers',
+      category: 'Information Disclosure',
+      severity: 'Low',
+      cvssScore: 3.3,
+      cwe: 'CWE-200',
+      owasp: 'A05:2021',
+      affectedAssets: [normalizedUrl],
+      evidence: `Server emitted identifying banner headers: ${leakedHeaders.map((h) => `${h}: ${headers[h]}`).join(', ')}`,
+      impact: 'Exposing backend framework versions simplifies target reconnaissance and automated vulnerability scanning by adversaries.',
+      status: 'Verified',
+      remediation: [
+        'Strip Server and X-Powered-By response headers in web server configuration (e.g. app.disable("x-powered-by")).',
+      ],
+      httpTrace: { method: effectiveMethod, url: normalizedUrl, statusCode: status },
+    });
+  }
+
+  // 3E. Permissive CORS with Credentials Allowed
+  const acac = headers['access-control-allow-credentials'];
+  if (acao && acac && (acao === '*' || acac === 'true')) {
+    findings.push({
+      title: 'Insecure CORS Configuration (Credentials Allowed with Wildcard Origin)',
+      category: 'Security Misconfiguration',
+      severity: 'High',
+      cvssScore: 7.5,
+      cwe: 'CWE-942',
+      owasp: 'A01:2021',
+      affectedAssets: [normalizedUrl],
+      evidence: `Access-Control-Allow-Origin: ${acao} combined with Access-Control-Allow-Credentials: ${acac}`,
+      impact: 'Browsers may permit cross-origin sites to execute authenticated requests and harvest sensitive user data.',
+      status: 'Verified',
+      remediation: [
+        'Do not combine Access-Control-Allow-Credentials: true with wildcard origins.',
+        'Use explicit, trusted origin whitelists for CORS configuration.',
+      ],
+      httpTrace: { method: effectiveMethod, url: normalizedUrl, statusCode: status },
+    });
   }
 
   return { assets, findings };

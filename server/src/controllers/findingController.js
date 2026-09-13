@@ -87,10 +87,16 @@ const aiAnalysis = asyncHandler(async (req, res) => {  const finding = await Fin
     classification: result.classification,
     confidence: result.confidence,
     impact: result.impact,
+    businessImpact: result.businessImpact,
     technicalExplanation: result.technicalExplanation,
+    stepsToReproduce: result.stepsToReproduce,
+    proofOfConcept: result.proofOfConcept,
     remediation: result.remediation,
     priorityReason: result.priorityReason,
   };
+  if (!finding.stepsToReproduce || finding.stepsToReproduce.length === 0) finding.stepsToReproduce = result.stepsToReproduce;
+  if (!finding.proofOfConcept) finding.proofOfConcept = result.proofOfConcept;
+  if (!finding.businessImpact) finding.businessImpact = result.businessImpact;
   if (!finding.remediation || finding.remediation.length === 0) finding.remediation = result.remediation;
   await finding.save();
   res.json({ finding, meta: result._meta });
@@ -127,5 +133,18 @@ const retest = asyncHandler(async (req, res) => {
   res.json({ finding });
 });
 
-module.exports = { list, get, update, verify, aiAnalysis, retest };
+const downloadPdf = asyncHandler(async (req, res) => {
+  const finding = await Finding.findById(req.params.id);
+  if (!finding) return res.status(404).json({ message: 'Finding not found' });
+  const project = await Project.findById(finding.projectId);
+  if (!project || !hasProjectAccess(req.user, project)) {
+    return res.status(403).json({ message: 'Access denied to this finding PDF' });
+  }
+
+  const { generateSingleFindingPdf } = require('../services/reportService');
+  const { fileName, fileUrl } = await generateSingleFindingPdf({ project, finding });
+  res.json({ fileName, fileUrl });
+});
+
+module.exports = { list, get, update, verify, aiAnalysis, retest, downloadPdf };
 

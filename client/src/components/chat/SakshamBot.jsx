@@ -4,6 +4,7 @@ import { X, Send, Bot, Sparkles, Trash2 } from 'lucide-react';
 import api from '../../lib/api';
 import { useAuth } from '../../store/auth';
 import { cn } from '../../lib/utils';
+import { SakshamIcon } from '../shared/SakshamLogo';
 
 const GUEST_CHIPS = ['What does the app do?', 'How does verification work?', 'How do I get started?'];
 const USER_CHIPS = ['Summarize my findings', 'Show most critical issue', 'What is my security score?', 'What should I fix first?'];
@@ -127,9 +128,7 @@ export function SakshamBot() {
           >
             {/* Header */}
             <div className="flex items-center gap-2.5 border-b border-slate-200 bg-slate-50 px-4 py-3 dark:border-white/10 dark:bg-white/[0.04]">
-              <span className="flex h-9 items-center rounded-lg bg-white px-1.5 shadow">
-                <img src="/Logo.png" alt="Saksham Bot" className="h-6 w-auto object-contain" />
-              </span>
+              <SakshamIcon size={28} />
               <div className="min-w-0 flex-1">
                 <p className="flex items-center gap-1.5 text-sm font-semibold">Saksham Bot <Sparkles size={12} className="text-cyan-500" /></p>
                 <p className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400">

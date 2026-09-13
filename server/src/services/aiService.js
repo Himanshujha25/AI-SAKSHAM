@@ -57,7 +57,14 @@ Return a valid JSON object strictly matching this schema:
   "classification": "OWASP / CWE category classification",
   "confidence": number between 50 and 99,
   "impact": "Detailed business and technical security impact",
+  "businessImpact": "Specific business impact assessment on financial, operational, and regulatory compliance risk",
   "technicalExplanation": "Technical root cause explanation",
+  "stepsToReproduce": [
+    "Step 1: Send HTTP request to target endpoint...",
+    "Step 2: Inspect server response headers or payload...",
+    "Step 3: Verify vulnerability behavior..."
+  ],
+  "proofOfConcept": "Full reproducible HTTP curl request or code snippet demonstrating the issue safely",
   "remediation": ["step 1", "step 2", "step 3"],
   "priorityReason": "Why this item should be prioritized"
 }`;
@@ -69,7 +76,16 @@ function normalize(title, category, evidence, parsed, meta) {
     classification: parsed.classification || category || 'Unclassified',
     confidence: Number(parsed.confidence) || 85,
     impact: parsed.impact || 'Potential unauthorized access or compromise.',
+    businessImpact: parsed.businessImpact || parsed.impact || 'Risk of security policy violation, session hijacking, or data exposure on target systems.',
     technicalExplanation: parsed.technicalExplanation || evidence,
+    stepsToReproduce: Array.isArray(parsed.stepsToReproduce) && parsed.stepsToReproduce.length > 0
+      ? parsed.stepsToReproduce
+      : [
+          `Send request to affected endpoint with standard headers.`,
+          `Observe response status and missing security controls in server header payload.`,
+          `Validate non-compliant behavior against security standard.`,
+        ],
+    proofOfConcept: parsed.proofOfConcept || (evidence ? `Captured Evidence:\n${evidence}` : `curl -i -X GET "${title}"`),
     remediation: Array.isArray(parsed.remediation) ? parsed.remediation : [parsed.remediation].filter(Boolean),
     priorityReason: parsed.priorityReason || 'High priority remediation.',
     _meta: meta,

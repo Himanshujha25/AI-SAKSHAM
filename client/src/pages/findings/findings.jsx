@@ -32,8 +32,12 @@ import {
   RotateCcw,
   Folder,
   ShieldAlert,
+  Download,
+  BookOpen,
+  HelpCircle,
 } from 'lucide-react';
 import api from '../../lib/api';
+import { getSocket } from '../../lib/socket';
 import { errMsg, cn, buildCurl, slaCountdown } from '../../lib/utils';
 import CustomSelect from '../../components/ui/CustomSelect';
 import { PageHeader, LoadingState, ErrorState, EmptyState, SeverityBadge, StatusBadge, PremiumIcon } from '../../components/shared/shared';
@@ -219,7 +223,17 @@ export function Findings() {
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['findings', queryString],
     queryFn: async () => (await api.get(`/findings?${queryString}`)).data,
+    refetchInterval: 3000,
   });
+
+  useEffect(() => {
+    const s = getSocket();
+    const onProgress = () => {
+      qc.invalidateQueries({ queryKey: ['findings'] });
+    };
+    s.on('assessment:progress', onProgress);
+    return () => { s.off('assessment:progress', onProgress); };
+  }, [qc]);
 
   const projectsQuery = useQuery({
     queryKey: ['projects-mini'],
@@ -1427,6 +1441,7 @@ export function FindingDetail() {
   const { id } = useParams();
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['finding', id],
@@ -1434,7 +1449,7 @@ export function FindingDetail() {
   });
 
   const verify = useMutation({
-    mutationFn: async (status) => (await api.post(`/findings/${id}/verify`, { status, confidence: 95 })).data,
+    mutationFn: async (status) => (await api.post(`/findings/${id}/verify`, { status })).data,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['finding', id] });
       qc.invalidateQueries({ queryKey: ['findings'] });
@@ -1458,14 +1473,71 @@ export function FindingDetail() {
     },
   });
 
+  const handleDownloadPdf = async () => {
+    try {
+      setIsDownloadingPdf(true);
+      const res = await api.get(`/findings/${id}/pdf`);
+      if (res.data?.fileUrl) {
+        const link = document.createElement('a');
+        link.href = res.data.fileUrl;
+        link.download = res.data.fileName || `vulnerability-${id}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch (err) {
+      console.error('Failed to download finding PDF:', err);
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
+
   if (isLoading) return <LoadingState label="Loading detailed vulnerability breakdown..." />;
   if (isError || !data?.finding) return <ErrorState message="Finding record not found." onRetry={() => refetch()} />;
 
   const v = data.finding;
 
+  // Extract structured dynamic values with fallbacks
+  const stepsToReproduce =
+    (v.stepsToReproduce && v.stepsToReproduce.length > 0)
+      ? v.stepsToReproduce
+      : (v.aiAnalysis?.stepsToReproduce && v.aiAnalysis.stepsToReproduce.length > 0)
+      ? v.aiAnalysis.stepsToReproduce
+      : [
+          `Send request to affected asset: ${(v.affectedAssets || [])[0] || 'Target Endpoint'}`,
+          `Inspect HTTP response payload and security headers.`,
+          `Verify missing security control or misconfiguration.`,
+        ];
+
+  const proofOfConcept =
+    v.proofOfConcept ||
+    v.aiAnalysis?.proofOfConcept ||
+    v.evidence ||
+    `curl -i -X ${v.httpTrace?.method || 'GET'} "${(v.affectedAssets || [])[0] || 'http://localhost:3001/api'}"`;
+
+  const businessImpact =
+    v.businessImpact ||
+    v.aiAnalysis?.businessImpact ||
+    v.impact ||
+    'Potential vulnerability exploitation could lead to unauthorized data exposure, session hijacking, or regulatory non-compliance.';
+
+  const remediationSteps =
+    (v.remediation && v.remediation.length > 0)
+      ? v.remediation
+      : (v.aiAnalysis?.remediation && v.aiAnalysis.remediation.length > 0)
+      ? v.aiAnalysis.remediation
+      : ['Enforce strict security policy headers.', 'Implement input validation and authorization checks.'];
+
+  const ethicalConstraints = v.remediationConstraints || [
+    'Testing must be performed only on authorized systems.',
+    'No actions should affect production users or data.',
+    'Exploitation should be limited to proof-of-concept validation.',
+    'Compliance with applicable laws, policies, and ethical hacking guidelines is required.',
+  ];
+
   return (
     <div className="space-y-6 pb-12">
-      {/* Detail Top Header */}
+      {/* Top Header Controls */}
       <div className="flex items-center justify-between">
         <button
           onClick={() => {
@@ -1478,10 +1550,21 @@ export function FindingDetail() {
           className="group inline-flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900/90 px-3.5 py-2 text-xs font-bold text-slate-300 transition duration-200 hover:border-cyan-500/40 hover:bg-slate-800 hover:text-white shadow-sm"
         >
           <ArrowLeft className="h-4 w-4 text-cyan-400 transition-transform duration-200 group-hover:-translate-x-1" />
-          <span>Back</span>
+          <span>Back to Findings</span>
         </button>
+
+        {/* Download PDF Button */}
+        <Button
+          onClick={handleDownloadPdf}
+          disabled={isDownloadingPdf}
+          className="bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-cyan-950/50"
+        >
+          <Download className={cn("h-4 w-4", isDownloadingPdf && "animate-bounce")} />
+          <span>{isDownloadingPdf ? 'Generating PDF Report…' : 'Download Vulnerability PDF'}</span>
+        </Button>
       </div>
 
+      {/* Main Vulnerability Header */}
       <PageHeader
         title={`${v.findingId} · ${v.title}`}
         subtitle={`${v.category || 'Security Finding'} · CVSS ${v.cvssScore}`}
@@ -1494,63 +1577,123 @@ export function FindingDetail() {
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
+        {/* Left Column: Full Technical Breakdown */}
         <div className="space-y-6 lg:col-span-2">
-          {/* Overview */}
+          {/* 1. Vulnerability Overview */}
           <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400">Overview</h3>
-            <p className="text-sm text-slate-200">{v.description || 'No description available.'}</p>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+              <FileText className="h-4 w-4 text-cyan-400" /> Vulnerability Description & Metadata
+            </h3>
+            <p className="text-sm text-slate-200 leading-relaxed">{v.description || 'No detailed description available.'}</p>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-800/80">
               {(v.cwe || v.cweId) && (
-                <span className="rounded-md bg-slate-800 px-2 py-1 font-mono text-[11px] font-semibold text-cyan-300" title="Common Weakness Enumeration">
-                  {v.cwe || v.cweId}
+                <span className="rounded-md bg-slate-800 px-2.5 py-1 font-mono text-[11px] font-semibold text-cyan-300 border border-slate-700">
+                  CWE: {v.cwe || v.cweId}
                 </span>
               )}
               {(v.owasp || v.owaspCategory) && (
-                <span className="rounded-md bg-slate-800 px-2 py-1 font-mono text-[11px] font-semibold text-purple-300" title="OWASP Top 10 mapping">
-                  {v.owasp || v.owaspCategory}
+                <span className="rounded-md bg-slate-800 px-2.5 py-1 font-mono text-[11px] font-semibold text-purple-300 border border-slate-700">
+                  OWASP: {v.owasp || v.owaspCategory}
                 </span>
               )}
               {v.retestStatus && v.retestStatus !== 'NOT_REQUIRED' && (
-                <span className="rounded-md bg-sky-500/15 px-2 py-1 font-mono text-[11px] font-semibold text-sky-300 ring-1 ring-sky-400/40">
+                <span className="rounded-md bg-sky-500/15 px-2.5 py-1 font-mono text-[11px] font-semibold text-sky-300 ring-1 ring-sky-400/40">
                   RETEST: {v.retestStatus}
                 </span>
               )}
               {v.slaDueAt && <SlaBadge dueAt={v.slaDueAt} />}
             </div>
+          </Card>
 
-            <div className="pt-2 border-t border-slate-800">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Affected Endpoint</h4>
-              <p className="font-mono text-xs text-cyan-300 break-all">{(v.affectedAssets || []).join(', ') || 'N/A'}</p>
+          {/* 2. Affected Component */}
+          <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+              <Layers className="h-4 w-4 text-cyan-400" /> Affected Component & Endpoint
+            </h3>
+            <div className="rounded-lg border border-slate-800 bg-slate-950 p-3 font-mono text-xs text-cyan-300 break-all flex items-center gap-3">
+              <span className="rounded bg-slate-800 px-2 py-0.5 font-bold uppercase text-emerald-400 border border-slate-700 shrink-0">
+                {v.httpTrace?.method || 'GET'}
+              </span>
+              <span>{(v.affectedAssets || []).join(', ') || 'N/A'}</span>
             </div>
           </Card>
 
-          {/* Evidence */}
+          {/* 3. Steps to Reproduce */}
+          <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-amber-400 flex items-center gap-2">
+              <Bug className="h-4 w-4 text-amber-400" /> Steps to Reproduce (AI Verified)
+            </h3>
+            <div className="space-y-2.5 pt-1">
+              {stepsToReproduce.map((step, idx) => (
+                <div key={idx} className="flex items-start gap-3 rounded-lg border border-slate-800/80 bg-slate-950/60 p-3 text-xs text-slate-200">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-800 font-mono text-[11px] font-bold text-amber-400 border border-slate-700">
+                    {idx + 1}
+                  </span>
+                  <span className="leading-relaxed pt-0.5">{step}</span>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          {/* 4. Proof of Concept (PoC) */}
           <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400">Captured Evidence</h3>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                <Code2 className="h-4 w-4 text-cyan-400" /> Proof of Concept (Safe Testing Demonstration)
+              </h3>
               <CopyCurlButton finding={v} />
             </div>
-            <pre className="overflow-x-auto rounded-lg bg-slate-950 p-4 font-mono text-xs text-emerald-400 border border-slate-800">
-              {v.evidence || 'No raw HTTP trace recorded.'}
+            <pre className="overflow-x-auto rounded-lg bg-slate-950 p-4 font-mono text-xs text-emerald-400 border border-slate-800 leading-relaxed">
+              {proofOfConcept}
             </pre>
           </Card>
 
-          {/* Remediation */}
+          {/* 5. Business Impact Assessment */}
+          <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-3 border-l-4 border-l-red-500">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-red-400 flex items-center gap-2">
+              <ShieldAlert className="h-4 w-4 text-red-400" /> Business Impact Assessment
+            </h3>
+            <p className="text-xs text-slate-200 leading-relaxed bg-red-950/20 p-3 rounded-lg border border-red-900/30">
+              {businessImpact}
+            </p>
+          </Card>
+
+          {/* 6. Remediation Recommendations */}
           <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-3">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-cyan-400">Remediation Guide</h3>
-            <ul className="list-disc space-y-2 pl-5 text-sm text-slate-300">
-              {(v.remediation || []).map((r, i) => (
-                <li key={i}>{r}</li>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-emerald-400" /> Remediation Recommendations
+            </h3>
+            <ul className="space-y-2 text-xs text-slate-300">
+              {remediationSteps.map((r, i) => (
+                <li key={i} className="flex items-start gap-2.5 rounded-lg border border-slate-800/80 bg-slate-950/60 p-2.5">
+                  <span className="text-emerald-400 font-bold">•</span>
+                  <span className="leading-relaxed">{r}</span>
+                </li>
               ))}
             </ul>
+          </Card>
+
+          {/* 7. Safe Testing & Ethical Constraints Notice */}
+          <Card className="border-cyan-900/40 bg-cyan-950/15 p-5 space-y-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
+              <Shield className="h-4 w-4 text-cyan-400" /> Rules of Engagement & Ethical Hacking Constraints
+            </h3>
+            <div className="grid gap-2 text-xs text-slate-300">
+              {ethicalConstraints.map((c, idx) => (
+                <div key={idx} className="flex items-center gap-2 text-[11px] text-cyan-200">
+                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 shrink-0" />
+                  <span>{c}</span>
+                </div>
+              ))}
+            </div>
           </Card>
         </div>
 
         {/* Right Side Column */}
         <div className="space-y-6">
           {/* CVSS Metric Card */}
-          <Card className="border-slate-800 bg-slate-900/90 p-5 text-center">
+          <Card className="border-slate-800 bg-slate-900/90 p-5 text-center shadow-lg">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">CVSS v3 Score</h3>
             <div className="mt-2 text-4xl font-extrabold text-white font-mono">{v.cvssScore}</div>
             <div className="mt-3 flex justify-center">
@@ -1558,11 +1701,11 @@ export function FindingDetail() {
             </div>
           </Card>
 
-          {/* Security Remediation & Analysis */}
+          {/* AI Security Analysis Trigger */}
           <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-cyan-400">
-                <Code2 className="h-4 w-4 text-cyan-400" /> Security Remediation & Analysis
+                <Code2 className="h-4 w-4 text-cyan-400" /> AI Security Analysis
               </h3>
               <Button
                 variant="outline"
@@ -1571,7 +1714,7 @@ export function FindingDetail() {
                 className="text-xs flex items-center gap-1"
               >
                 <RefreshCw className={cn('h-3 w-3', ai.isPending && 'animate-spin')} />
-                {ai.isPending ? 'Analyzing…' : 'Refresh Analysis'}
+                {ai.isPending ? 'Analyzing…' : 'Refresh AI Analysis'}
               </Button>
             </div>
 
@@ -1581,17 +1724,14 @@ export function FindingDetail() {
                   <b className="text-white">Classification:</b> {v.aiAnalysis.classification} ({v.aiAnalysis.confidence}%)
                 </p>
                 <p>
-                  <b className="text-white">Impact:</b> {v.aiAnalysis.impact}
-                </p>
-                <p>
-                  <b className="text-white">Fix:</b> {(v.aiAnalysis.remediation || []).join(' | ')}
+                  <b className="text-white">Summary:</b> {v.aiAnalysis.summary}
                 </p>
                 <p className="text-[10px] text-slate-500 pt-2 border-t border-slate-800">
                   {v.aiAnalysis.priorityReason} · Presented as AI assistance.
                 </p>
               </div>
             ) : (
-              <p className="text-xs text-slate-500">No AI analysis generated yet — click Refresh AI above.</p>
+              <p className="text-xs text-slate-500">No AI analysis generated yet — click Refresh AI Analysis above.</p>
             )}
             {ai.isError && <p className="text-xs text-red-400">{errMsg(ai.error)}</p>}
           </Card>
@@ -1615,6 +1755,7 @@ export function FindingDetail() {
             {verify.isError && <p className="text-xs text-red-400">{errMsg(verify.error)}</p>}
           </Card>
 
+
           {/* Fix Verification / Retest */}
           <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-3">
             <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
@@ -1634,9 +1775,79 @@ export function FindingDetail() {
             </div>
             {retest.isError && <p className="text-xs text-red-400">{errMsg(retest.error)}</p>}
           </Card>
+
+          {/* CVSS v3.1 Severity Score Scale Guide */}
+          <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-3 shadow-md">
+            <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-cyan-400">
+              <BookOpen className="h-4 w-4 text-cyan-400" /> CVSS v3.1 Rating Matrix & Scale Guide
+            </h3>
+            <p className="text-[11px] text-slate-400 leading-relaxed">
+              CVSS (Common Vulnerability Scoring System) quantifies vulnerability severity from 0.0 to 10.0 based on exploitability, impact, and access complexity:
+            </p>
+            <div className="space-y-2 text-xs pt-1">
+              <div className="flex items-center justify-between rounded-lg border border-red-500/30 bg-red-950/30 p-2 text-slate-200">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-red-500 shrink-0" />
+                  <span className="font-bold text-red-300">9.0 – 10.0</span>
+                </div>
+                <span className="font-mono text-[10px] text-red-400 font-bold uppercase">Critical (RCE / Auth Bypass)</span>
+              </div>
+
+              <div className="flex items-center justify-between rounded-lg border border-orange-500/30 bg-orange-950/30 p-2 text-slate-200">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-orange-500 shrink-0" />
+                  <span className="font-bold text-orange-300">7.0 – 8.9</span>
+                </div>
+                <span className="font-mono text-[10px] text-orange-400 font-bold uppercase">High (IDOR / SQLi)</span>
+              </div>
+
+              <div className="flex items-center justify-between rounded-lg border border-amber-500/30 bg-amber-950/30 p-2 text-slate-200">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" />
+                  <span className="font-bold text-amber-300">4.0 – 6.9</span>
+                </div>
+                <span className="font-mono text-[10px] text-amber-400 font-bold uppercase">Medium (Missing CSP / CORS)</span>
+              </div>
+
+              <div className="flex items-center justify-between rounded-lg border border-emerald-500/30 bg-emerald-950/30 p-2 text-slate-200">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
+                  <span className="font-bold text-emerald-300">0.1 – 3.9</span>
+                </div>
+                <span className="font-mono text-[10px] text-emerald-400 font-bold uppercase">Low (Info Leak / Headers)</span>
+              </div>
+            </div>
+          </Card>
+
+          {/* Technical Security Terms & Glossary Explainer */}
+          <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-3 shadow-md">
+            <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-purple-400">
+              <HelpCircle className="h-4 w-4 text-purple-400" /> Technical Terms & Security Glossary
+            </h3>
+            <div className="space-y-2.5 text-xs">
+              <div className="rounded-lg border border-slate-800 bg-slate-950 p-2.5 space-y-0.5">
+                <span className="font-mono font-bold text-cyan-300 text-[11px] block">CWE (Common Weakness Enumeration)</span>
+                <p className="text-[11px] text-slate-400 leading-snug">Community dictionary of software flaw types (e.g. CWE-306 for Broken Authentication).</p>
+              </div>
+
+              <div className="rounded-lg border border-slate-800 bg-slate-950 p-2.5 space-y-0.5">
+                <span className="font-mono font-bold text-purple-300 text-[11px] block">OWASP Top 10</span>
+                <p className="text-[11px] text-slate-400 leading-snug">Standard awareness framework identifying top security risks in web applications & APIs.</p>
+              </div>
+
+              <div className="rounded-lg border border-slate-800 bg-slate-950 p-2.5 space-y-0.5">
+                <span className="font-mono font-bold text-emerald-300 text-[11px] block">PoC (Proof of Concept)</span>
+                <p className="text-[11px] text-slate-400 leading-snug">A safe HTTP trace or cURL command validating vulnerability existence without destroying data.</p>
+              </div>
+
+              <div className="rounded-lg border border-slate-800 bg-slate-950 p-2.5 space-y-0.5">
+                <span className="font-mono font-bold text-amber-300 text-[11px] block">IDOR / BOLA</span>
+                <p className="text-[11px] text-slate-400 leading-snug">Broken Object Level Authorization where manipulating object IDs exposes unauthorized records.</p>
+              </div>
+            </div>
+          </Card>
         </div>
       </div>
     </div>
   );
 }
-

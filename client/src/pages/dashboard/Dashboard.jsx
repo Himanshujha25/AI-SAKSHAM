@@ -8,10 +8,11 @@ import {
   Play, X, Globe, Cpu, Zap, Code2, GitFork, Layers,
   Lock, FileCode, Box, AlertOctagon, AlertTriangle, BarChart2,
   CheckCircle2, TrendingUp, Activity, Clock, FolderPlus, ArrowRight,
-  ShieldAlert, ChevronRight, LayoutDashboard
+  ShieldAlert, ChevronRight, LayoutDashboard, Terminal, Sparkles, Key
 } from 'lucide-react';
 import api from '../../lib/api';
 import { getSocket } from '../../lib/socket';
+import { parseCurlCommand } from '../../lib/utils';
 import { PageHeader, LoadingState, ErrorState, EmptyState, StatusBadge, SeverityBadge, MicroLabel, PremiumIcon } from '../../components/shared/shared';
 import { CustomSelect } from '../../components/ui/CustomSelect';
 
@@ -72,29 +73,139 @@ function SecurityAnalysisHub({ value, score, isScanning, activeStage, orbRef }) 
 }
 
 // Start Scan Modal Form
+// Start Scan Wizard Modal Form (3 Steps)
 function StartScanModal({ isOpen, onClose, onLaunched }) {
-  const [projectName, setProjectName] = useState('World Monitor Project');
+  const [step, setStep] = useState(1);
+  const [projectsList, setProjectsList] = useState([]);
+  const [selectedProjectId, setSelectedProjectId] = useState('new');
+  const [projectName, setProjectName] = useState('World Monitor Assessment');
   const [targetName, setTargetName] = useState('World Monitor Core API');
-  const [targetUrl, setTargetUrl] = useState('http://localhost:5000');
-  const [method, setMethod] = useState('GET');
-  const [requestBody, setRequestBody] = useState('');
+  const [targetUrl, setTargetUrl] = useState('http://localhost:3001/api/ask');
+  const [method, setMethod] = useState('POST');
+  
+  // Dedicated Auth Fields
+  const [bearerToken, setBearerToken] = useState('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyXzJ0ZXN0MTIzNDU2Nzg5Iiwib3JnX3Rlc3QxMjMiLCJyb2xlIjoicHJvIn0.xyz');
+  const [apiKey, setApiKey] = useState('wm_31dcd74f349ac77b44f9e91c951af9b5151cc4a3');
+  const [additionalHeaders, setAdditionalHeaders] = useState('');
+  
+  const [requestBody, setRequestBody] = useState('{\n  "query": "What are current active military flight vectors?",\n  "variant": "full"\n}');
   const [environment, setEnvironment] = useState('Testing');
   const [scanType, setScanType] = useState('Standard');
-  const [customHeaders, setCustomHeaders] = useState('');
+  const [curlInput, setCurlInput] = useState('');
   const [authorizationConfirmed, setAuthorizationConfirmed] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Fetch existing projects for dropdown
+  useEffect(() => {
+    if (isOpen) {
+      api.get('/projects')
+        .then((res) => {
+          const list = res.data?.projects || [];
+          setProjectsList(list);
+          if (list.length > 0) {
+            setSelectedProjectId(list[0]._id);
+            setProjectName(list[0].name);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
+
+  const handleProjectSelect = (val) => {
+    setSelectedProjectId(val);
+    if (val === 'new') {
+      setProjectName('New Security Project');
+    } else {
+      const p = projectsList.find((proj) => proj._id === val);
+      if (p) setProjectName(p.name);
+    }
+  };
+
+  const handleParseCurl = () => {
+    if (!curlInput || !curlInput.trim()) return;
+    const parsed = parseCurlCommand(curlInput);
+    if (parsed) {
+      if (parsed.url) setTargetUrl(parsed.url);
+      if (parsed.method) setMethod(parsed.method);
+      if (parsed.body) setRequestBody(parsed.body);
+
+      if (parsed.headers) {
+        const lines = (Array.isArray(parsed.headers) ? parsed.headers.join('\n') : String(parsed.headers)).split('\n');
+        const extra = [];
+        let foundBearer = false;
+        let foundApiKey = false;
+
+        lines.forEach((line) => {
+          const clean = line.trim();
+          if (/^authorization:\s*bearer\s+/i.test(clean)) {
+            setBearerToken(clean.replace(/^authorization:\s*bearer\s+/i, '').trim());
+            foundBearer = true;
+          } else if (/^x-api-key:\s*/i.test(clean)) {
+            setApiKey(clean.replace(/^x-api-key:\s*/i, '').trim());
+            foundApiKey = true;
+          } else if (clean) {
+            extra.push(clean);
+          }
+        });
+        if (!foundBearer) setBearerToken('');
+        if (!foundApiKey) setApiKey('');
+        setAdditionalHeaders(extra.join('\n'));
+      }
+
+      try {
+        const parsedUrl = new URL(parsed.url);
+        setTargetName(`${parsed.method} ${parsedUrl.pathname}`);
+      } catch (e) {
+        setTargetName(`${parsed.method} ${parsed.url}`);
+      }
+    }
+  };
+
+  const buildFinalCustomHeaders = () => {
+    const parts = [];
+    if (bearerToken && bearerToken.trim()) {
+      const raw = bearerToken.trim();
+      const tokenStr = raw.toLowerCase().startsWith('bearer ') ? raw.slice(7).trim() : raw;
+      parts.push(`Authorization: Bearer ${tokenStr}`);
+    }
+    if (apiKey && apiKey.trim()) {
+      const rawKey = apiKey.trim();
+      const keyStr = rawKey.toLowerCase().startsWith('x-api-key:') ? rawKey.slice(10).trim() : rawKey;
+      parts.push(`X-API-Key: ${keyStr}`);
+    }
+    if (additionalHeaders && additionalHeaders.trim()) {
+      parts.push(additionalHeaders.trim());
+    }
+    return parts.join('\n');
+  };
+
+  const handleNextStep1 = (e) => {
+    e.preventDefault();
+    setErrorMsg('');
+    if (!targetUrl || !targetUrl.trim()) {
+      setErrorMsg('Target URL is required.');
+      return;
+    }
+    if (!projectName || !projectName.trim()) {
+      setErrorMsg('Project name is required.');
+      return;
+    }
+    setStep(2);
+  };
+
+  const handleNextStep2 = (e) => {
+    e.preventDefault();
+    setErrorMsg('');
+    setStep(3);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
 
-    if (!targetUrl || !targetUrl.trim()) {
-      setErrorMsg('Target URL is required.');
-      return;
-    }
     if (!authorizationConfirmed) {
       setErrorMsg('You must confirm authorization before starting.');
       return;
@@ -102,15 +213,18 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
 
     setIsSubmitting(true);
     try {
-      let projectId;
-      const projectsRes = await api.get('/projects');
-      const existingProj = (projectsRes.data?.projects || []).find((p) => p.name.toLowerCase() === projectName.toLowerCase());
-      if (existingProj) {
-        projectId = existingProj._id;
-      } else {
-        const newProjRes = await api.post('/projects', { name: projectName, description: `Security assessment for ${targetName}` });
-        projectId = newProjRes.data.project._id;
+      let projectId = selectedProjectId;
+      if (selectedProjectId === 'new') {
+        const existingProj = projectsList.find((p) => p.name.toLowerCase() === projectName.toLowerCase());
+        if (existingProj) {
+          projectId = existingProj._id;
+        } else {
+          const newProjRes = await api.post('/projects', { name: projectName, description: `Security assessment for ${targetName}` });
+          projectId = newProjRes.data.project._id;
+        }
       }
+
+      const customHeadersStr = buildFinalCustomHeaders();
 
       const targetRes = await api.post(`/projects/${projectId}/targets`, {
         name: targetName,
@@ -118,7 +232,7 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
         method,
         requestBody,
         environment,
-        customHeaders,
+        customHeaders: customHeadersStr,
         authorizationConfirmed: true,
       });
       const targetId = targetRes.data.target._id;
@@ -140,167 +254,381 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md overflow-y-auto">
       <motion.div
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.96 }}
-        className="relative w-full max-w-lg overflow-hidden rounded-xl border border-slate-800 bg-[#091024] p-6 shadow-2xl"
+        className="relative my-auto w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden rounded-2xl border border-slate-800 bg-[#091024] p-6 shadow-2xl"
       >
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3.5">
-          <div className="flex items-center gap-2 text-slate-100 font-bold text-base">
+        {/* Modal Header */}
+        <div className="flex items-center justify-between border-b border-slate-800 pb-3.5 shrink-0">
+          <div className="flex items-center gap-2.5 text-slate-100 font-bold text-base">
             <Zap className="text-cyan-400" size={18} />
-            Start Security Assessment
+            <span>Start Security Assessment</span>
           </div>
           <button onClick={onClose} className="rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white">
             <X size={16} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-          {errorMsg && (
-            <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300">
-              {errorMsg}
-            </div>
-          )}
-
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Project Name</label>
-            <input
-              type="text"
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-              className="w-full rounded-lg border border-slate-800 bg-slate-900/90 px-3.5 py-2 text-sm text-white focus:border-cyan-500 focus:outline-none"
-              required
-            />
+        {/* 3-Step Progress Indicator */}
+        <div className="mt-3 grid grid-cols-3 gap-2 shrink-0 border-b border-slate-800/80 pb-3">
+          <div
+            onClick={() => step > 1 && setStep(1)}
+            className={`cursor-pointer rounded-lg p-2 transition flex flex-col gap-0.5 border ${
+              step === 1 ? 'border-cyan-500/40 bg-cyan-950/40 text-cyan-300' : 'border-slate-800/60 bg-slate-900/40 text-slate-400'
+            }`}
+          >
+            <span className="font-mono text-[9px] font-bold uppercase tracking-wider">Step 1</span>
+            <span className="text-xs font-semibold truncate">Target & Project</span>
           </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Target Name</label>
-              <input
-                type="text"
-                value={targetName}
-                onChange={(e) => setTargetName(e.target.value)}
-                className="w-full rounded-lg border border-slate-800 bg-slate-900/90 px-3.5 py-2 text-sm text-white focus:border-cyan-500 focus:outline-none"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Environment</label>
-              <CustomSelect
-                value={environment}
-                onChange={(e) => setEnvironment(e.target.value)}
-                options={['Testing', 'Staging', 'Production']}
-              />
-            </div>
+          <div
+            onClick={() => step > 2 && setStep(2)}
+            className={`cursor-pointer rounded-lg p-2 transition flex flex-col gap-0.5 border ${
+              step === 2 ? 'border-cyan-500/40 bg-cyan-950/40 text-cyan-300' : 'border-slate-800/60 bg-slate-900/40 text-slate-400'
+            }`}
+          >
+            <span className="font-mono text-[9px] font-bold uppercase tracking-wider">Step 2</span>
+            <span className="text-xs font-semibold truncate">Auth & Payload</span>
           </div>
+          <div
+            className={`rounded-lg p-2 transition flex flex-col gap-0.5 border ${
+              step === 3 ? 'border-cyan-500/40 bg-cyan-950/40 text-cyan-300' : 'border-slate-800/60 bg-slate-900/40 text-slate-400'
+            }`}
+          >
+            <span className="font-mono text-[9px] font-bold uppercase tracking-wider">Step 3</span>
+            <span className="text-xs font-semibold truncate">Scope & Launch</span>
+          </div>
+        </div>
 
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Target Method & URL</label>
-            <div className="flex gap-2">
-              <select
-                value={method}
-                onChange={(e) => setMethod(e.target.value)}
-                className={`rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-bold font-mono focus:border-cyan-500 focus:outline-none ${
-                  method === 'GET' ? 'text-emerald-400' :
-                  method === 'POST' ? 'text-amber-400' :
-                  method === 'PUT' ? 'text-cyan-400' :
-                  method === 'DELETE' ? 'text-red-400' : 'text-purple-400'
-                }`}
-              >
-                <option value="GET" className="bg-slate-900 text-emerald-400 font-bold">GET</option>
-                <option value="POST" className="bg-slate-900 text-amber-400 font-bold">POST</option>
-                <option value="PUT" className="bg-slate-900 text-cyan-400 font-bold">PUT</option>
-                <option value="PATCH" className="bg-slate-900 text-purple-400 font-bold">PATCH</option>
-                <option value="DELETE" className="bg-slate-900 text-red-400 font-bold">DELETE</option>
-              </select>
-              <div className="relative flex-1">
-                <Globe size={14} className="absolute left-3 top-3 text-cyan-400" />
+        {/* Error Alert Message */}
+        {errorMsg && (
+          <div className="mt-3 rounded-xl border border-red-500/50 bg-red-950/90 p-3.5 text-xs text-red-200 font-mono break-words break-all max-h-32 overflow-y-auto shadow-xl flex items-start justify-between gap-3 shrink-0">
+            <div className="flex items-start gap-2">
+              <AlertOctagon className="h-4 w-4 text-red-400 shrink-0 mt-0.5 animate-pulse" />
+              <div className="space-y-0.5">
+                <div className="font-bold text-red-400 uppercase tracking-wider text-[10px]">Assessment Launch Error</div>
+                <div className="leading-relaxed text-red-200">{errorMsg}</div>
+              </div>
+            </div>
+            <button type="button" onClick={() => setErrorMsg('')} className="text-red-400 hover:text-white shrink-0">
+              <X size={14} />
+            </button>
+          </div>
+        )}
+
+        {/* Wizard Form Container */}
+        <div className="mt-3 flex-1 overflow-y-auto pr-1">
+          {/* STEP 1: Target & Project Info */}
+          {step === 1 && (
+            <form onSubmit={handleNextStep1} className="space-y-4">
+              {/* Rapid cURL Auto-Importer */}
+              <div className="rounded-xl border border-cyan-500/30 bg-gradient-to-r from-cyan-950/30 to-slate-900/80 p-3.5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-1.5 text-xs font-bold text-cyan-400">
+                    <Terminal size={14} /> Fast cURL CLI Auto-Importer
+                  </label>
+                  {curlInput && (
+                    <button
+                      type="button"
+                      onClick={handleParseCurl}
+                      className="rounded-md bg-cyan-500/20 border border-cyan-500/40 px-2.5 py-1 font-mono text-[10px] font-bold text-cyan-300 hover:bg-cyan-500/30 transition"
+                    >
+                      ⚡ Auto-Parse cURL
+                    </button>
+                  )}
+                </div>
+                <textarea
+                  rows={2}
+                  placeholder='curl -X POST "http://localhost:3001/api/ask" -H "Authorization: Bearer <token>" -d "{\"query\": \"test\"}"'
+                  value={curlInput}
+                  onChange={(e) => setCurlInput(e.target.value)}
+                  className="w-full rounded-lg border border-slate-800 bg-slate-900/90 p-2.5 font-mono text-[11px] text-slate-300 placeholder-slate-600 focus:border-cyan-500 focus:outline-none"
+                />
+                {curlInput && (
+                  <p className="text-[10px] text-cyan-400/80 font-mono">
+                    Auto-parses URL, Method, Bearer Token, API Key & Body across all 3 steps!
+                  </p>
+                )}
+              </div>
+
+              {/* Project Selection / Creation */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
+                  Workspace / Project Selection
+                </label>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <CustomSelect
+                    value={selectedProjectId}
+                    onChange={(e) => handleProjectSelect(e.target.value)}
+                    options={[
+                      { value: 'new', label: '+ Create New Project Workspace' },
+                      ...projectsList.map((p) => ({ value: p._id, label: p.name })),
+                    ]}
+                  />
+                  {selectedProjectId === 'new' && (
+                    <input
+                      type="text"
+                      placeholder="Enter New Project Name"
+                      value={projectName}
+                      onChange={(e) => setProjectName(e.target.value)}
+                      className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3.5 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none"
+                      required
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* Target Endpoint & Method */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
+                  Target Method & URL Endpoint
+                </label>
+                <div className="flex gap-2">
+                  <select
+                    value={method}
+                    onChange={(e) => setMethod(e.target.value)}
+                    className={`rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-bold font-mono focus:border-cyan-500 focus:outline-none ${
+                      method === 'GET' ? 'text-emerald-400' :
+                      method === 'POST' ? 'text-amber-400' :
+                      method === 'PUT' ? 'text-cyan-400' :
+                      method === 'DELETE' ? 'text-red-400' : 'text-purple-400'
+                    }`}
+                  >
+                    <option value="GET" className="bg-slate-900 text-emerald-400 font-bold">GET</option>
+                    <option value="POST" className="bg-slate-900 text-amber-400 font-bold">POST</option>
+                    <option value="PUT" className="bg-slate-900 text-cyan-400 font-bold">PUT</option>
+                    <option value="PATCH" className="bg-slate-900 text-purple-400 font-bold">PATCH</option>
+                    <option value="DELETE" className="bg-slate-900 text-red-400 font-bold">DELETE</option>
+                  </select>
+                  <div className="relative flex-1">
+                    <Globe size={14} className="absolute left-3 top-3 text-cyan-400" />
+                    <input
+                      type="text"
+                      value={targetUrl}
+                      onChange={(e) => setTargetUrl(e.target.value)}
+                      className="w-full rounded-lg border border-slate-800 bg-slate-900/90 pl-9 pr-3.5 py-2 font-mono text-xs text-cyan-300 focus:border-cyan-500 focus:outline-none"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Target Name */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Target Name</label>
                 <input
                   type="text"
-                  value={targetUrl}
-                  onChange={(e) => setTargetUrl(e.target.value)}
-                  className="w-full rounded-lg border border-slate-800 bg-slate-900/90 pl-9 pr-3.5 py-2 font-mono text-xs text-cyan-300 focus:border-cyan-500 focus:outline-none"
+                  value={targetName}
+                  onChange={(e) => setTargetName(e.target.value)}
+                  className="w-full rounded-lg border border-slate-800 bg-slate-900/90 px-3.5 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none"
                   required
                 />
               </div>
-            </div>
-          </div>
 
-          {method !== 'GET' && (
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
-                JSON Request Body Payload (Optional)
-              </label>
-              <textarea
-                rows={3}
-                placeholder='{ "username": "admin", "role": "admin" }'
-                value={requestBody}
-                onChange={(e) => setRequestBody(e.target.value)}
-                className="w-full rounded-lg border border-slate-800 bg-slate-900/90 p-3 font-mono text-xs text-amber-300 focus:border-amber-500 focus:outline-none"
-              />
-            </div>
+              <div className="flex justify-end pt-2">
+                <button
+                  type="submit"
+                  className="flex items-center gap-1.5 rounded-xl bg-cyan-600/30 border border-cyan-500/50 px-5 py-2 font-mono text-xs font-bold uppercase text-cyan-300 hover:bg-cyan-600/50 transition"
+                >
+                  <span>Next: Auth & Headers</span>
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            </form>
           )}
 
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Scan Profile</label>
-            <CustomSelect
-              value={scanType}
-              onChange={(e) => setScanType(e.target.value)}
-              options={[
-                { value: 'Standard', label: 'Standard Audit (Header + IDOR + Endpoint Discovery)' },
-                { value: 'Quick', label: 'Quick Recon (Probing & Response Auditing)' },
-                { value: 'Comprehensive', label: 'Comprehensive Enterprise Audit + Severity Analysis' },
-              ]}
-            />
-          </div>
+          {/* STEP 2: Authentication & Custom Headers */}
+          {step === 2 && (
+            <form onSubmit={handleNextStep2} className="space-y-4">
+              <div className="rounded-lg border border-cyan-500/20 bg-cyan-950/20 p-3 text-xs text-cyan-300 flex items-center gap-2">
+                <Key size={16} className="text-cyan-400 shrink-0" />
+                <span>Configure dedicated Bearer JWT session tokens, API keys, and request payload below.</span>
+              </div>
 
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
-              Auth Token / Custom HTTP Headers (Optional for Admin Access)
-            </label>
-            <input
-              type="text"
-              placeholder="Authorization: Bearer <token> or Cookie: admin_session=123"
-              value={customHeaders}
-              onChange={(e) => setCustomHeaders(e.target.value)}
-              className="w-full rounded-lg border border-slate-800 bg-slate-900/90 px-3.5 py-2 font-mono text-xs text-cyan-300 focus:border-cyan-500 focus:outline-none"
-            />
-          </div>
+              {/* Dedicated Bearer JWT Input Box */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    Bearer JWT Token
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setBearerToken('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyXzJ0ZXN0MTIzNDU2Nzg5Iiwib3JnX3Rlc3QxMjMiLCJyb2xlIjoicHJvIn0.xyz')}
+                    className="rounded bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 font-mono text-[10px] text-cyan-300 hover:bg-cyan-500/20"
+                  >
+                    + Sample JWT
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Paste raw JWT or Bearer eyJhbG..."
+                  value={bearerToken}
+                  onChange={(e) => setBearerToken(e.target.value)}
+                  className="w-full rounded-lg border border-slate-800 bg-slate-900/90 px-3.5 py-2 font-mono text-xs text-cyan-300 focus:border-cyan-500 focus:outline-none"
+                />
+              </div>
 
-          <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-3">
-            <label className="flex items-start gap-2.5 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={authorizationConfirmed}
-                onChange={(e) => setAuthorizationConfirmed(e.target.checked)}
-                className="mt-0.5 h-4 w-4 rounded border-slate-700 bg-slate-950 text-cyan-500 focus:ring-cyan-500"
-              />
-              <span className="text-xs text-slate-300 leading-normal">
-                I explicitly confirm authorization to assess this target URL.
-              </span>
-            </label>
-          </div>
+              {/* Dedicated X-API-Key Input Box */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    Developer API Key (X-API-Key)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setApiKey('wm_31dcd74f349ac77b44f9e91c951af9b5151cc4a3')}
+                    className="rounded bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 font-mono text-[10px] text-amber-300 hover:bg-amber-500/20"
+                  >
+                    + Sample Key
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Paste API Key e.g. wm_31dcd74f349ac77b44f9e91c951af9b5151cc4a3"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  className="w-full rounded-lg border border-slate-800 bg-slate-900/90 px-3.5 py-2 font-mono text-xs text-amber-300 focus:border-amber-500 focus:outline-none"
+                />
+              </div>
 
-          <div className="flex items-center justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-lg bg-slate-800/60 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="flex items-center gap-1.5 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-5 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12] hover:border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? <Cpu size={14} className="animate-spin text-white" /> : <Play size={14} className="fill-current" />}
-              {isSubmitting ? 'Starting...' : 'Launch Assessment'}
-            </button>
-          </div>
-        </form>
+              {/* Additional Headers / Cookies Box */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
+                  Additional HTTP Headers / Cookies (Optional)
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Cookie: session=xyz123&#10;X-Custom-Header: value"
+                  value={additionalHeaders}
+                  onChange={(e) => setAdditionalHeaders(e.target.value)}
+                  className="w-full rounded-lg border border-slate-800 bg-slate-900/90 p-3 font-mono text-xs leading-relaxed text-slate-300 placeholder-slate-600 focus:border-cyan-500 focus:outline-none"
+                />
+              </div>
+
+              {/* JSON Request Body Payload */}
+              {method !== 'GET' && (
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
+                    JSON Request Body Payload
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder='{ "query": "What are active vectors?", "variant": "full" }'
+                    value={requestBody}
+                    onChange={(e) => setRequestBody(e.target.value)}
+                    className="w-full rounded-lg border border-slate-800 bg-slate-900/90 p-3 font-mono text-xs leading-relaxed text-amber-300 placeholder-slate-600 focus:border-amber-500 focus:outline-none"
+                  />
+                </div>
+              )}
+
+              <div className="flex items-center justify-between pt-2">
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="rounded-lg bg-slate-800/60 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white"
+                >
+                  ← Back
+                </button>
+                <button
+                  type="submit"
+                  className="flex items-center gap-1.5 rounded-xl bg-cyan-600/30 border border-cyan-500/50 px-5 py-2 font-mono text-xs font-bold uppercase text-cyan-300 hover:bg-cyan-600/50 transition"
+                >
+                  <span>Next: Scope & Profile</span>
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* STEP 3: Environment, Profile & Launch Confirmation */}
+          {step === 3 && (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Environment</label>
+                  <CustomSelect
+                    value={environment}
+                    onChange={(e) => setEnvironment(e.target.value)}
+                    options={['Testing', 'Staging', 'Production']}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Audit Profile</label>
+                  <CustomSelect
+                    value={scanType}
+                    onChange={(e) => setScanType(e.target.value)}
+                    options={[
+                      { value: 'Standard', label: 'Standard Audit' },
+                      { value: 'Quick', label: 'Quick Recon' },
+                      { value: 'Comprehensive', label: 'Comprehensive Audit' },
+                    ]}
+                  />
+                </div>
+              </div>
+
+              {/* Configuration Summary Card */}
+              <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-3.5 space-y-2">
+                <div className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <ShieldCheck size={14} className="text-cyan-400" /> Target Assessment Summary
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                  <div className="bg-slate-950/60 p-2 rounded border border-slate-800/80">
+                    <span className="text-slate-500 block text-[10px]">Project</span>
+                    <span className="text-white font-semibold truncate block">{projectName}</span>
+                  </div>
+                  <div className="bg-slate-950/60 p-2 rounded border border-slate-800/80">
+                    <span className="text-slate-500 block text-[10px]">Endpoint</span>
+                    <span className="text-cyan-300 font-semibold truncate block">{method} {targetUrl}</span>
+                  </div>
+                  <div className="bg-slate-950/60 p-2 rounded border border-slate-800/80">
+                    <span className="text-slate-500 block text-[10px]">Auth Credentials</span>
+                    <span className="text-emerald-400 font-semibold block">
+                      {bearerToken ? 'Bearer JWT' : ''} {apiKey ? 'X-API-Key' : ''} {!bearerToken && !apiKey ? 'Public/None' : ''}
+                    </span>
+                  </div>
+                  <div className="bg-slate-950/60 p-2 rounded border border-slate-800/80">
+                    <span className="text-slate-500 block text-[10px]">Scope</span>
+                    <span className="text-amber-300 font-semibold block">{scanType} ({environment})</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-3">
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={authorizationConfirmed}
+                    onChange={(e) => setAuthorizationConfirmed(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-slate-700 bg-slate-950 text-cyan-500 focus:ring-cyan-500"
+                  />
+                  <span className="text-xs text-slate-300 leading-normal">
+                    I explicitly confirm authorization to assess this target URL.
+                  </span>
+                </label>
+              </div>
+
+              <div className="flex items-center justify-between pt-2">
+                <button
+                  type="button"
+                  onClick={() => setStep(2)}
+                  className="rounded-lg bg-slate-800/60 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white"
+                >
+                  ← Back
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex items-center gap-1.5 rounded-xl bg-cyan-600 border border-cyan-400 px-6 py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-white shadow-lg transition hover:bg-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? <Cpu size={14} className="animate-spin text-white" /> : <Play size={14} className="fill-current" />}
+                  {isSubmitting ? 'Starting...' : '🚀 Launch Assessment'}
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
       </motion.div>
     </div>
   );

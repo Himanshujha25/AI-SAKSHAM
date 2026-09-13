@@ -157,3 +157,6 @@ export function ErrorState({ message, onRetry }) {
     </div>
   );
 }
+
+export { SakshamLogo, SakshamIcon } from './SakshamLogo';
+

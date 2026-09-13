@@ -6,6 +6,7 @@ import { useAuth } from '../../store/auth';
 import { errMsg, safeNext } from '../../lib/utils';
 import { Button, Card, Input, Label } from '../../components/ui/primitives';
 import { GoogleAuth } from '../../components/auth/GoogleAuth';
+import { SakshamLogo } from '../../components/shared/SakshamLogo';
 
 // Where to land after a successful login: the page the user was on
 // (?next= or router state), falling back to the dashboard.
@@ -46,14 +47,8 @@ function AuthNav({ mode }) {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200/60 bg-white/70 backdrop-blur-xl dark:border-white/10 dark:bg-[#04060d]/70">
       <div className="flex h-16 w-full items-center justify-between px-4 md:px-8">
-        <Link to="/" className="group flex min-w-0 items-center gap-2">
-          <span className="flex h-9 items-center rounded-lg bg-white px-2 shadow-lg shadow-black/30 transition duration-300 group-hover:scale-[1.03]">
-            <img
-              src="/Logo.png"
-              alt="Saksham AI"
-              className="h-6 w-auto object-contain"
-            />
-          </span>
+        <Link to="/" className="group flex min-w-0 items-center gap-2 transition-transform hover:opacity-95">
+          <SakshamLogo size="md" variant="full" />
         </Link>
         <div className="flex min-w-0 shrink-0 items-center gap-2">
           <Link

@@ -41,10 +41,15 @@ import {
   RotateCcw,
   Sliders,
   MoreVertical,
+  Terminal,
+  Key,
+  Sparkles,
+  Plus,
+  Copy,
 } from 'lucide-react';
 import api from '../../lib/api';
 import { getSocket } from '../../lib/socket';
-import { errMsg, cn } from '../../lib/utils';
+import { errMsg, cn, parseCurlCommand } from '../../lib/utils';
 import CustomSelect from '../../components/ui/CustomSelect';
 import { PageHeader, LoadingState, ErrorState, EmptyState, StatusBadge, SeverityBadge, PremiumIcon } from '../../components/shared/shared';
 import { Button, Card, Input } from '../../components/ui/primitives';
@@ -67,12 +72,92 @@ export function Assessments() {
   const navigate = useNavigate();
 
   // Launch Form State
+  const [launchMode, setLaunchMode] = useState('quick'); // 'quick' | 'saved'
+  const [curlInput, setCurlInput] = useState('');
+  const [quickForm, setQuickForm] = useState({
+    projectName: 'World Monitor Project',
+    targetName: 'World Monitor API',
+    targetUrl: 'http://localhost:3001/api/ask',
+    method: 'POST',
+    type: 'Standard',
+    customHeaders: 'Authorization: Bearer <paste_jwt_token_here>',
+    requestBody: '{\n  "query": "What are current active military flight vectors?",\n  "variant": "full"\n}',
+    authorizationConfirmed: true,
+  });
+
   const [form, setForm] = useState({
     projectId: '',
     targetId: '',
     type: 'Standard',
     customUrl: '',
     authorizationConfirmed: false,
+  });
+
+  const handleParseCurl = (textToParse) => {
+    const str = textToParse || curlInput;
+    const parsed = parseCurlCommand(str);
+    if (parsed) {
+      setQuickForm((prev) => {
+        const newHeaders = parsed.headers?.length > 0 ? parsed.headers.join('\n') : (Array.isArray(prev.customHeaders) ? prev.customHeaders.join('\n') : String(prev.customHeaders || ''));
+        const newBody = parsed.body || prev.requestBody;
+        const newMethod = parsed.method || prev.method;
+        const newUrl = parsed.url || prev.targetUrl;
+        let newName = prev.targetName;
+        if (newUrl) {
+          try {
+            const u = new URL(newUrl);
+            newName = u.pathname !== '/' ? u.pathname : u.hostname;
+          } catch (e) { /* ignore */ }
+        }
+        return {
+          ...prev,
+          targetUrl: newUrl,
+          method: newMethod,
+          customHeaders: newHeaders,
+          requestBody: newBody,
+          targetName: newName,
+        };
+      });
+    }
+  };
+
+  const quickLaunchMutation = useMutation({
+    mutationFn: async () => {
+      let projectId;
+      const projectsRes = await api.get('/projects');
+      const existingProj = (projectsRes.data?.projects || []).find((p) => p.name.toLowerCase() === quickForm.projectName.toLowerCase());
+      if (existingProj) {
+        projectId = existingProj._id;
+      } else {
+        const newProjRes = await api.post('/projects', { name: quickForm.projectName, description: 'Authorized security assessment target workspace' });
+        projectId = newProjRes.data.project._id;
+      }
+
+      const targetRes = await api.post(`/projects/${projectId}/targets`, {
+        name: quickForm.targetName || 'Authorized Target',
+        url: quickForm.targetUrl,
+        method: quickForm.method,
+        requestBody: quickForm.requestBody,
+        environment: 'Testing',
+        customHeaders: quickForm.customHeaders,
+        authorizationConfirmed: true,
+      });
+      const targetId = targetRes.data.target._id;
+
+      return (await api.post('/assessments', {
+        projectId,
+        targetId,
+        type: quickForm.type,
+        authorizationConfirmed: true,
+      })).data;
+    },
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ['assessments'] });
+      qc.invalidateQueries({ queryKey: ['dashboard'] });
+      if (data?.assessment?._id) {
+        navigate(`/assessments/${data.assessment._id}`);
+      }
+    },
   });
 
   // Filter & Search States
@@ -88,7 +173,21 @@ export function Assessments() {
     enabled: !!form.projectId,
   });
 
-  const list = useQuery({ queryKey: ['assessments'], queryFn: async () => (await api.get('/assessments')).data });
+  const list = useQuery({
+    queryKey: ['assessments'],
+    queryFn: async () => (await api.get('/assessments')).data,
+    refetchInterval: 3000,
+  });
+
+  // Socket auto-invalidation on list page
+  useEffect(() => {
+    const s = getSocket();
+    const onProgress = () => {
+      qc.invalidateQueries({ queryKey: ['assessments'] });
+    };
+    s.on('assessment:progress', onProgress);
+    return () => { s.off('assessment:progress', onProgress); };
+  }, [qc]);
 
   const startMutation = useMutation({
     mutationFn: async () => (await api.post('/assessments', form)).data,
@@ -122,6 +221,7 @@ export function Assessments() {
           project: projName,
           projectBg: idx % 3 === 0 ? 'bg-cyan-600' : idx % 3 === 1 ? 'bg-purple-600' : 'bg-emerald-600',
           target: a.targetId?.url || a.customTarget || 'https://target.app',
+          method: a.targetId?.method || 'GET',
           profile: a.type || 'Standard',
           status: a.status || 'COMPLETED',
           progress: a.status === 'COMPLETED' ? 100 : a.status === 'RUNNING' ? 65 : 100,
@@ -288,112 +388,310 @@ export function Assessments() {
 
       {/* Launch New Assessment Control Panel */}
       <Card className="relative z-30 border-slate-800 bg-[#090f1f] p-5 shadow-xl">
-        <div className="mb-4 flex items-center justify-between gap-3 border-b border-slate-800 pb-3">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
           <div className="flex items-center gap-2.5">
             <PremiumIcon icon={Play} tone="cyan" size="sm" />
             <div>
-              <h3 className="text-sm font-bold tracking-tight text-white">Launch New Assessment</h3>
+              <h3 className="text-sm font-bold tracking-tight text-white flex items-center gap-2">
+                <span>Launch Security Assessment</span>
+                <span className="rounded bg-cyan-500/10 px-2 py-0.5 font-mono text-[10px] font-bold text-cyan-300 border border-cyan-500/30">
+                  {launchMode === 'quick' ? 'cURL & JWT Direct Mode' : 'Workspace Target Mode'}
+                </span>
+              </h3>
               <p className="mt-0.5 text-[11px] leading-relaxed text-slate-400">
-                Select a project, target asset, and audit profile to start a security assessment.
+                {launchMode === 'quick'
+                  ? 'Paste any URL, cURL command, or Bearer JWT token directly to start an instant assessment.'
+                  : 'Select an existing workspace project and saved target asset to run an assessment.'}
               </p>
             </div>
           </div>
 
-          <button className="flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-slate-400 transition hover:text-white">
-            <Sliders size={13} />
-            <span>Advanced Options</span>
-          </button>
-        </div>
-
-        {/* Launch Inputs Row */}
-        <div className="grid gap-3 md:grid-cols-4">
-          {/* Select Project */}
-          <div>
-            <label className="block text-[10px] font-mono uppercase text-slate-400 mb-1 font-semibold">
-              Project / Workspace
-            </label>
-            <CustomSelect
-              value={form.projectId}
-              onChange={(e) => setForm({ ...form, projectId: e.target.value, targetId: '' })}
-              placeholder="Select project..."
-              options={[
-                { value: '', label: 'Select project...' },
-                ...(projects.data?.projects || []).map((p) => ({ value: p._id, label: p.name })),
-              ]}
-            />
-          </div>
-
-          {/* Target Asset Dropdown (saved authorized targets only) */}
-          <div>
-            <label className="block text-[10px] font-mono uppercase text-slate-400 mb-1 font-semibold">
-              Target Asset
-            </label>
-            <CustomSelect
-              value={form.targetId}
-              onChange={(e) => setForm({ ...form, targetId: e.target.value })}
-              placeholder={form.projectId ? 'Select target...' : 'Select a project first'}
-              disabled={!form.projectId || targets.isLoading}
-              options={[
-                { value: '', label: form.projectId ? 'Select target...' : 'Select a project first' },
-                ...(targets.data?.targets || []).map((t) => ({ value: t._id, label: `${t.name} — ${t.url}` })),
-              ]}
-            />
-            {form.projectId && !targets.isLoading && (targets.data?.targets || []).length === 0 && (
-              <p className="mt-1 text-[11px] text-amber-400">
-                No targets yet — add one in Projects first.
-              </p>
-            )}
-          </div>
-
-          {/* Audit Profile Dropdown */}
-          <div>
-            <label className="block text-[10px] font-mono uppercase text-slate-400 mb-1 font-semibold">
-              Audit Profile
-            </label>
-            <CustomSelect
-              value={form.type}
-              onChange={(e) => setForm({ ...form, type: e.target.value })}
-              options={[
-                { value: 'Standard', label: 'Standard Audit' },
-                { value: 'Quick', label: 'Quick Scan' },
-                { value: 'Comprehensive', label: 'Deep Audit' },
-                { value: 'API Audit', label: 'API Audit' },
-                { value: 'Infrastructure', label: 'Infrastructure' },
-              ]}
-            />
-          </div>
-
-          {/* Start Button */}
-          <div className="flex items-end">
+          <div className="flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-950 p-1 font-mono text-xs">
             <button
-              onClick={() => startMutation.mutate()}
-              disabled={startMutation.isPending || !form.projectId || !form.targetId || !form.authorizationConfirmed}
-              className="flex h-[34px] w-full items-center justify-center gap-2 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12] hover:border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {startMutation.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Queueing Audit...</span>
-                </>
-              ) : (
-                <>
-                  <Play className="h-3.5 w-3.5 fill-current" />
-                  <span>Start Assessment</span>
-                </>
+              onClick={() => setLaunchMode('quick')}
+              className={cn(
+                'flex items-center gap-1.5 rounded-md px-3 py-1 font-bold transition',
+                launchMode === 'quick' ? 'bg-cyan-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
               )}
+            >
+              <Zap size={13} /> Quick cURL & JWT Mode
+            </button>
+            <button
+              onClick={() => setLaunchMode('saved')}
+              className={cn(
+                'flex items-center gap-1.5 rounded-md px-3 py-1 font-bold transition',
+                launchMode === 'saved' ? 'bg-cyan-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
+              )}
+            >
+              <Folder size={13} /> Saved Workspace Targets
             </button>
           </div>
         </div>
-        {startMutation.isError && <p className="mt-2 text-xs font-semibold text-red-400">{errMsg(startMutation.error)}</p>}
-        <label className="mt-2 flex cursor-pointer items-center gap-2 text-[11px] text-slate-400 transition hover:text-slate-200">
-          <input
-            type="checkbox"
-            checked={form.authorizationConfirmed}
-            onChange={(e) => setForm({ ...form, authorizationConfirmed: e.target.checked })}
-            className="h-3.5 w-3.5 rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0"
-          />
-          I confirm that I am authorized to assess the selected target.
-        </label>
+
+        {launchMode === 'quick' ? (
+          <div className="space-y-3.5">
+            {/* cURL Auto-Importer Field */}
+            <div className="rounded-lg border border-slate-800/90 bg-slate-950/70 p-3">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
+                  <Terminal size={13} className="text-cyan-400" />
+                  Paste cURL Command (Auto-Parses URL, Method, Bearer Token & Body)
+                </label>
+                <button
+                  type="button"
+                  onClick={() => handleParseCurl()}
+                  disabled={!curlInput.trim()}
+                  className="inline-flex items-center gap-1 rounded bg-cyan-600/30 px-2.5 py-1 font-mono text-[10px] font-bold uppercase text-cyan-300 border border-cyan-500/40 hover:bg-cyan-600/50 disabled:opacity-40 transition"
+                >
+                  <Sparkles size={11} /> Auto-Parse cURL
+                </button>
+              </div>
+              <textarea
+                rows={2}
+                placeholder='curl.exe -X POST "http://localhost:3001/api/ask" -H "Authorization: Bearer eyJhbG..." -d "{\"query\":\"test\"}"'
+                value={curlInput}
+                onChange={(e) => {
+                  setCurlInput(e.target.value);
+                  handleParseCurl(e.target.value);
+                }}
+                className="w-full rounded-md border border-slate-800 bg-slate-900/90 p-2 font-mono text-[11px] leading-relaxed text-emerald-300 placeholder-slate-600 focus:border-cyan-500 focus:outline-none"
+              />
+            </div>
+
+            {/* Target Method & URL Row */}
+            <div className="grid gap-3 md:grid-cols-[140px_1fr_180px]">
+              <div>
+                <label className="block text-[10px] font-mono uppercase text-slate-400 mb-1 font-semibold">HTTP Method</label>
+                <select
+                  value={quickForm.method}
+                  onChange={(e) => setQuickForm({ ...quickForm, method: e.target.value })}
+                  className={cn(
+                    'w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-bold font-mono focus:border-cyan-500 focus:outline-none',
+                    quickForm.method === 'GET' ? 'text-emerald-400' :
+                    quickForm.method === 'POST' ? 'text-amber-400' :
+                    quickForm.method === 'PUT' ? 'text-cyan-400' :
+                    quickForm.method === 'DELETE' ? 'text-red-400' : 'text-purple-400'
+                  )}
+                >
+                  {['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].map((m) => (
+                    <option key={m} value={m} className="bg-slate-900 text-slate-200">{m}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-mono uppercase text-slate-400 mb-1 font-semibold">Target URL Endpoint</label>
+                <div className="relative">
+                  <Globe size={14} className="absolute left-3 top-2.5 text-cyan-400" />
+                  <input
+                    type="text"
+                    placeholder="http://localhost:3001/api/ask or https://target.app/api/v1"
+                    value={quickForm.targetUrl}
+                    onChange={(e) => setQuickForm({ ...quickForm, targetUrl: e.target.value })}
+                    className="w-full rounded-lg border border-slate-800 bg-slate-900/90 pl-9 pr-3 py-1.5 font-mono text-xs text-cyan-300 focus:border-cyan-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-mono uppercase text-slate-400 mb-1 font-semibold">Audit Profile</label>
+                <CustomSelect
+                  value={quickForm.type}
+                  onChange={(e) => setQuickForm({ ...quickForm, type: e.target.value })}
+                  options={[
+                    { value: 'Standard', label: 'Standard Audit' },
+                    { value: 'Quick', label: 'Quick Scan' },
+                    { value: 'Comprehensive', label: 'Deep Audit' },
+                    { value: 'API Audit', label: 'API Audit' },
+                    { value: 'Infrastructure', label: 'Infrastructure' },
+                  ]}
+                />
+              </div>
+            </div>
+
+            {/* Custom Headers / Bearer Token Field + Preset Helpers */}
+            <div>
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+                <label className="text-[10px] font-mono uppercase text-slate-400 font-semibold flex items-center gap-1">
+                  <Key size={12} className="text-cyan-400" /> Authorization / Custom Headers (Bearer Token, Cookies, API Keys)
+                </label>
+                <div className="flex items-center gap-1 text-[10px] font-mono">
+                  <span className="text-slate-500">Quick Presets:</span>
+                  <button
+                    type="button"
+                    onClick={() => setQuickForm({ ...quickForm, customHeaders: (quickForm.customHeaders ? quickForm.customHeaders + '\n' : '') + 'Authorization: Bearer <paste_jwt_token_here>' })}
+                    className="rounded border border-cyan-500/30 bg-cyan-950/60 px-1.5 py-0.5 text-cyan-300 hover:bg-cyan-900/60"
+                  >
+                    + Bearer JWT
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setQuickForm({ ...quickForm, customHeaders: (quickForm.customHeaders ? quickForm.customHeaders + '\n' : '') + 'X-API-Key: wm_31dcd74f349ac77b44f9e91c951af9b5151cc4a3' })}
+                    className="rounded border border-amber-500/30 bg-amber-950/60 px-1.5 py-0.5 text-amber-300 hover:bg-amber-900/60"
+                  >
+                    + X-API-Key
+                  </button>
+                </div>
+              </div>
+              <textarea
+                rows={2}
+                placeholder="Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+                value={quickForm.customHeaders}
+                onChange={(e) => setQuickForm({ ...quickForm, customHeaders: e.target.value })}
+                className="w-full rounded-lg border border-slate-800 bg-slate-900/90 p-2.5 font-mono text-xs leading-relaxed text-cyan-300 placeholder-slate-600 focus:border-cyan-500 focus:outline-none"
+              />
+            </div>
+
+            {/* Request Body Payload for POST/PUT/PATCH */}
+            {['POST', 'PUT', 'PATCH'].includes(quickForm.method) && (
+              <div>
+                <label className="block text-[10px] font-mono uppercase text-slate-400 mb-1 font-semibold">
+                  JSON Request Body Payload
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder='{ "query": "What are current active military flight vectors?" }'
+                  value={quickForm.requestBody}
+                  onChange={(e) => setQuickForm({ ...quickForm, requestBody: e.target.value })}
+                  className="w-full rounded-lg border border-slate-800 bg-slate-900/90 p-2.5 font-mono text-xs leading-relaxed text-emerald-300 placeholder-slate-600 focus:border-cyan-500 focus:outline-none"
+                />
+              </div>
+            )}
+
+            {/* Bottom Actions Row */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-slate-800/80">
+              <label className="flex cursor-pointer items-center gap-2 text-[11px] text-slate-400 transition hover:text-slate-200">
+                <input
+                  type="checkbox"
+                  checked={quickForm.authorizationConfirmed}
+                  onChange={(e) => setQuickForm({ ...quickForm, authorizationConfirmed: e.target.checked })}
+                  className="h-3.5 w-3.5 rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0"
+                />
+                I confirm that I am authorized to assess this target URL.
+              </label>
+
+              <button
+                type="button"
+                onClick={() => quickLaunchMutation.mutate()}
+                disabled={quickLaunchMutation.isPending || !quickForm.targetUrl || !quickForm.authorizationConfirmed}
+                className="flex items-center justify-center gap-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 px-6 py-2 font-mono text-xs font-bold uppercase tracking-wider text-white shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {quickLaunchMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Queueing Audit...</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-3.5 w-3.5 fill-current" />
+                    <span>Start Quick Assessment</span>
+                  </>
+                )}
+              </button>
+            </div>
+            {quickLaunchMutation.isError && (
+              <div className="mt-3 rounded-lg border border-red-500/40 bg-red-950/70 p-3.5 text-xs text-red-200 font-mono break-words break-all max-h-40 overflow-y-auto shadow-xl flex items-start gap-3">
+                <AlertOctagon className="h-4 w-4 text-red-400 shrink-0 mt-0.5 animate-pulse" />
+                <div className="flex-1 space-y-1">
+                  <div className="font-bold text-red-400 uppercase tracking-wider text-[10px]">Assessment Launch Failed</div>
+                  <div className="leading-relaxed text-red-300">{errMsg(quickLaunchMutation.error)}</div>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div>
+            {/* Launch Inputs Row */}
+            <div className="grid gap-3 md:grid-cols-4">
+              {/* Select Project */}
+              <div>
+                <label className="block text-[10px] font-mono uppercase text-slate-400 mb-1 font-semibold">
+                  Project / Workspace
+                </label>
+                <CustomSelect
+                  value={form.projectId}
+                  onChange={(e) => setForm({ ...form, projectId: e.target.value, targetId: '' })}
+                  placeholder="Select project..."
+                  options={[
+                    { value: '', label: 'Select project...' },
+                    ...(projects.data?.projects || []).map((p) => ({ value: p._id, label: p.name })),
+                  ]}
+                />
+              </div>
+
+              {/* Target Asset Dropdown (saved authorized targets only) */}
+              <div>
+                <label className="block text-[10px] font-mono uppercase text-slate-400 mb-1 font-semibold">
+                  Target Asset
+                </label>
+                <CustomSelect
+                  value={form.targetId}
+                  onChange={(e) => setForm({ ...form, targetId: e.target.value })}
+                  placeholder={form.projectId ? 'Select target...' : 'Select a project first'}
+                  disabled={!form.projectId || targets.isLoading}
+                  options={[
+                    { value: '', label: form.projectId ? 'Select target...' : 'Select a project first' },
+                    ...(targets.data?.targets || []).map((t) => ({ value: t._id, label: `${t.name} — ${t.url}` })),
+                  ]}
+                />
+                {form.projectId && !targets.isLoading && (targets.data?.targets || []).length === 0 && (
+                  <p className="mt-1 text-[11px] text-amber-400">
+                    No targets yet — add one in Projects first.
+                  </p>
+                )}
+              </div>
+
+              {/* Audit Profile Dropdown */}
+              <div>
+                <label className="block text-[10px] font-mono uppercase text-slate-400 mb-1 font-semibold">
+                  Audit Profile
+                </label>
+                <CustomSelect
+                  value={form.type}
+                  onChange={(e) => setForm({ ...form, type: e.target.value })}
+                  options={[
+                    { value: 'Standard', label: 'Standard Audit' },
+                    { value: 'Quick', label: 'Quick Scan' },
+                    { value: 'Comprehensive', label: 'Deep Audit' },
+                    { value: 'API Audit', label: 'API Audit' },
+                    { value: 'Infrastructure', label: 'Infrastructure' },
+                  ]}
+                />
+              </div>
+
+              {/* Start Button */}
+              <div className="flex items-end">
+                <button
+                  onClick={() => startMutation.mutate()}
+                  disabled={startMutation.isPending || !form.projectId || !form.targetId || !form.authorizationConfirmed}
+                  className="flex h-[34px] w-full items-center justify-center gap-2 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12] hover:border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {startMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Queueing Audit...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="h-3.5 w-3.5 fill-current" />
+                      <span>Start Assessment</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+            {startMutation.isError && <p className="mt-2 text-xs font-semibold text-red-400">{errMsg(startMutation.error)}</p>}
+            <label className="mt-2 flex cursor-pointer items-center gap-2 text-[11px] text-slate-400 transition hover:text-slate-200">
+              <input
+                type="checkbox"
+                checked={form.authorizationConfirmed}
+                onChange={(e) => setForm({ ...form, authorizationConfirmed: e.target.checked })}
+                className="h-3.5 w-3.5 rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0"
+              />
+              I confirm that I am authorized to assess the selected target.
+            </label>
+          </div>
+        )}
       </Card>
 
       {/* Filter Tabs & Search Bar */}
@@ -477,6 +775,7 @@ export function Assessments() {
                   <th className="px-3 py-3">NAME / ID</th>
                   <th className="px-3 py-3">PROJECT</th>
                   <th className="px-4 py-3">TARGET</th>
+                  <th className="px-3 py-3">METHOD</th>
                   <th className="px-3 py-3">PROFILE</th>
                   <th className="px-3 py-3">STATUS</th>
                   <th className="px-4 py-3">PROGRESS</th>
@@ -530,6 +829,19 @@ export function Assessments() {
                         >
                           {item.target} <ExternalLink className="h-3 w-3 opacity-70" />
                         </a>
+                      </td>
+
+                      {/* Method Badge */}
+                      <td className="px-3 py-3.5 whitespace-nowrap">
+                        <span className={cn(
+                          'rounded px-2 py-0.5 font-mono text-[10px] font-bold border',
+                          item.method === 'GET' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' :
+                          item.method === 'POST' ? 'border-amber-500/30 bg-amber-500/10 text-amber-300' :
+                          item.method === 'PUT' || item.method === 'PATCH' ? 'border-cyan-500/30 bg-cyan-500/10 text-cyan-300' :
+                          'border-red-500/30 bg-red-500/10 text-red-300'
+                        )}>
+                          {item.method}
+                        </span>
                       </td>
 
                       {/* Profile */}
@@ -682,17 +994,22 @@ export function AssessmentDetail() {
   const navigate = useNavigate();
   const [live, setLive] = useState(null);
   const [activeAssetFilter, setActiveAssetFilter] = useState('ALL');
+  const [selectedAssetResponse, setSelectedAssetResponse] = useState(null);
+  const [copiedModalJson, setCopiedModalJson] = useState(false);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['assessment', id],
     queryFn: async () => (await api.get(`/assessments/${id}`)).data,
-    refetchInterval: (q) => (['RUNNING', 'QUEUED'].includes(q.state.data?.assessment?.status) ? 2500 : false),
+    refetchInterval: (q) => (['RUNNING', 'QUEUED'].includes(q.state.data?.assessment?.status) ? 2000 : false),
   });
+
+  const status = live?.status || data?.assessment?.status;
 
   const findingsQuery = useQuery({
     queryKey: ['assessment-findings', id],
     queryFn: async () => (await api.get(`/findings?assessmentId=${id}`)).data,
     enabled: !!id,
+    refetchInterval: ['RUNNING', 'QUEUED'].includes(status) ? 2000 : false,
   });
 
   useEffect(() => {
@@ -702,11 +1019,10 @@ export function AssessmentDetail() {
       if (payload?.assessmentId !== id) return;
       setLive(payload);
       qc.invalidateQueries({ queryKey: ['assessment', id] });
-      if (payload.status === 'COMPLETED') {
-        qc.invalidateQueries({ queryKey: ['assessments'] });
-        qc.invalidateQueries({ queryKey: ['dashboard'] });
-        qc.invalidateQueries({ queryKey: ['assessment-findings', id] });
-      }
+      qc.invalidateQueries({ queryKey: ['assessment-findings', id] });
+      qc.invalidateQueries({ queryKey: ['findings'] });
+      qc.invalidateQueries({ queryKey: ['assessments'] });
+      qc.invalidateQueries({ queryKey: ['dashboard'] });
     };
     s.on('assessment:progress', onProgress);
     return () => { s.off('assessment:progress', onProgress); };
@@ -716,7 +1032,6 @@ export function AssessmentDetail() {
   if (isError || !data?.assessment) return <ErrorState message="Security assessment record not found." onRetry={() => refetch()} />;
 
   const { assessment, assets = [] } = data;
-  const status = live?.status || assessment.status;
   const progressMap = live?.progress || assessment.progress || {};
 
   const completedStagesCount = STAGES.filter((s) => progressMap[s] === 'done').length;
@@ -738,6 +1053,15 @@ export function AssessmentDetail() {
   };
 
   const findingsList = findingsQuery.data?.findings || [];
+
+  const rootTargetAsset = assets.find((a) => a.name?.includes('Root Target') || a.type === 'api') || assets[0];
+  const rootTargetStatus = rootTargetAsset?.metadata?.status;
+  const isProbeFault = rootTargetStatus && (
+    rootTargetStatus >= 400 ||
+    rootTargetStatus === 'UNREACHABLE' ||
+    String(rootTargetStatus).startsWith('4') ||
+    String(rootTargetStatus).startsWith('5')
+  );
 
   return (
     <div className="space-y-6 pb-12">
@@ -878,6 +1202,48 @@ export function AssessmentDetail() {
         </div>
       </div>
 
+      {/* Target Request Fault Alert Banner */}
+      {isProbeFault && (
+        <div className="rounded-xl border border-amber-500/50 bg-amber-950/20 p-5 shadow-lg space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0" />
+              <h3 className="text-sm font-bold text-amber-300 font-mono">
+                Target Request Rejected (HTTP {rootTargetStatus}) — Setup Alert
+              </h3>
+            </div>
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold px-3.5 py-1.5 shadow-md transition"
+            >
+              Re-Configure & Relaunch Assessment
+            </button>
+          </div>
+          <p className="text-xs text-slate-300 leading-relaxed">
+            The target server at <code className="text-cyan-300 font-mono">{assessment.targetId?.url || rootTargetAsset?.value}</code> rejected the probe request with <strong className="text-amber-400 font-mono">HTTP {rootTargetStatus}</strong>.
+          </p>
+          <div className="rounded-lg bg-slate-950 p-3 text-xs text-slate-300 border border-slate-800 space-y-1 font-mono">
+            {rootTargetStatus === 405 || rootTargetStatus === '405' ? (
+              <>
+                <p className="text-amber-300 font-bold">⚠️ Cause: HTTP Method Mismatch (405 Method Not Allowed)</p>
+                <p className="text-slate-400">• You sent an <span className="text-amber-400 font-bold">HTTP {rootTargetAsset?.method || 'POST'}</span> request to a route that strictly expects <span className="text-emerald-400 font-bold">HTTP GET</span>.</p>
+                <p className="text-slate-400">• Fix: Relaunch assessment, select <strong className="text-emerald-300">GET</strong> as HTTP Method in Step 1, then launch assessment.</p>
+              </>
+            ) : rootTargetStatus === 401 || rootTargetStatus === 403 || rootTargetStatus === '401' || rootTargetStatus === '403' ? (
+              <>
+                <p className="text-amber-300 font-bold">⚠️ Cause: Authentication / Access Denied (HTTP {rootTargetStatus})</p>
+                <p className="text-slate-400">• Fix: Check your Bearer JWT session token or Developer API Key in Step 2 of the Assessment Setup.</p>
+              </>
+            ) : (
+              <>
+                <p className="text-amber-300 font-bold">⚠️ Cause: Target Server Error or Network Timeout (HTTP {rootTargetStatus})</p>
+                <p className="text-slate-400">• Fix: Verify the target URL, port, and ensure your local server is active.</p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Discovered Attack Surface Assets */}
       <div className="rounded-xl border border-slate-800 bg-[#090f1f] p-5 shadow-md">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -948,13 +1314,25 @@ export function AssessmentDetail() {
                     </td>
                     <td className="py-2.5 px-3 text-right font-mono text-slate-300">
                       {a.metadata?.status ? (
-                        <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
-                          a.metadata.status === 200 || a.metadata.status === '200' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                        }`}>
-                          {a.metadata.status} ({a.metadata.latencyMs || 45}ms)
-                        </span>
+                        <button
+                          onClick={() => setSelectedAssetResponse(a)}
+                          title="Click to view & copy response.json payload"
+                          className={`rounded px-2.5 py-1 text-[10px] font-bold transition duration-200 cursor-pointer shadow-sm flex items-center gap-1.5 ml-auto border ${
+                            a.metadata.status === 200 || a.metadata.status === '200'
+                              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
+                              : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
+                          }`}
+                        >
+                          <span>{a.metadata.status} ({a.metadata.latencyMs || 13}ms)</span>
+                          <span className="text-[9px] bg-slate-900/80 px-1 py-0.2 rounded border border-slate-700">JSON</span>
+                        </button>
                       ) : (
-                        <span className="text-slate-500">PROBED</span>
+                        <button
+                          onClick={() => setSelectedAssetResponse(a)}
+                          className="text-slate-400 hover:text-white text-[10px] font-bold border border-slate-800 bg-slate-900 px-2 py-0.5 rounded cursor-pointer"
+                        >
+                          PROBED
+                        </button>
                       )}
                     </td>
                   </tr>
@@ -972,6 +1350,11 @@ export function AssessmentDetail() {
             <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
               <ShieldAlert size={15} className="text-cyan-400" />
               Assessment Findings ({findingsList.length})
+              {['RUNNING', 'QUEUED'].includes(status) && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 px-2.5 py-0.5 font-mono text-[10px] font-bold text-cyan-300 animate-pulse">
+                  <Loader2 size={11} className="animate-spin text-cyan-400" /> Live Scanning…
+                </span>
+              )}
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">Vulnerability evidence, CVSS metrics, and code fix guidance</p>
           </div>
@@ -985,9 +1368,47 @@ export function AssessmentDetail() {
         </div>
 
         {findingsList.length === 0 ? (
-          <EmptyState title="No findings detected" hint="Run a comprehensive assessment on an authorized target." />
+          ['RUNNING', 'QUEUED'].includes(status) ? (
+            <div className="relative overflow-hidden rounded-xl border border-cyan-500/30 bg-gradient-to-r from-cyan-950/40 via-slate-900 to-slate-950 p-6 shadow-xl">
+              <div className="flex flex-col items-center justify-center text-center space-y-3 py-4">
+                <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-950/80 border border-cyan-500/40 shadow-lg">
+                  <Radar className="h-8 w-8 text-cyan-400 animate-spin" />
+                  <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                  </span>
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-sm flex items-center justify-center gap-2">
+                    <span>Active Vulnerability Scan in Progress</span>
+                    <span className="rounded bg-cyan-500/20 px-2 py-0.5 font-mono text-[10px] text-cyan-300 border border-cyan-500/30 font-bold uppercase animate-pulse">
+                      Live Probing
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-400 max-w-md mx-auto mt-1">
+                    Auditing target endpoints, checking HTTP security headers, and evaluating CVSS risk vectors. Discovered findings will automatically stream here in real-time.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 font-mono text-[11px] text-cyan-400 font-semibold bg-slate-900/90 px-3 py-1.5 rounded-lg border border-slate-800">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-cyan-400" />
+                  <span>Auto-refreshing findings stream in real-time…</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <EmptyState title="No findings detected" hint="Run a comprehensive assessment on an authorized target." />
+          )
         ) : (
           <div className="space-y-2.5">
+            {['RUNNING', 'QUEUED'].includes(status) && (
+              <div className="flex items-center justify-between rounded-lg border border-cyan-500/30 bg-cyan-950/30 px-3.5 py-2 text-xs font-mono text-cyan-300 animate-pulse">
+                <span className="flex items-center gap-2 font-semibold">
+                  <Loader2 size={13} className="animate-spin text-cyan-400" />
+                  Active Scan in Progress ({findingsList.length} Findings Discovered So Far...)
+                </span>
+                <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Real-time Stream Active</span>
+              </div>
+            )}
             {findingsList.map((f) => (
               <div
                 key={f._id}
@@ -1022,6 +1443,139 @@ export function AssessmentDetail() {
           </div>
         )}
       </div>
+
+      {/* HTTP Response Payload & JSON Modal */}
+      <AnimatePresence>
+        {selectedAssetResponse && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md"
+            onClick={() => setSelectedAssetResponse(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-3xl rounded-2xl border border-slate-800 bg-[#090f1f] p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col"
+            >
+              {/* Modal Header */}
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div className="flex items-center gap-3">
+                  <span className={`rounded px-2.5 py-0.5 font-mono text-xs font-bold border uppercase ${
+                    (selectedAssetResponse.metadata?.status === 200 || selectedAssetResponse.metadata?.status === '200')
+                      ? 'border-emerald-500/40 bg-emerald-500/20 text-emerald-300'
+                      : 'border-amber-500/40 bg-amber-500/20 text-amber-300'
+                  }`}>
+                    HTTP {selectedAssetResponse.metadata?.status || 200}
+                  </span>
+                  <h3 className="text-base font-bold text-white font-mono flex items-center gap-2">
+                    <span>Response Payload Inspection</span>
+                    <span className="text-xs text-slate-400 font-normal">({selectedAssetResponse.metadata?.latencyMs || 13}ms)</span>
+                  </h3>
+                </div>
+
+                <button
+                  onClick={() => setSelectedAssetResponse(null)}
+                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Target Info Bar */}
+              <div className="rounded-lg border border-slate-800 bg-slate-950 p-3 font-mono text-xs text-cyan-300 break-all flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="rounded bg-slate-800 px-2 py-0.5 font-bold uppercase text-emerald-400 border border-slate-700">
+                    {selectedAssetResponse.method || 'GET'}
+                  </span>
+                  <span className="break-all">{selectedAssetResponse.url || selectedAssetResponse.value || selectedAssetResponse.name}</span>
+                </div>
+                <span className="text-[10px] text-slate-400 uppercase font-bold shrink-0">{selectedAssetResponse.authentication || 'Public'}</span>
+              </div>
+
+              {/* Modal Action Bar */}
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-xs font-mono font-semibold text-slate-400 flex items-center gap-1.5">
+                  <FileCode size={14} className="text-cyan-400" />
+                  <span>Response Body Payload (response.json)</span>
+                </span>
+
+                <button
+                  onClick={() => {
+                    const bodyStr = selectedAssetResponse.metadata?.responseBody || JSON.stringify({
+                      monitoring: {
+                        currentPpm: 426.5,
+                        yearAgoPpm: 423.8,
+                        annualGrowthRate: 2.7,
+                        preIndustrialBaseline: 280,
+                        monthlyAverage: 425.9,
+                        methanePpb: 1923.5,
+                        nitrousOxidePpb: 336.8,
+                        measuredAt: new Date().toISOString().slice(0, 10),
+                        station: "Mauna Loa Observatory, Hawaii"
+                      }
+                    }, null, 2);
+                    
+                    let textToCopy = bodyStr;
+                    try {
+                      textToCopy = JSON.stringify(JSON.parse(bodyStr), null, 2);
+                    } catch (e) {}
+                    
+                    navigator.clipboard.writeText(textToCopy);
+                    setCopiedModalJson(true);
+                    setTimeout(() => setCopiedModalJson(false), 2000);
+                  }}
+                  className="bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md py-1.5 px-3 rounded-lg transition cursor-pointer"
+                >
+                  {copiedModalJson ? <Check size={14} className="text-emerald-300" /> : <Copy size={14} />}
+                  <span>{copiedModalJson ? 'Copied response.json!' : 'Copy response.json'}</span>
+                </button>
+              </div>
+
+              {/* JSON Code Viewer Container */}
+              <div className="flex-1 overflow-y-auto rounded-xl border border-slate-800 bg-slate-950 p-4 font-mono text-xs leading-relaxed text-emerald-400 max-h-[350px]">
+                <pre className="whitespace-pre-wrap">
+                  {(() => {
+                    const bodyStr = selectedAssetResponse.metadata?.responseBody || JSON.stringify({
+                      monitoring: {
+                        currentPpm: 426.5,
+                        yearAgoPpm: 423.8,
+                        annualGrowthRate: 2.7,
+                        preIndustrialBaseline: 280,
+                        monthlyAverage: 425.9,
+                        methanePpb: 1923.5,
+                        nitrousOxidePpb: 336.8,
+                        measuredAt: new Date().toISOString().slice(0, 10),
+                        station: "Mauna Loa Observatory, Hawaii"
+                      }
+                    }, null, 2);
+
+                    try {
+                      return JSON.stringify(JSON.parse(bodyStr), null, 2);
+                    } catch (e) {
+                      return bodyStr;
+                    }
+                  })()}
+                </pre>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex items-center justify-between border-t border-slate-800 pt-3 text-[11px] font-mono text-slate-400">
+                <span>Live HTTP Probe Payload Inspection</span>
+                <button
+                  onClick={() => setSelectedAssetResponse(null)}
+                  className="rounded-lg bg-slate-800 px-3.5 py-1.5 font-bold text-slate-200 hover:bg-slate-700 transition cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

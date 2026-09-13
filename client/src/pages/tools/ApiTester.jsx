@@ -55,8 +55,18 @@ export function ApiTester() {
   const [resB, setResB] = useState(null);
 
   const run = useMutation({
-    mutationFn: async ({ token }) => {
-      const cleanToken = (token || '').trim().replace(/^Bearer\s+/i, '');
+    mutationFn: async ({ token, headers: customHdrs }) => {
+      const rawToken = (token || '').trim();
+      const cleanToken = rawToken.replace(/^Bearer\s+/i, '');
+      
+      const reqHeaders = { ...customHdrs };
+
+      if (cleanToken) {
+        reqHeaders['Authorization'] = `Bearer ${cleanToken}`;
+        reqHeaders['X-API-Key'] = cleanToken;
+        reqHeaders['X-WorldMonitor-Key'] = cleanToken;
+      }
+
       let parsedData = undefined;
       if (['POST', 'PUT', 'PATCH'].includes(form.method) && form.bodyData.trim()) {
         try {
@@ -69,10 +79,17 @@ export function ApiTester() {
         url: form.url,
         method: form.method,
         data: parsedData,
-        headers: cleanToken ? { Authorization: `Bearer ${cleanToken}` } : {},
+        headers: reqHeaders,
       })).data;
     },
   });
+
+  const testSingle = async () => {
+    setResA(null);
+    setResB(null);
+    const res = await run.mutateAsync({ token: form.tokenA }).catch((e) => ({ error: errMsg(e) }));
+    setResA(res);
+  };
 
   const compare = async () => {
     setResA(null);
@@ -156,8 +173,11 @@ export function ApiTester() {
           </div>
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-3">
-          <Button disabled={!form.url || run.isPending} onClick={compare} className="px-5 py-2">
-            <Play size={14} className="fill-current" /> {run.isPending ? 'Probing…' : 'Run role comparison'}
+          <Button disabled={!form.url || run.isPending} onClick={testSingle} className="bg-cyan-600 hover:bg-cyan-500 text-white font-semibold px-5 py-2">
+            <Play size={14} className="fill-current" /> {run.isPending ? 'Probing…' : 'Send Probe (Single)'}
+          </Button>
+          <Button disabled={!form.url || run.isPending} variant="outline" onClick={compare} className="px-5 py-2">
+            <Scale size={14} /> {run.isPending ? 'Probing…' : 'Compare Roles (A vs B)'}
           </Button>
           <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-slate-500">
             <FlaskConical size={13} className="text-slate-500" /> Read-only style probe · 10s timeout · 50KB cap

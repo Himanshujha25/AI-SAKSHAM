@@ -7,6 +7,7 @@ import {
   Play, Pause, Volume2, Maximize2, Search, ShieldAlert, CheckCircle2, Cpu, Code2, RotateCcw, TrendingUp, ChevronRight, Monitor
 } from 'lucide-react';
 import { useAuth } from '../../store/auth';
+import { SakshamLogo } from '../../components/shared/SakshamLogo';
 
 const fadeUp = {
   initial: { opacity: 0, y: 24 },
@@ -58,14 +59,8 @@ function LandingHeader() {
   return (
     <header className="sticky top-0 z-50 w-full bg-gradient-to-r from-[#04060d]/90 via-[#070b16]/90 to-[#04060d]/90 backdrop-blur-2xl shadow-xl shadow-black/40">
       <div className="flex h-16 w-full items-center justify-between px-4 md:px-8">
-        <Link to="/" className="group flex min-w-0 items-center gap-3">
-          <span className="flex h-10 items-center rounded-xl bg-white px-2.5 shadow-lg shadow-black/30 transition duration-300 group-hover:scale-[1.03]">
-            <img
-              src="/Logo.png"
-              alt="Saksham AI Logo"
-              className="h-7 w-auto object-contain"
-            />
-          </span>
+        <Link to="/" className="group flex min-w-0 items-center gap-3 transition-transform hover:opacity-95">
+          <SakshamLogo size="md" variant="full" />
         </Link>
         <nav className="hidden items-center gap-8 text-sm font-medium text-slate-300 md:flex">
           {['Demo-Video', 'Analyzer', 'Features', 'Workflow'].map((l) => (
@@ -718,12 +713,7 @@ function LandingFooter() {
     <footer className="relative z-10 w-full bg-gradient-to-b from-white/[0.01] to-transparent backdrop-blur">
       <div className="grid w-full min-w-0 gap-8 px-4 py-12 sm:grid-cols-2 md:px-6 lg:grid-cols-4">
         <div>
-          <div className="flex items-center gap-3 font-bold text-white text-lg">
-            <span className="flex h-9 items-center rounded-lg bg-white px-2">
-              <img src="/Logo.png" alt="Saksham AI Logo" className="h-6 w-auto object-contain" />
-            </span>
-            Saksham AI
-          </div>
+          <SakshamLogo size="md" variant="full" />
           <p className="mt-3 text-xs text-slate-400 leading-relaxed">AI-Assisted Security Assessment & Vulnerability Management Platform.</p>
         </div>
         {[
