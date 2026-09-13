@@ -52,11 +52,14 @@ export function ApiTester() {
   const [resB, setResB] = useState(null);
 
   const run = useMutation({
-    mutationFn: async ({ token }) => (await api.post('/tools/probe', {
-      url: form.url,
-      method: form.method,
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    })).data,
+    mutationFn: async ({ token }) => {
+      const cleanToken = (token || '').trim().replace(/^Bearer\s+/i, '');
+      return (await api.post('/tools/probe', {
+        url: form.url,
+        method: form.method,
+        headers: cleanToken ? { Authorization: `Bearer ${cleanToken}` } : {},
+      })).data;
+    },
   });
 
   const compare = async () => {
