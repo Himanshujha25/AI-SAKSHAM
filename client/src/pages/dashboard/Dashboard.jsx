@@ -8,7 +8,7 @@ import {
   Play, X, Globe, Cpu, Zap, Code2, GitFork, Layers,
   Lock, FileCode, Box, AlertOctagon, AlertTriangle, BarChart2,
   CheckCircle2, TrendingUp, Activity, Clock, FolderPlus, ArrowRight,
-  ShieldAlert, Sparkles, ChevronRight
+  ShieldAlert, ChevronRight
 } from 'lucide-react';
 import api from '../../lib/api';
 import { getSocket } from '../../lib/socket';

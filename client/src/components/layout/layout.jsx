@@ -1,5 +1,5 @@
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FolderKanban, FlaskConical, Bug, FileText, ShieldCheck, LogOut, Menu, X, Settings as SettingsIcon, FlaskRound, ScrollText } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, FlaskConical, Bug, FileText, ShieldCheck, LogOut, Menu, X, Settings as SettingsIcon, FlaskRound, ScrollText, HelpCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../store/auth';
@@ -14,6 +14,7 @@ const links = [
   { to: '/reports', label: 'Reports', icon: FileText },
   { to: '/api-tester', label: 'API Tester', icon: FlaskRound },
   { to: '/activity', label: 'Activity', icon: ScrollText },
+  { to: '/help', label: 'Help Guide', icon: HelpCircle },
 ];
 
 function Brand() {

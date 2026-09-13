@@ -16,7 +16,8 @@ const list = asyncHandler(async (req, res) => {
   const events = await Activity.find(filter)
     .sort({ createdAt: -1 })
     .limit(limit)
-    .populate('actor', 'name email role');
+    .populate('actor', 'name email role')
+    .populate('projectId', 'name status category');
   res.json({ events });
 });
 

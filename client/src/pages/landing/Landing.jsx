@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ShieldCheck, Radar, Bug, BrainCircuit, Gauge, FileText,
+  ShieldCheck, Radar, Bug, Gauge, FileText,
   ArrowRight, Check, Lock, Fingerprint, KeyRound, Terminal,
-  Play, Pause, Volume2, Maximize2, Sparkles, Search, ShieldAlert, CheckCircle2, Cpu, Code2, RotateCcw, TrendingUp, ChevronRight, Monitor
+  Play, Pause, Volume2, Maximize2, Search, ShieldAlert, CheckCircle2, Cpu, Code2, RotateCcw, TrendingUp, ChevronRight, Monitor
 } from 'lucide-react';
 import { useAuth } from '../../store/auth';
 
@@ -19,12 +19,12 @@ const features = [
   { code: 'MOD.01', icon: Radar, title: 'Attack Surface Discovery', desc: 'Routes, APIs, JS, tech, headers and deps organized into a visual map — not a raw dump.' },
   { code: 'MOD.02', icon: Bug, title: 'Findings with Evidence', desc: 'Every VUL-001… carries endpoint, evidence and verification status. Scanner signal ≠ verified finding.' },
   { code: 'MOD.03', icon: Check, title: 'Verification Workflow', desc: 'Potential → Under Review → Verified / False Positive with confidence, reviewer and notes.' },
-  { code: 'MOD.04', icon: BrainCircuit, title: 'AI Security Analyst', desc: 'Structured finding → classification, impact, dev-friendly fix and priority reason. Assistance, not truth.' },
+  { code: 'MOD.04', icon: Code2, title: 'Automated Security Analysis', desc: 'Structured finding → classification, impact, dev-friendly fix and priority reason.' },
   { code: 'MOD.05', icon: Gauge, title: 'CVSS Risk Scoring', desc: '0–10 scores mapped to Critical/High/Medium/Low with a security score for the whole project.' },
   { code: 'MOD.06', icon: FileText, title: 'Professional Reports', desc: 'Executive / Technical / Summary PDFs with scope, severity charts, evidence and remediation.' },
 ];
 
-const steps = ['Project', 'Authorized Target', 'Assessment', 'Attack Surface', 'Findings + Evidence', 'Verification', 'AI Analysis', 'CVSS + Remediation', 'Report'];
+const steps = ['Project', 'Authorized Target', 'Assessment', 'Attack Surface', 'Findings + Evidence', 'Verification', 'Automated Analysis', 'CVSS + Remediation', 'Report'];
 
 function CyberChrome() {
   return (
@@ -286,7 +286,7 @@ function InteractiveAnalyzer() {
     <section id="analyzer" className="relative z-10 mx-auto w-full max-w-6xl px-4 py-12 md:px-6">
       <motion.div {...fadeUp} className="text-center">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-400/10 px-3.5 py-1 text-xs font-semibold text-cyan-300 ring-1 ring-cyan-400/20">
-          <Sparkles size={13} className="text-cyan-400" /> Interactive Assessment Simulator
+          <ShieldCheck size={13} className="text-cyan-400" /> Interactive Assessment Simulator
         </span>
         <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-white md:text-4xl">
           Experience the <span className="text-cyan-300">Live Security Pipeline</span>
@@ -376,7 +376,7 @@ function InteractiveAnalyzer() {
               { id: 'OVERVIEW', label: '1. Target Overview', icon: Radar },
               { id: 'FINDINGS', label: '2. Security Findings', icon: Bug },
               { id: 'EVIDENCE', label: '3. Proof Evidence', icon: Terminal },
-              { id: 'AI_FIX', label: '4. AI Remediation', icon: BrainCircuit },
+              { id: 'AI_FIX', label: '4. Code Remediation', icon: Code2 },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -474,7 +474,7 @@ function InteractiveAnalyzer() {
                 <motion.div key="aifix" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
                   <div className="rounded-xl bg-cyan-950/20 p-4 ring-1 ring-cyan-500/30">
                     <div className="flex items-center gap-2 text-cyan-300 text-xs font-bold uppercase tracking-wider">
-                      <BrainCircuit size={15} /> Saksham AI Security Guidance
+                      <Code2 size={15} /> Security Remediation Guidance
                     </div>
                     <p className="mt-2 text-xs text-slate-300 leading-relaxed">
                       <strong className="text-white">Impact Analysis:</strong> The backend endpoint does not validate resource ownership server-side. User B can access User A's private data simply by enumerating report IDs.
@@ -674,9 +674,9 @@ function WorkflowDemo() {
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2, duration: 0.5 }}
           className="rounded-2xl bg-gradient-to-br from-white/[0.04] to-white/[0.01] p-6 backdrop-blur-2xl">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-300">
-            <BrainCircuit size={20} />
+            <Code2 size={20} />
           </div>
-          <p className="mt-4 font-bold text-white">Analyst AI Note Drafted</p>
+          <p className="mt-4 font-bold text-white">Security Analysis Drafted</p>
           <p className="mt-3 rounded-xl bg-black/40 p-3 font-mono text-[12px] leading-relaxed text-slate-400">
             Classification: injection (CWE-79). Impact: session-token exposure. Fix: encode output and add a CSP. Priority: high.
           </p>

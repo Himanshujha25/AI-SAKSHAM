@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,7 +19,6 @@ import {
   Activity,
   Layers,
   Calendar,
-  Sparkles,
   RefreshCw,
   ArrowUpRight,
   SlidersHorizontal,
@@ -31,6 +30,7 @@ import {
   Timer,
   RotateCcw,
   Folder,
+  ShieldAlert,
 } from 'lucide-react';
 import api from '../../lib/api';
 import { errMsg, cn, buildCurl, slaCountdown } from '../../lib/utils';
@@ -172,10 +172,27 @@ export function Findings() {
     search: '',
   });
 
+  // Dynamic Pagination & Bulk Selection States
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const [selectedIds, setSelectedIds] = useState([]);
+
   // Selected finding for the right slide-over drawer
   const [selectedFinding, setSelectedFinding] = useState(null);
   const [drawerTab, setDrawerTab] = useState('details'); // 'details' | 'suggestions' | 'evidence' | 'remediation' | 'timeline'
   const [copiedCode, setCopiedCode] = useState(false);
+
+  // Prevent background page scrolling when the right drawer is open
+  useEffect(() => {
+    if (selectedFinding) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [selectedFinding]);
 
   const drawerAiMutation = useMutation({
     mutationFn: async (id) => (await api.post(`/findings/${id}/ai-analysis`, {}, { timeout: 60000 })).data,
@@ -271,8 +288,28 @@ export function Findings() {
     return list;
   }, [rawList, filters.asset, filters.dateRange, filters.sort]);
 
-  // Calculate stats dynamically
+  // Dynamic Pagination Calculations
   const totalCount = findingsList.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const paginatedList = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return findingsList.slice(start, start + pageSize);
+  }, [findingsList, page, pageSize]);
+
+  // Bulk Selection Helpers
+  const isAllSelected = paginatedList.length > 0 && paginatedList.every((f) => selectedIds.includes(f._id));
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(paginatedList.map((f) => f._id));
+    }
+  };
+  const toggleSelectOne = (id) => {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
+
+  // Calculate stats dynamically
   const criticalCount = findingsList.filter((x) => x.severity === 'Critical').length;
   const highCount = findingsList.filter((x) => x.severity === 'High').length;
   const mediumCount = findingsList.filter((x) => x.severity === 'Medium').length;
@@ -286,6 +323,16 @@ export function Findings() {
       qc.invalidateQueries({ queryKey: ['finding'] });
     },
   });
+
+  const handleBulkVerify = async (status) => {
+    for (const id of selectedIds) {
+      try {
+        await api.post(`/findings/${id}/verify`, { status, confidence: 95 });
+      } catch (e) {}
+    }
+    setSelectedIds([]);
+    qc.invalidateQueries({ queryKey: ['findings'] });
+  };
 
   const handleClearFilters = () => {
     setFilters({
@@ -308,25 +355,99 @@ export function Findings() {
 
   return (
     <div className="relative min-h-screen pb-16 space-y-6">
-      {/* Page Header */}
+      {/* Page Header with Interactive Date Range Selector */}
       <PageHeader
         title="Findings"
         subtitle="Vulnerabilities with evidence, verification, CVSS and analysis"
         actions={
-          <div className="flex items-center gap-2 rounded-lg border border-slate-700/60 bg-slate-900/80 px-3 py-1.5 text-xs text-slate-300 backdrop-blur">
-            <Calendar className="h-3.5 w-3.5 text-cyan-400" />
-            <span>Sep 6, 2026 – Sep 12, 2026</span>
+          <div className="w-56">
+            <CustomSelect
+              value={filters.dateRange}
+              onChange={(e) => {
+                setFilters({ ...filters, dateRange: e.target.value });
+                setPage(1);
+              }}
+              options={[
+                { value: 'all', label: 'All time' },
+                { value: '7d', label: 'Sep 6, 2026 – Sep 12, 2026 (7d)' },
+                { value: '30d', label: 'Last 30 days' },
+              ]}
+            />
           </div>
         }
       />
 
-      {/* Top Row: Executive Metric Summary Cards (6 Columns) */}
+      {/* Top Row: Executive Metric Summary Cards (6 Columns — Clickable Quick Filters) */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <MetricCard title="Total findings" value={totalCount} trend="+2 today" icon={Shield} color="cyan" />
-        <MetricCard title="Critical" value={criticalCount} trend="+1" icon={AlertOctagon} color="red" badgeColor="bg-red-500" />
-        <MetricCard title="High" value={highCount} trend="+1" icon={AlertTriangle} color="orange" badgeColor="bg-orange-500" />
-        <MetricCard title="Medium" value={mediumCount} trend="+1" icon={Activity} color="amber" badgeColor="bg-amber-500" />
-        <MetricCard title="Low" value={lowCount} trend="-1" icon={Info} color="green" badgeColor="bg-emerald-500" />
+        <MetricCard
+          title="Total findings"
+          value={totalCount}
+          trend="+2 today"
+          icon={Shield}
+          color="cyan"
+          active={!filters.severity && !filters.status}
+          onClick={() => {
+            setFilters({ ...filters, severity: '', status: '' });
+            setPage(1);
+          }}
+          tooltip="Click to view all vulnerability findings."
+        />
+        <MetricCard
+          title="Critical"
+          value={criticalCount}
+          trend="+1"
+          icon={AlertOctagon}
+          color="red"
+          badgeColor="bg-red-500"
+          active={filters.severity === 'Critical'}
+          onClick={() => {
+            setFilters({ ...filters, severity: filters.severity === 'Critical' ? '' : 'Critical' });
+            setPage(1);
+          }}
+          tooltip="Click to filter Critical vulnerabilities."
+        />
+        <MetricCard
+          title="High"
+          value={highCount}
+          trend="+1"
+          icon={AlertTriangle}
+          color="orange"
+          badgeColor="bg-orange-500"
+          active={filters.severity === 'High'}
+          onClick={() => {
+            setFilters({ ...filters, severity: filters.severity === 'High' ? '' : 'High' });
+            setPage(1);
+          }}
+          tooltip="Click to filter High severity vulnerabilities."
+        />
+        <MetricCard
+          title="Medium"
+          value={mediumCount}
+          trend="+1"
+          icon={Activity}
+          color="amber"
+          badgeColor="bg-amber-500"
+          active={filters.severity === 'Medium'}
+          onClick={() => {
+            setFilters({ ...filters, severity: filters.severity === 'Medium' ? '' : 'Medium' });
+            setPage(1);
+          }}
+          tooltip="Click to filter Medium severity vulnerabilities."
+        />
+        <MetricCard
+          title="Low"
+          value={lowCount}
+          trend="-1"
+          icon={Info}
+          color="green"
+          badgeColor="bg-emerald-500"
+          active={filters.severity === 'Low'}
+          onClick={() => {
+            setFilters({ ...filters, severity: filters.severity === 'Low' ? '' : 'Low' });
+            setPage(1);
+          }}
+          tooltip="Click to filter Low severity vulnerabilities."
+        />
         <MetricCard
           title="Verified"
           value={verifiedCount}
@@ -334,6 +455,12 @@ export function Findings() {
           icon={CheckCircle2}
           color="emerald"
           badgeColor="bg-cyan-500"
+          active={filters.status === 'Verified'}
+          onClick={() => {
+            setFilters({ ...filters, status: filters.status === 'Verified' ? '' : 'Verified' });
+            setPage(1);
+          }}
+          tooltip="Click to filter Verified findings."
         />
       </div>
 
@@ -344,159 +471,72 @@ export function Findings() {
           <div>
             <div className="flex items-center justify-between pb-3">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Findings by Severity</h3>
-              <span className="text-[11px] text-slate-500">Live Breakdown</span>
+              <span className="text-[11px] text-slate-500 font-mono">Live Breakdown</span>
             </div>
             <div className="space-y-3 pt-1">
-              <SeverityProgressBar label="Critical" count={criticalCount} total={totalCount} color="bg-red-500" text="text-red-400" />
-              <SeverityProgressBar label="High" count={highCount} total={totalCount} color="bg-orange-500" text="text-orange-400" />
-              <SeverityProgressBar label="Medium" count={mediumCount} total={totalCount} color="bg-amber-500" text="text-amber-400" />
-              <SeverityProgressBar label="Low" count={lowCount} total={totalCount} color="bg-emerald-500" text="text-emerald-400" />
+              <SeverityProgressBar
+                label="Critical"
+                count={criticalCount}
+                total={totalCount}
+                color="bg-red-500"
+                text="text-red-400"
+                onClick={() => {
+                  setFilters({ ...filters, severity: 'Critical' });
+                  setPage(1);
+                }}
+              />
+              <SeverityProgressBar
+                label="High"
+                count={highCount}
+                total={totalCount}
+                color="bg-orange-500"
+                text="text-orange-400"
+                onClick={() => {
+                  setFilters({ ...filters, severity: 'High' });
+                  setPage(1);
+                }}
+              />
+              <SeverityProgressBar
+                label="Medium"
+                count={mediumCount}
+                total={totalCount}
+                color="bg-amber-500"
+                text="text-amber-400"
+                onClick={() => {
+                  setFilters({ ...filters, severity: 'Medium' });
+                  setPage(1);
+                }}
+              />
+              <SeverityProgressBar
+                label="Low"
+                count={lowCount}
+                total={totalCount}
+                color="bg-emerald-500"
+                text="text-emerald-400"
+                onClick={() => {
+                  setFilters({ ...filters, severity: 'Low' });
+                  setPage(1);
+                }}
+              />
             </div>
           </div>
         </Card>
 
         {/* 2. Findings Trend (Last 7 Days) */}
-        <Card className="border-slate-800 bg-slate-900/90 p-4">
-          <div className="flex items-center justify-between pb-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Findings Trend (Last 7 Days)</h3>
-            <span className="rounded bg-slate-800 px-2 py-0.5 text-[10px] text-slate-400">Last 7 days</span>
-          </div>
-          {/* Sparkline Graphic */}
-          <div className="relative mt-3 h-32 w-full">
-            <svg className="h-full w-full overflow-visible" viewBox="0 0 300 90">
-              <defs>
-                <linearGradient id="trendGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.35" />
-                  <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
-              {/* Grid Lines */}
-              <line x1="0" y1="20" x2="300" y2="20" stroke="#1e293b" strokeDasharray="3 3" />
-              <line x1="0" y1="50" x2="300" y2="50" stroke="#1e293b" strokeDasharray="3 3" />
-              <line x1="0" y1="80" x2="300" y2="80" stroke="#1e293b" strokeDasharray="3 3" />
-
-              {/* Area Fill */}
-              <polygon points="0,70 50,60 100,75 150,45 200,55 250,30 300,40 300,90 0,90" fill="url(#trendGradient)" />
-
-              {/* Smooth Trend Line */}
-              <path
-                d="M 0,70 Q 25,65 50,60 T 100,75 T 150,45 T 200,55 T 250,30 T 300,40"
-                fill="none"
-                stroke="#38bdf8"
-                strokeWidth="2.5"
-              />
-
-              {/* Data Nodes */}
-              {[
-                { x: 0, y: 70 },
-                { x: 50, y: 60 },
-                { x: 100, y: 75 },
-                { x: 150, y: 45 },
-                { x: 200, y: 55 },
-                { x: 250, y: 30 },
-                { x: 300, y: 40 },
-              ].map((pt, i) => (
-                <circle key={i} cx={pt.x} cy={pt.y} r="3.5" className="fill-slate-900 stroke-cyan-400 stroke-2 transition hover:r-5" />
-              ))}
-            </svg>
-            <div className="mt-2 flex justify-between text-[10px] text-slate-500 font-mono">
-              <span>Sep 6</span>
-              <span>Sep 7</span>
-              <span>Sep 8</span>
-              <span>Sep 9</span>
-              <span>Sep 10</span>
-              <span>Sep 11</span>
-              <span>Sep 12</span>
-            </div>
-          </div>
-        </Card>
+        <FindingsTrendChart />
 
         {/* 3. Donut Ring Distribution Chart */}
-        <Card className="flex items-center justify-between border-slate-800 bg-slate-900/90 p-4">
-          <div className="flex flex-col justify-between h-full w-full">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Severity Distribution</h3>
-            <div className="flex items-center justify-around py-1">
-              {/* SVG Donut */}
-              <div className="relative flex items-center justify-center">
-                <svg className="h-28 w-28 -rotate-90 stroke-slate-800 stroke-[12]" viewBox="0 0 100 100">
-                  <circle cx="50" cy="50" r="38" fill="transparent" stroke="#1e293b" strokeWidth="12" />
-                  {/* Critical Segment */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="38"
-                    fill="transparent"
-                    stroke="#ef4444"
-                    strokeWidth="12"
-                    strokeDasharray="238"
-                    strokeDashoffset={238 - (238 * (criticalCount / (totalCount || 1)))}
-                  />
-                  {/* High Segment */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="38"
-                    fill="transparent"
-                    stroke="#f97316"
-                    strokeWidth="12"
-                    strokeDasharray="238"
-                    strokeDashoffset={238 - (238 * ((criticalCount + highCount) / (totalCount || 1)))}
-                  />
-                  {/* Medium Segment */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="38"
-                    fill="transparent"
-                    stroke="#f59e0b"
-                    strokeWidth="12"
-                    strokeDasharray="238"
-                    strokeDashoffset={238 - (238 * ((criticalCount + highCount + mediumCount) / (totalCount || 1)))}
-                  />
-                  {/* Low Segment */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="38"
-                    fill="transparent"
-                    stroke="#10b981"
-                    strokeWidth="12"
-                    strokeDasharray="238"
-                    strokeDashoffset={0}
-                  />
-                </svg>
-                <div className="absolute text-center">
-                  <span className="text-xl font-bold text-white">{totalCount}</span>
-                  <span className="block text-[9px] uppercase tracking-wider text-slate-400">Total</span>
-                </div>
-              </div>
-
-              {/* Legend List */}
-              <div className="space-y-2 text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
-                  <span className="text-slate-300">Critical</span>
-                  <span className="font-mono text-slate-400 font-semibold">{criticalCount}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-orange-500" />
-                  <span className="text-slate-300">High</span>
-                  <span className="font-mono text-slate-400 font-semibold">{highCount}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
-                  <span className="text-slate-300">Medium</span>
-                  <span className="font-mono text-slate-400 font-semibold">{mediumCount}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                  <span className="text-slate-300">Low</span>
-                  <span className="font-mono text-slate-400 font-semibold">{lowCount}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Card>
+        <SeverityDistributionChart
+          critical={criticalCount}
+          high={highCount}
+          medium={mediumCount}
+          low={lowCount}
+          total={totalCount}
+          onSelectSeverity={(sev) => {
+            setFilters({ ...filters, severity: sev });
+            setPage(1);
+          }}
+        />
       </div>
 
       {/* Toolbar & Filters Bar */}
@@ -509,7 +549,10 @@ export function Findings() {
               type="text"
               placeholder="Search findings, endpoints, or CVE..."
               value={filters.search}
-              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+              onChange={(e) => {
+                setFilters({ ...filters, search: e.target.value });
+                setPage(1);
+              }}
               className="w-full rounded-md border border-slate-700/80 bg-slate-950/80 py-1.5 pl-9 pr-3 text-xs text-slate-200 placeholder-slate-500 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
             />
           </div>
@@ -518,7 +561,10 @@ export function Findings() {
           <div className="flex flex-wrap items-center gap-2">
             <FilterSelect
               value={filters.severity}
-              onChange={(v) => setFilters({ ...filters, severity: v })}
+              onChange={(v) => {
+                setFilters({ ...filters, severity: v });
+                setPage(1);
+              }}
               options={[
                 { label: 'All severities', value: '' },
                 { label: 'Critical', value: 'Critical' },
@@ -531,7 +577,10 @@ export function Findings() {
 
             <FilterSelect
               value={filters.status}
-              onChange={(v) => setFilters({ ...filters, status: v })}
+              onChange={(v) => {
+                setFilters({ ...filters, status: v });
+                setPage(1);
+              }}
               options={[
                 { label: 'All statuses', value: '' },
                 { label: 'Potential', value: 'Potential' },
@@ -544,19 +593,28 @@ export function Findings() {
 
             <FilterSelect
               value={filters.project}
-              onChange={(v) => setFilters({ ...filters, project: v })}
+              onChange={(v) => {
+                setFilters({ ...filters, project: v });
+                setPage(1);
+              }}
               options={projectOptions}
             />
 
             <FilterSelect
               value={filters.asset}
-              onChange={(v) => setFilters({ ...filters, asset: v })}
+              onChange={(v) => {
+                setFilters({ ...filters, asset: v });
+                setPage(1);
+              }}
               options={assetOptions}
             />
 
             <FilterSelect
               value={filters.dateRange}
-              onChange={(v) => setFilters({ ...filters, dateRange: v })}
+              onChange={(v) => {
+                setFilters({ ...filters, dateRange: v });
+                setPage(1);
+              }}
               options={[
                 { label: 'Date range', value: 'all' },
                 { label: 'Last 7 days', value: '7d' },
@@ -575,7 +633,10 @@ export function Findings() {
             />
 
             <button
-              onClick={handleClearFilters}
+              onClick={() => {
+                handleClearFilters();
+                setPage(1);
+              }}
               title="Reset all search and filter dropdowns"
               className="rounded-md border border-slate-700/60 bg-slate-800/80 px-2.5 py-1.5 text-xs text-slate-400 transition hover:bg-slate-700 hover:text-white"
             >
@@ -584,6 +645,29 @@ export function Findings() {
           </div>
         </div>
       </Card>
+
+      {/* Bulk Selection Actions Bar */}
+      {selectedIds.length > 0 && (
+        <div className="flex items-center justify-between rounded-xl border border-cyan-500/40 bg-slate-950 p-3 px-4 shadow-xl font-mono text-xs animate-in fade-in">
+          <span className="text-cyan-300 font-bold">
+            {selectedIds.length} finding{selectedIds.length > 1 ? 's' : ''} selected
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleBulkVerify('Verified')}
+              className="rounded bg-emerald-500/20 px-3 py-1 font-bold text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 transition"
+            >
+              Mark Selected Verified
+            </button>
+            <button
+              onClick={() => setSelectedIds([])}
+              className="rounded bg-slate-800 px-3 py-1 font-semibold text-slate-400 hover:text-white transition"
+            >
+              Clear Selection
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Main Data Table */}
       <Card className="relative z-10 overflow-hidden border-slate-800 bg-slate-900/90 shadow-xl">
@@ -596,7 +680,13 @@ export function Findings() {
               <thead className="border-b border-slate-800 bg-slate-950/60 font-mono text-[11px] uppercase tracking-wider text-slate-400">
                 <tr>
                   <th className="w-8 px-2 py-3 text-center">
-                    <input type="checkbox" title="Select all findings" className="rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0" />
+                    <input
+                      type="checkbox"
+                      checked={isAllSelected}
+                      onChange={toggleSelectAll}
+                      title="Select all findings on this page"
+                      className="rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0 cursor-pointer"
+                    />
                   </th>
                   <th className="px-2 py-3">ID</th>
                   <th className="px-3 py-3">TITLE</th>
@@ -607,11 +697,11 @@ export function Findings() {
                   <th className="px-2 py-3">STATUS</th>
                   <th className="px-3 py-3">DETECTED</th>
                   <th className="px-3 py-3">UPDATED</th>
-                  <th className="w-10 px-2 py-3 text-center">ACTIONS</th>
+                  <th className="w-16 px-2 py-3 text-center">ACTIONS</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {findingsList.map((item) => (
+                {paginatedList.map((item) => (
                   <tr
                     key={item._id}
                     onClick={() => setSelectedFinding(item)}
@@ -622,7 +712,13 @@ export function Findings() {
                     )}
                   >
                     <td className="px-2 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
-                      <input type="checkbox" title={`Select ${item.findingId}`} className="rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0" />
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(item._id)}
+                        onChange={() => toggleSelectOne(item._id)}
+                        title={`Select ${item.findingId}`}
+                        className="rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0 cursor-pointer"
+                      />
                     </td>
                     <td className="px-2 py-3.5 font-mono font-medium text-slate-400 group-hover:text-cyan-400 whitespace-nowrap">{item.findingId}</td>
                     <td className="px-3 py-3.5">
@@ -667,8 +763,12 @@ export function Findings() {
                       </span>
                     </td>
                     <td className="px-2 py-3.5 text-center text-slate-500 hover:text-slate-200" onClick={(e) => e.stopPropagation()}>
-                      <button className="rounded p-1 hover:bg-slate-800" title="More options">
-                        <MoreVertical className="h-4 w-4" />
+                      <button
+                        onClick={() => setSelectedFinding(item)}
+                        className="inline-flex items-center gap-1 rounded border border-slate-700 bg-slate-800/80 px-2 py-1 font-mono text-[10px] font-bold text-cyan-300 hover:bg-slate-700 hover:border-cyan-500/40 transition"
+                        title={`Inspect finding ${item.findingId}`}
+                      >
+                        Inspect <ChevronRight size={11} />
                       </button>
                     </td>
                   </tr>
@@ -678,23 +778,45 @@ export function Findings() {
           </div>
         )}
 
-        {/* Table Footer with Pagination */}
-        <div className="flex flex-wrap items-center justify-between border-t border-slate-800 bg-slate-950/70 px-4 py-3">
-          <div />
+        {/* Table Footer with Dynamic Pagination */}
+        <div className="flex flex-wrap items-center justify-between border-t border-slate-800 bg-slate-950/70 px-4 py-3 font-mono text-xs">
+          <span className="text-slate-400">
+            Showing {totalCount > 0 ? (page - 1) * pageSize + 1 : 0}-
+            {Math.min(page * pageSize, totalCount)} of {totalCount} findings
+          </span>
 
-          {/* Pagination */}
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <span>Showing 1-6 of {totalCount} findings</span>
-            <div className="ml-4 flex items-center gap-1">
-              <button className="rounded border border-slate-800 bg-slate-900 p-1 text-slate-400 hover:bg-slate-800 disabled:opacity-50">
-                <ChevronLeft className="h-4 w-4" />
+          {/* Dynamic Pagination Controls */}
+          <div className="flex items-center gap-1.5">
+            <button
+              disabled={page <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              className="rounded border border-slate-800 bg-slate-900 p-1.5 text-slate-400 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition"
+              title="Previous page"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+              <button
+                key={pageNum}
+                onClick={() => setPage(pageNum)}
+                className={cn(
+                  'h-7 w-7 rounded border font-mono text-xs font-bold transition',
+                  page === pageNum
+                    ? 'border-cyan-500/50 bg-cyan-500/10 text-cyan-300'
+                    : 'border-slate-800 bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-white'
+                )}
+              >
+                {pageNum}
               </button>
-              <button className="h-7 w-7 rounded border border-cyan-500/50 bg-cyan-500/10 text-cyan-300 font-semibold">1</button>
-              <button className="h-7 w-7 rounded border border-slate-800 bg-slate-900 text-slate-400 hover:bg-slate-800">2</button>
-              <button className="rounded border border-slate-800 bg-slate-900 p-1 text-slate-400 hover:bg-slate-800">
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
+            ))}
+            <button
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              className="rounded border border-slate-800 bg-slate-900 p-1.5 text-slate-400 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition"
+              title="Next page"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </Card>
@@ -750,8 +872,8 @@ export function Findings() {
                           : 'border-transparent text-slate-400 hover:text-slate-200'
                       )}
                     >
-                      {tab === 'suggestions' && <Sparkles className="h-3.5 w-3.5 text-cyan-400 animate-pulse" />}
-                      {tab === 'suggestions' ? 'AI Suggestions' : tab}
+                      {tab === 'suggestions' && <Code2 className="h-3.5 w-3.5 text-cyan-400" />}
+                      {tab === 'suggestions' ? 'Remediation Code' : tab}
                     </button>
                   ))}
                 </div>
@@ -764,7 +886,7 @@ export function Findings() {
                     <div className="rounded-xl border border-cyan-500/30 bg-gradient-to-b from-cyan-950/40 to-slate-900/90 p-4 space-y-3 shadow-md">
                       <div className="flex items-center justify-between">
                         <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-cyan-300">
-                          <Sparkles className="h-4 w-4 text-cyan-400" /> AI Security Suggestions & Analysis
+                          <Code2 className="h-4 w-4 text-cyan-400" /> Security Remediation & Analysis
                         </h4>
                         <button
                           disabled={drawerAiMutation.isPending}
@@ -772,7 +894,7 @@ export function Findings() {
                           className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-500/40 bg-cyan-500/20 px-2.5 py-1 font-mono text-[10px] font-bold text-cyan-200 transition hover:bg-cyan-500/30 disabled:opacity-50"
                         >
                           <RefreshCw className={cn('h-3 w-3', drawerAiMutation.isPending && 'animate-spin')} />
-                          {drawerAiMutation.isPending ? 'Analyzing…' : 'Re-analyze with LLM'}
+                          {drawerAiMutation.isPending ? 'Analyzing…' : 'Re-analyze'}
                         </button>
                       </div>
 
@@ -866,26 +988,29 @@ export function Findings() {
                     </div>
 
                     {/* Affected Asset Card */}
-                    <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4">
-                      <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-cyan-400 mb-3">
+                    <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 space-y-3">
+                      <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-cyan-400">
                         <Layers className="h-4 w-4" /> Affected Asset
                       </h4>
-                      <div className="grid grid-cols-2 gap-3 text-xs font-mono">
+                      <div className="space-y-2.5 text-xs">
                         <div>
-                          <span className="text-slate-400 font-sans block text-[11px]">Endpoint</span>
-                          <span className="text-slate-200">{selectedFinding.affectedAssets?.[0] || 'N/A'}</span>
+                          <span className="text-slate-400 font-sans text-[11px] block mb-1">Target Endpoint & Method</span>
+                          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-800 bg-slate-950 p-2.5 font-mono text-[11px] text-cyan-300 break-all">
+                            <span className="shrink-0 rounded bg-slate-800 px-2 py-0.5 font-bold uppercase text-emerald-400 border border-slate-700">
+                              {selectedFinding.httpMethod || 'GET'}
+                            </span>
+                            <span className="break-all">{selectedFinding.affectedAssets?.[0] || 'N/A'}</span>
+                          </div>
                         </div>
-                        <div>
-                          <span className="text-slate-400 font-sans block text-[11px]">Method</span>
-                          <span className="rounded bg-slate-800 px-2 py-0.5 text-slate-300">{selectedFinding.httpMethod || 'GET'}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 font-sans block text-[11px]">Project</span>
-                          <span className="text-slate-200">{selectedFinding.project || '—'}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 font-sans block text-[11px]">Technology</span>
-                          <span className="text-slate-200">{selectedFinding.technology || 'Node.js (Express)'}</span>
+                        <div className="grid grid-cols-2 gap-3 pt-1 font-mono text-xs">
+                          <div>
+                            <span className="text-slate-400 font-sans block text-[11px]">Project</span>
+                            <span className="text-slate-200 font-semibold">{selectedFinding.projectId?.name || selectedFinding.project || 'Default Project'}</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 font-sans block text-[11px]">Technology</span>
+                            <span className="text-slate-200">{selectedFinding.technology || 'Node.js (Express)'}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1020,9 +1145,24 @@ export function Findings() {
 }
 
 // Executive Metric Card Helper Component
-function MetricCard({ title, value, trend, icon: Icon, color = 'cyan', badgeColor = 'bg-cyan-500' }) {
+function MetricCard({ title, value, trend, icon: Icon, color = 'cyan', badgeColor = 'bg-cyan-500', tooltip, active, onClick }) {
+  const [showTooltip, setShowTooltip] = useState(false);
   return (
-    <Card className="relative overflow-hidden border-slate-800 bg-slate-900/90 p-3.5 shadow-md backdrop-blur">
+    <Card
+      onClick={onClick}
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+      className={cn(
+        "relative overflow-visible border-slate-800 bg-slate-900/90 p-3.5 shadow-md backdrop-blur hover:border-slate-700 hover:bg-slate-800/80 transition duration-150 cursor-pointer",
+        active && "border-cyan-500/50 bg-slate-800/90 ring-1 ring-cyan-500/30 shadow-lg"
+      )}
+    >
+      {showTooltip && tooltip && (
+        <div className="absolute bottom-full left-1/2 z-50 mb-2 w-48 -translate-x-1/2 rounded-lg border border-slate-700 bg-slate-950 p-2 shadow-2xl text-[11px] text-slate-300 pointer-events-none transition duration-150 animate-in fade-in">
+          <span className="block font-bold text-cyan-400 mb-0.5">{title}</span>
+          <span>{tooltip}</span>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-medium text-slate-400 truncate">{title}</span>
         <span className={cn('h-2 w-2 rounded-full', badgeColor)} />
@@ -1036,18 +1176,226 @@ function MetricCard({ title, value, trend, icon: Icon, color = 'cyan', badgeColo
 }
 
 // Progress Bar Helper Component
-function SeverityProgressBar({ label, count, total, color, text }) {
+function SeverityProgressBar({ label, count, total, color, text, onClick }) {
+  const [hovered, setHovered] = useState(false);
   const pct = Math.round((count / (total || 1)) * 100);
   return (
-    <div className="space-y-1">
+    <div
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="space-y-1 relative cursor-pointer p-1.5 rounded-lg transition hover:bg-slate-800/60"
+    >
       <div className="flex justify-between text-xs">
         <span className="font-medium text-slate-300">{label}</span>
-        <span className={cn('font-mono font-semibold', text)}>{count}</span>
+        <span className={cn('font-mono font-semibold', text)}>
+          {count} <span className="text-slate-500 font-normal text-[10px]">({pct}%)</span>
+        </span>
       </div>
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
-        <div className={cn('h-full rounded-full transition-all duration-500', color)} style={{ width: `${pct}%` }} />
+      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
+        <div className={cn('h-full rounded-full transition-all duration-500', color, hovered && 'brightness-125')} style={{ width: `${pct}%` }} />
       </div>
     </div>
+  );
+}
+
+// Interactive Findings Trend Sparkline Chart
+function FindingsTrendChart() {
+  const [activePoint, setActivePoint] = useState(null);
+  const trendData = [
+    { date: 'Sep 6', count: 4, desc: 'Initial baseline scan' },
+    { date: 'Sep 7', count: 7, desc: '+3 vulnerabilities detected' },
+    { date: 'Sep 8', count: 3, desc: '2 findings resolved' },
+    { date: 'Sep 9', count: 12, desc: 'Full API surface scan' },
+    { date: 'Sep 10', count: 8, desc: '4 findings verified fixed' },
+    { date: 'Sep 11', count: 15, desc: 'New endpoint registered' },
+    { date: 'Sep 12', count: 10, desc: 'Current active count' },
+  ];
+
+  const points = [
+    { x: 10, y: 70 },
+    { x: 55, y: 60 },
+    { x: 100, y: 75 },
+    { x: 150, y: 45 },
+    { x: 195, y: 55 },
+    { x: 245, y: 30 },
+    { x: 290, y: 40 },
+  ];
+
+  return (
+    <Card className="border-slate-800 bg-slate-900/90 p-4 relative">
+      <div className="flex items-center justify-between pb-2">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Findings Trend (Last 7 Days)</h3>
+        <span className="rounded bg-slate-800 px-2 py-0.5 text-[10px] text-slate-400 font-mono">Last 7 days</span>
+      </div>
+
+      <div className="relative mt-3 h-32 w-full">
+        {/* Interactive Hover Tooltip Box */}
+        {activePoint !== null && (
+          <div
+            className="absolute z-30 pointer-events-none rounded-lg border border-slate-700 bg-slate-950 p-2 shadow-xl text-xs font-mono transition duration-150 animate-in fade-in"
+            style={{
+              left: `${Math.min(Math.max(points[activePoint].x - 40, 0), 200)}px`,
+              top: `${points[activePoint].y - 35}px`,
+            }}
+          >
+            <span className="text-cyan-400 font-bold block">{trendData[activePoint].date}</span>
+            <span className="text-white font-semibold">{trendData[activePoint].count} Active Findings</span>
+            <span className="text-[10px] text-slate-400 block mt-0.5">{trendData[activePoint].desc}</span>
+          </div>
+        )}
+
+        <svg className="h-full w-full overflow-visible" viewBox="0 0 300 90">
+          <defs>
+            <linearGradient id="trendGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.35" />
+              <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.0" />
+            </linearGradient>
+          </defs>
+          <line x1="0" y1="20" x2="300" y2="20" stroke="#1e293b" strokeDasharray="3 3" />
+          <line x1="0" y1="50" x2="300" y2="50" stroke="#1e293b" strokeDasharray="3 3" />
+          <line x1="0" y1="80" x2="300" y2="80" stroke="#1e293b" strokeDasharray="3 3" />
+
+          <polygon points="10,70 55,60 100,75 150,45 195,55 245,30 290,40 290,90 10,90" fill="url(#trendGradient)" />
+          <path
+            d="M 10,70 Q 32,65 55,60 T 100,75 T 150,45 T 195,55 T 245,30 T 290,40"
+            fill="none"
+            stroke="#38bdf8"
+            strokeWidth="2.5"
+          />
+
+          {points.map((pt, i) => (
+            <circle
+              key={i}
+              cx={pt.x}
+              cy={pt.y}
+              r={activePoint === i ? 6 : 4}
+              onMouseEnter={() => setActivePoint(i)}
+              onMouseLeave={() => setActivePoint(null)}
+              className={cn(
+                'cursor-pointer transition-all duration-150',
+                activePoint === i
+                  ? 'fill-cyan-400 stroke-white stroke-2'
+                  : 'fill-slate-900 stroke-cyan-400 stroke-2 hover:fill-cyan-400'
+              )}
+            />
+          ))}
+        </svg>
+        <div className="mt-2 flex justify-between text-[10px] text-slate-500 font-mono">
+          {trendData.map((d) => (
+            <span key={d.date}>{d.date}</span>
+          ))}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+// Interactive Severity Distribution Donut Chart Component
+function SeverityDistributionChart({ critical = 0, high = 0, medium = 0, low = 0, total = 0, onSelectSeverity }) {
+  const [hoverSegment, setHoverSegment] = useState(null);
+
+  const segments = [
+    { label: 'Critical', count: critical, color: '#ef4444' },
+    { label: 'High', count: high, color: '#f97316' },
+    { label: 'Medium', count: medium, color: '#f59e0b' },
+    { label: 'Low', count: low, color: '#10b981' },
+  ];
+
+  const C = 2 * Math.PI * 38; // Circumference ~ 238.76
+
+  // Calculate non-overlapping SVG strokeDasharray and strokeDashoffset for each segment
+  let currentOffset = 0;
+  const renderedSegments = segments.map((seg) => {
+    const pct = total > 0 ? seg.count / total : 0;
+    const strokeLength = pct * C;
+    const strokeGap = C - strokeLength;
+    const dashOffset = -currentOffset;
+    currentOffset += strokeLength;
+
+    return {
+      ...seg,
+      pct,
+      strokeLength,
+      strokeGap,
+      dashOffset,
+    };
+  });
+
+  return (
+    <Card className="flex items-center justify-between border-slate-800 bg-slate-900/90 p-4 relative">
+      <div className="flex flex-col justify-between h-full w-full space-y-2">
+        <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Severity Distribution</h3>
+          {hoverSegment ? (
+            <span className="font-mono text-[10px] text-cyan-300 bg-slate-950 px-2 py-0.5 rounded border border-cyan-500/30 animate-in fade-in">
+              {hoverSegment.label}: {hoverSegment.count} ({Math.round((hoverSegment.count / (total || 1)) * 100)}%)
+            </span>
+          ) : (
+            <span className="font-mono text-[10px] text-slate-500">Live Breakdown</span>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between gap-4 py-1">
+          {/* Prominent Enlarged SVG Donut */}
+          <div className="relative flex shrink-0 items-center justify-center">
+            <svg className="h-36 w-36 sm:h-40 sm:w-40 -rotate-90 stroke-slate-800 stroke-[14]" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="38" fill="transparent" stroke="#1e293b" strokeWidth="14" />
+              {total > 0 &&
+                renderedSegments.map((seg) => {
+                  if (seg.count === 0) return null;
+                  const isHovered = hoverSegment?.label === seg.label;
+                  return (
+                    <circle
+                      key={seg.label}
+                      cx="50"
+                      cy="50"
+                      r="38"
+                      fill="transparent"
+                      stroke={seg.color}
+                      strokeWidth={isHovered ? 18 : 14}
+                      strokeDasharray={`${seg.strokeLength} ${seg.strokeGap}`}
+                      strokeDashoffset={seg.dashOffset}
+                      className="cursor-pointer transition-all duration-200 hover:opacity-95"
+                      onClick={() => onSelectSeverity && onSelectSeverity(seg.label)}
+                      onMouseEnter={() => setHoverSegment(seg)}
+                      onMouseLeave={() => setHoverSegment(null)}
+                    />
+                  );
+                })}
+            </svg>
+            <div className="absolute text-center pointer-events-none">
+              <span className="text-2xl font-black text-white font-mono tracking-tight">{hoverSegment ? hoverSegment.count : total}</span>
+              <span className="block text-[9px] uppercase tracking-wider text-cyan-400 font-mono font-bold">
+                {hoverSegment ? hoverSegment.label : 'TOTAL CASES'}
+              </span>
+            </div>
+          </div>
+
+          {/* Interactive Legend List */}
+          <div className="space-y-1.5 text-xs flex-1">
+            {segments.map((seg) => (
+              <div
+                key={seg.label}
+                onClick={() => onSelectSeverity && onSelectSeverity(seg.label)}
+                onMouseEnter={() => setHoverSegment(seg)}
+                onMouseLeave={() => setHoverSegment(null)}
+                className={cn(
+                  'flex items-center justify-between cursor-pointer px-2.5 py-1.5 rounded-lg border border-slate-800/80 bg-slate-950/60 transition duration-150',
+                  hoverSegment?.label === seg.label ? 'bg-slate-800/90 border-cyan-500/40 text-white ring-1 ring-cyan-500/30' : 'hover:border-slate-700 hover:bg-slate-900'
+                )}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: seg.color }} />
+                  <span className="text-slate-300 font-medium">{seg.label}</span>
+                </div>
+                <span className="font-mono text-slate-200 font-bold">{seg.count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Card>
   );
 }
 
@@ -1162,7 +1510,7 @@ export function FindingDetail() {
 
             <div className="pt-2 border-t border-slate-800">
               <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Affected Endpoint</h4>
-              <p className="font-mono text-xs text-cyan-300">{(v.affectedAssets || []).join(', ') || 'N/A'}</p>
+              <p className="font-mono text-xs text-cyan-300 break-all">{(v.affectedAssets || []).join(', ') || 'N/A'}</p>
             </div>
           </Card>
 
@@ -1199,11 +1547,11 @@ export function FindingDetail() {
             </div>
           </Card>
 
-          {/* AI Security Analysis */}
+          {/* Security Remediation & Analysis */}
           <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-cyan-400">
-                <Sparkles className="h-4 w-4 text-cyan-400" /> AI Security Analysis
+                <Code2 className="h-4 w-4 text-cyan-400" /> Security Remediation & Analysis
               </h3>
               <Button
                 variant="outline"
@@ -1212,7 +1560,7 @@ export function FindingDetail() {
                 className="text-xs flex items-center gap-1"
               >
                 <RefreshCw className={cn('h-3 w-3', ai.isPending && 'animate-spin')} />
-                {ai.isPending ? 'Analyzing…' : 'Refresh AI'}
+                {ai.isPending ? 'Analyzing…' : 'Refresh Analysis'}
               </Button>
             </div>
 

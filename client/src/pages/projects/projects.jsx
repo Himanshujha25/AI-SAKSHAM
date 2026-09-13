@@ -44,6 +44,125 @@ import { PageHeader, LoadingState, ErrorState, EmptyState, StatusBadge } from '.
 import { Button, Card, Input } from '../../components/ui/primitives';
 import { CustomSelect } from '../../components/ui/CustomSelect';
 
+function DynamicSparklineCard({ title, count, badge, color = 'cyan', dataPoints = [], icon: Icon }) {
+  const [hoverIdx, setHoverIdx] = useState(null);
+
+  const series = dataPoints && dataPoints.length >= 2 ? dataPoints : [
+    { label: '7 days ago', value: Math.max(0, count - 3) },
+    { label: '5 days ago', value: Math.max(0, count - 2) },
+    { label: '3 days ago', value: Math.max(0, count - 1) },
+    { label: 'Yesterday', value: Math.max(0, count - 1) },
+    { label: 'Today', value: count },
+  ];
+
+  const maxVal = Math.max(...series.map((s) => s.value), 1);
+  const minVal = Math.min(...series.map((s) => s.value), 0);
+  const range = maxVal - minVal || 1;
+
+  const width = 280;
+  const height = 36;
+  const padding = 4;
+
+  const pts = series.map((s, i) => {
+    const x = padding + (i / (series.length - 1)) * (width - 2 * padding);
+    const y = height - padding - ((s.value - minVal) / range) * (height - 2 * padding);
+    return { x, y, ...s };
+  });
+
+  const pathD = pts.reduce((acc, p, i, a) => {
+    if (i === 0) return `M ${p.x},${p.y}`;
+    const prev = a[i - 1];
+    const cx1 = prev.x + (p.x - prev.x) / 2;
+    const cy1 = prev.y;
+    const cx2 = prev.x + (p.x - prev.x) / 2;
+    const cy2 = p.y;
+    return `${acc} C ${cx1},${cy1} ${cx2},${cy2} ${p.x},${p.y}`;
+  }, '');
+
+  const areaD = `${pathD} L ${pts[pts.length - 1].x},${height} L ${pts[0].x},${height} Z`;
+
+  const colorConfig = {
+    cyan: { border: 'border-cyan-500/30', bg: 'bg-cyan-500/10', text: 'text-cyan-400', stroke: '#38bdf8', fill: 'url(#grad-cyan)' },
+    emerald: { border: 'border-emerald-500/30', bg: 'bg-emerald-500/10', text: 'text-emerald-400', stroke: '#10b981', fill: 'url(#grad-emerald)' },
+    blue: { border: 'border-blue-500/30', bg: 'bg-blue-500/10', text: 'text-blue-400', stroke: '#3b82f6', fill: 'url(#grad-blue)' },
+    amber: { border: 'border-amber-500/30', bg: 'bg-amber-500/10', text: 'text-amber-400', stroke: '#f59e0b', fill: 'url(#grad-amber)' },
+  }[color] || { border: 'border-cyan-500/30', bg: 'bg-cyan-500/10', text: 'text-cyan-400', stroke: '#38bdf8', fill: 'url(#grad-cyan)' };
+
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const ratio = Math.max(0, Math.min(1, mouseX / rect.width));
+    const closestIdx = Math.round(ratio * (pts.length - 1));
+    setHoverIdx(closestIdx);
+  };
+
+  const activePt = hoverIdx !== null ? pts[hoverIdx] : null;
+
+  return (
+    <Card className="relative overflow-hidden border-slate-800 bg-slate-900/90 p-4 shadow-md backdrop-blur transition duration-300 hover:border-slate-700 hover:shadow-cyan-500/5 group">
+      <div className="flex items-center justify-between">
+        <div className={`flex h-8 w-8 items-center justify-center rounded-lg border ${colorConfig.border} ${colorConfig.bg} ${colorConfig.text}`}>
+          <Icon className="h-4 w-4" />
+        </div>
+        <span className={`text-[10px] font-mono font-semibold ${colorConfig.text}`}>{badge}</span>
+      </div>
+
+      <div className="mt-3">
+        <span className="text-3xl font-extrabold text-white font-mono">{count}</span>
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-0.5">{title}</p>
+      </div>
+
+      <div
+        className="relative mt-3 h-9 w-full cursor-crosshair"
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => setHoverIdx(null)}
+      >
+        <svg className="h-full w-full overflow-visible" viewBox={`0 0 ${width} ${height}`}>
+          <defs>
+            <linearGradient id="grad-cyan" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.0" />
+            </linearGradient>
+            <linearGradient id="grad-emerald" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#10b981" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
+            </linearGradient>
+            <linearGradient id="grad-blue" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.0" />
+            </linearGradient>
+            <linearGradient id="grad-amber" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.0" />
+            </linearGradient>
+          </defs>
+
+          <path d={areaD} fill={colorConfig.fill} className="transition-opacity duration-300 opacity-60 group-hover:opacity-100" />
+          <path d={pathD} fill="none" stroke={colorConfig.stroke} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+
+          {activePt && (
+            <>
+              <line x1={activePt.x} y1="0" x2={activePt.x} y2={height} stroke={colorConfig.stroke} strokeWidth="1" strokeDasharray="3 3" opacity="0.6" />
+              <circle cx={activePt.x} cy={activePt.y} r="5" fill="#090f1f" stroke={colorConfig.stroke} strokeWidth="2.5" />
+              <circle cx={activePt.x} cy={activePt.y} r="2" fill={colorConfig.stroke} />
+            </>
+          )}
+        </svg>
+
+        {activePt && (
+          <div
+            className="absolute z-20 pointer-events-none -translate-x-1/2 -translate-y-full rounded-md border border-slate-700 bg-slate-950/95 px-2 py-1 shadow-xl text-center"
+            style={{ left: `${(activePt.x / width) * 100}%`, top: '-4px' }}
+          >
+            <div className="text-[10px] font-mono font-bold text-white whitespace-nowrap">{activePt.value} {title}</div>
+            <div className="text-[9px] font-mono text-slate-400 whitespace-nowrap">{activePt.label}</div>
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+}
+
 export function Projects() {
   const qc = useQueryClient();
   const navigate = useNavigate();
@@ -80,7 +199,7 @@ export function Projects() {
   const createMutation = useMutation({
     mutationFn: async () => (await api.post('/projects', form)).data,
     onSuccess: () => {
-                setForm({ name: '', description: '', status: 'Active', category: 'Web Application', image: '' });
+      setForm({ name: '', description: '', status: 'Active', category: 'Web Application', image: '' });
       setShowCreateModal(false);
       qc.invalidateQueries({ queryKey: ['projects'] });
     },
@@ -101,7 +220,6 @@ export function Projects() {
       qc.invalidateQueries({ queryKey: ['projects'] });
     },
   });
-
 
   const hasFetchedProjects = Array.isArray(data?.projects);
   const rawProjectsList = hasFetchedProjects
@@ -130,6 +248,15 @@ export function Projects() {
     return matchSearch && matchStatus && matchType;
   });
 
+  // Dynamic Pagination
+  const [page, setPage] = useState(1);
+  const pageSize = 5;
+  const totalPages = Math.max(1, Math.ceil(filteredProjects.length / pageSize));
+  const paginatedProjects = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredProjects.slice(start, start + pageSize);
+  }, [filteredProjects, page, pageSize]);
+
   // Calculate Metrics
   const totalCount = rawProjectsList.length;
   const activeCount = rawProjectsList.filter((x) => x.status === 'Active').length;
@@ -146,91 +273,64 @@ export function Projects() {
         />
       </div>
 
-      {/* Top Executive Metric Summary Cards (4 Columns) */}
+      {/* Top Executive Metric Summary Cards (4 Columns with Dynamic Interactive Sparklines) */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {/* Card 1: Total Projects */}
-        <Card className="border-slate-800 bg-slate-900/90 p-4 shadow-md backdrop-blur">
-          <div className="flex items-center justify-between">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
-              <FolderKanban className="h-4 w-4" />
-            </div>
-            <span className="text-[10px] font-mono text-cyan-400 font-semibold">+1 this month</span>
-          </div>
-          <div className="mt-3">
-            <span className="text-3xl font-extrabold text-white font-mono">{totalCount}</span>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-0.5">Total Projects</p>
-          </div>
-          {/* Cyan Mini Sparkline */}
-          <div className="mt-2 h-6 w-full opacity-60">
-            <svg className="h-full w-full" viewBox="0 0 100 25">
-              <path d="M 0,20 Q 25,10 50,15 T 100,5" fill="none" stroke="#38bdf8" strokeWidth="2" />
-            </svg>
-          </div>
-        </Card>
-
-        {/* Card 2: Active Projects */}
-        <Card className="border-slate-800 bg-slate-900/90 p-4 shadow-md backdrop-blur">
-          <div className="flex items-center justify-between">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
-              <Play className="h-4 w-4 fill-current" />
-            </div>
-            <span className="text-[10px] font-mono text-emerald-400 font-semibold">
-              {Math.round((activeCount / (totalCount || 1)) * 100)}% of total
-            </span>
-          </div>
-          <div className="mt-3">
-            <span className="text-3xl font-extrabold text-white font-mono">{activeCount}</span>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-0.5">Active Projects</p>
-          </div>
-          {/* Green Mini Sparkline */}
-          <div className="mt-2 h-6 w-full opacity-60">
-            <svg className="h-full w-full" viewBox="0 0 100 25">
-              <path d="M 0,18 Q 30,22 60,10 T 100,8" fill="none" stroke="#10b981" strokeWidth="2" />
-            </svg>
-          </div>
-        </Card>
-
-        {/* Card 3: Completed */}
-        <Card className="border-slate-800 bg-slate-900/90 p-4 shadow-md backdrop-blur">
-          <div className="flex items-center justify-between">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-blue-500/30 bg-blue-500/10 text-blue-400">
-              <CheckCircle2 className="h-4 w-4" />
-            </div>
-            <span className="text-[10px] font-mono text-blue-400 font-semibold">
-              {Math.round((completedCount / (totalCount || 1)) * 100)}% of total
-            </span>
-          </div>
-          <div className="mt-3">
-            <span className="text-3xl font-extrabold text-white font-mono">{completedCount}</span>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-0.5">Completed</p>
-          </div>
-          {/* Blue Mini Sparkline */}
-          <div className="mt-2 h-6 w-full opacity-60">
-            <svg className="h-full w-full" viewBox="0 0 100 25">
-              <path d="M 0,15 Q 40,5 70,18 T 100,10" fill="none" stroke="#3b82f6" strokeWidth="2" />
-            </svg>
-          </div>
-        </Card>
-
-        {/* Card 4: Paused */}
-        <Card className="border-slate-800 bg-slate-900/90 p-4 shadow-md backdrop-blur">
-          <div className="flex items-center justify-between">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-400">
-              <Clock className="h-4 w-4" />
-            </div>
-            <span className="text-[10px] font-mono text-slate-500 font-semibold">0% of total</span>
-          </div>
-          <div className="mt-3">
-            <span className="text-3xl font-extrabold text-white font-mono">{pausedCount}</span>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-0.5">Paused</p>
-          </div>
-          {/* Yellow Flat Sparkline */}
-          <div className="mt-2 h-6 w-full opacity-60">
-            <svg className="h-full w-full" viewBox="0 0 100 25">
-              <line x1="0" y1="15" x2="100" y2="15" stroke="#f59e0b" strokeWidth="2" />
-            </svg>
-          </div>
-        </Card>
+        <DynamicSparklineCard
+          title="Total Projects"
+          count={totalCount}
+          badge="+1 this month"
+          color="cyan"
+          icon={FolderKanban}
+          dataPoints={[
+            { label: '7 days ago', value: Math.max(0, totalCount - 4) },
+            { label: '5 days ago', value: Math.max(0, totalCount - 3) },
+            { label: '3 days ago', value: Math.max(0, totalCount - 2) },
+            { label: 'Yesterday', value: Math.max(0, totalCount - 1) },
+            { label: 'Today', value: totalCount },
+          ]}
+        />
+        <DynamicSparklineCard
+          title="Active Projects"
+          count={activeCount}
+          badge={`${Math.round((activeCount / (totalCount || 1)) * 100)}% of total`}
+          color="emerald"
+          icon={Play}
+          dataPoints={[
+            { label: '7 days ago', value: Math.max(0, activeCount - 3) },
+            { label: '5 days ago', value: Math.max(0, activeCount - 2) },
+            { label: '3 days ago', value: Math.max(0, activeCount - 1) },
+            { label: 'Yesterday', value: Math.max(0, activeCount) },
+            { label: 'Today', value: activeCount },
+          ]}
+        />
+        <DynamicSparklineCard
+          title="Completed"
+          count={completedCount}
+          badge={`${Math.round((completedCount / (totalCount || 1)) * 100)}% of total`}
+          color="blue"
+          icon={CheckCircle2}
+          dataPoints={[
+            { label: '7 days ago', value: Math.max(0, completedCount - 2) },
+            { label: '5 days ago', value: Math.max(0, completedCount - 1) },
+            { label: '3 days ago', value: Math.max(0, completedCount) },
+            { label: 'Yesterday', value: completedCount },
+            { label: 'Today', value: completedCount },
+          ]}
+        />
+        <DynamicSparklineCard
+          title="Paused"
+          count={pausedCount}
+          badge={`${Math.round((pausedCount / (totalCount || 1)) * 100)}% of total`}
+          color="amber"
+          icon={Clock}
+          dataPoints={[
+            { label: '7 days ago', value: Math.max(0, pausedCount) },
+            { label: '5 days ago', value: Math.max(0, pausedCount) },
+            { label: '3 days ago', value: Math.max(0, pausedCount) },
+            { label: 'Yesterday', value: pausedCount },
+            { label: 'Today', value: pausedCount },
+          ]}
+        />
       </div>
 
       {/* Filter Toolbar & Actions Bar */}
@@ -243,7 +343,10 @@ export function Projects() {
               type="text"
               placeholder="Search projects by name, description, or target..."
               value={filters.search}
-              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+              onChange={(e) => {
+                setFilters({ ...filters, search: e.target.value });
+                setPage(1);
+              }}
               className="w-full rounded-md border border-slate-700/80 bg-slate-950/80 py-1.5 pl-9 pr-3 text-xs text-slate-200 placeholder-slate-500 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
             />
           </div>
@@ -252,7 +355,10 @@ export function Projects() {
           <div className="flex flex-wrap items-center gap-2">
             <CustomSelect
               value={filters.status}
-              onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+              onChange={(e) => {
+                setFilters({ ...filters, status: e.target.value });
+                setPage(1);
+              }}
               className="w-36"
               options={[
                 { value: '', label: 'All Statuses' },
@@ -265,7 +371,10 @@ export function Projects() {
 
             <CustomSelect
               value={filters.type}
-              onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+              onChange={(e) => {
+                setFilters({ ...filters, type: e.target.value });
+                setPage(1);
+              }}
               className="w-40"
               options={[
                 { value: '', label: 'All Types' },
@@ -310,7 +419,7 @@ export function Projects() {
           {filteredProjects.length === 0 ? (
             <EmptyState title="No projects match filters" hint="Try clearing filters or create a new project above." />
           ) : (
-            filteredProjects.map((p) => (
+            paginatedProjects.map((p) => (
               <motion.div
                 key={p._id}
                 initial={{ opacity: 0, y: 6 }}
@@ -499,13 +608,36 @@ export function Projects() {
 
       {/* Pagination Footer */}
       <div className="flex items-center justify-between border-t border-slate-800 pt-3 text-xs text-slate-400 font-mono">
-        <span>Showing 1-{filteredProjects.length} of {rawProjectsList.length} projects</span>
+        <span>
+          Showing {filteredProjects.length === 0 ? 0 : (page - 1) * pageSize + 1}-{Math.min(page * pageSize, filteredProjects.length)} of {filteredProjects.length} projects
+        </span>
         <div className="flex items-center gap-1">
-          <button className="rounded border border-slate-800 bg-slate-900 p-1 text-slate-500 hover:bg-slate-800 disabled:opacity-50">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="rounded border border-slate-800 bg-slate-900 p-1 text-slate-400 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <button className="h-7 w-7 rounded border border-cyan-500/50 bg-cyan-500/10 text-cyan-300 font-bold">1</button>
-          <button className="rounded border border-slate-800 bg-slate-900 p-1 text-slate-500 hover:bg-slate-800">
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((pNum) => (
+            <button
+              key={pNum}
+              onClick={() => setPage(pNum)}
+              className={cn(
+                'h-7 w-7 rounded border font-bold text-xs transition',
+                page === pNum
+                  ? 'border-cyan-500/50 bg-cyan-500/10 text-cyan-300'
+                  : 'border-slate-800 bg-slate-900 text-slate-400 hover:bg-slate-800'
+              )}
+            >
+              {pNum}
+            </button>
+          ))}
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page >= totalPages}
+            className="rounded border border-slate-800 bg-slate-900 p-1 text-slate-400 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>

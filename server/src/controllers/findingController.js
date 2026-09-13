@@ -115,7 +115,7 @@ const retest = asyncHandler(async (req, res) => {
     finding.verificationDate = new Date();
   } else if (result === 'FAILED') {
     finding.retestStatus = 'FAILED';
-    if (finding.status === 'Resolved' || finding.status === 'Verified') finding.status = 'Under Review';
+    finding.status = 'Potential';
     finding.verified = false;
   } else {
     return res.status(400).json({ message: 'result must be REQUIRED, PASSED or FAILED' });

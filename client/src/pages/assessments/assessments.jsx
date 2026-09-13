@@ -55,7 +55,7 @@ const STAGE_LABELS = {
   technologyAnalysis: '3. Technology Analysis',
   securityChecks: '4. Security Headers & Audit',
   verification: '5. Finding Verification',
-  aiAnalysis: '6. Gemini AI Threat Analysis',
+  aiAnalysis: '6. Automated Vulnerability Analysis',
   riskScoring: '7. Risk Scoring & CVSS',
   reportGeneration: '8. Executive Report Generation',
 };
@@ -144,6 +144,15 @@ export function Assessments() {
       return matchTab && matchSearch;
     });
   }, [rawList, activeTab, search]);
+
+  // Dynamic Pagination
+  const [page, setPage] = useState(1);
+  const pageSize = 5;
+  const totalPages = Math.max(1, Math.ceil(filteredList.length / pageSize));
+  const paginatedList = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredList.slice(start, start + pageSize);
+  }, [filteredList, page, pageSize]);
 
   // Executive Metric Counts
   const totalCount = rawList.length;
@@ -417,7 +426,10 @@ export function Assessments() {
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setPage(1);
+                }}
                 className={cn(
                   'rounded-md px-3 py-1.5 transition font-semibold text-xs',
                   activeTab === tab.id
@@ -438,7 +450,10 @@ export function Assessments() {
                 type="text"
                 placeholder="Search assessments..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
                 className="w-full rounded-md border border-slate-700/80 bg-slate-950/80 py-1.5 pl-8 pr-3 text-xs text-slate-200 placeholder-slate-500 focus:border-cyan-500/50 focus:outline-none"
               />
             </div>
@@ -488,7 +503,7 @@ export function Assessments() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {filteredList.map((item) => {
+                {paginatedList.map((item) => {
                   const isDone = item.status === 'COMPLETED';
                   const isRun = item.status === 'RUNNING';
                   const isFail = item.status === 'FAILED';
@@ -619,9 +634,13 @@ export function Assessments() {
                               View Logs
                             </Link>
                           )}
-                          <button className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-white">
-                            <MoreVertical className="h-3.5 w-3.5" />
-                          </button>
+                          <Link
+                            to={`/assessments/${item._id}`}
+                            className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-white"
+                            title="Inspect Assessment"
+                          >
+                            <ChevronRight className="h-4 w-4 text-cyan-400" />
+                          </Link>
                         </div>
                       </td>
                     </tr>
@@ -632,15 +651,38 @@ export function Assessments() {
           </div>
         )}
 
-        {/* Table Footer */}
+        {/* Dynamic Table Footer */}
         <div className="flex items-center justify-between border-t border-slate-800 bg-slate-950/70 px-4 py-3 text-xs text-slate-400 font-mono">
-          <span>Showing 1-{filteredList.length} of {rawList.length} assessments</span>
+          <span>
+            Showing {filteredList.length === 0 ? 0 : (page - 1) * pageSize + 1}-{Math.min(page * pageSize, filteredList.length)} of {filteredList.length} assessments
+          </span>
           <div className="flex items-center gap-1">
-            <button className="rounded border border-slate-800 bg-slate-900 p-1 text-slate-500 hover:bg-slate-800 disabled:opacity-50">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="rounded border border-slate-800 bg-slate-900 p-1 text-slate-400 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
               <ChevronLeft className="h-4 w-4" />
             </button>
-            <button className="h-7 w-7 rounded border border-cyan-500/50 bg-cyan-500/10 text-cyan-300 font-bold">1</button>
-            <button className="rounded border border-slate-800 bg-slate-900 p-1 text-slate-500 hover:bg-slate-800">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pNum) => (
+              <button
+                key={pNum}
+                onClick={() => setPage(pNum)}
+                className={cn(
+                  'h-7 w-7 rounded border font-bold text-xs transition',
+                  page === pNum
+                    ? 'border-cyan-500/50 bg-cyan-500/10 text-cyan-300'
+                    : 'border-slate-800 bg-slate-900 text-slate-400 hover:bg-slate-800'
+                )}
+              >
+                {pNum}
+              </button>
+            ))}
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+              className="rounded border border-slate-800 bg-slate-900 p-1 text-slate-400 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>
@@ -947,7 +989,7 @@ export function AssessmentDetail() {
               <ShieldAlert size={15} className="text-cyan-400" />
               Assessment Findings ({findingsList.length})
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">Vulnerability evidence, CVSS metrics, and AI fix guidance</p>
+            <p className="text-xs text-slate-400 mt-0.5">Vulnerability evidence, CVSS metrics, and code fix guidance</p>
           </div>
 
           <Link

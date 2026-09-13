@@ -11,6 +11,7 @@ import { Reports, Settings } from './pages/reports/reports';
 import { Landing } from './pages/landing/Landing';
 import { ApiTester } from './pages/tools/ApiTester';
 import { Activity } from './pages/activity/Activity';
+import { Help } from './pages/help/Help';
 
 import { ToastProvider } from './context/ToastContext';
 
@@ -42,8 +43,9 @@ export default function App() {
                 <Route path="/findings" element={<Findings />} />
                 <Route path="/findings/:id" element={<FindingDetail />} />
                 <Route path="/reports" element={<Reports />} />
-              <Route path="/api-tester" element={<ApiTester />} />
-              <Route path="/activity" element={<Activity />} />
+                <Route path="/api-tester" element={<ApiTester />} />
+                <Route path="/activity" element={<Activity />} />
+                <Route path="/help" element={<Help />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/targets" element={<Navigate to="/projects" replace />} />
               </Route>

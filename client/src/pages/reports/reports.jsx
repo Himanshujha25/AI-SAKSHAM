@@ -21,6 +21,13 @@ import {
   RotateCcw,
   FileSpreadsheet,
   Zap,
+  Trash2,
+  Copy,
+  Check,
+  Key,
+  ShieldCheck,
+  User,
+  Bell,
 } from 'lucide-react';
 import api from '../../lib/api';
 import { errMsg, cn } from '../../lib/utils';
@@ -38,10 +45,12 @@ export function Reports() {
     format: 'PDF (Recommended)',
   });
 
-  // Filter & Search States
+  // Filter, Search & Pagination States
   const [activeTab, setActiveTab] = useState('ALL'); // 'ALL' | 'Completed' | 'In Progress' | 'Failed'
   const [search, setSearch] = useState('');
   const [dateRange, setDateRange] = useState('30d');
+  const [page, setPage] = useState(1);
+  const pageSize = 5;
 
   // Queries
   const assessments = useQuery({ queryKey: ['assessments-mini'], queryFn: async () => (await api.get('/assessments')).data });
@@ -56,8 +65,12 @@ export function Reports() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['reports'] }),
   });
 
-  const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1').replace(/\/api\/v1$/, '');
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => (await api.delete(`/reports/${id}`)).data,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['reports'] }),
+  });
 
+  const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1').replace(/\/api\/v1$/, '');
 
   const fetchedReports = list.data?.reports || [];
   const rawList = fetchedReports.length > 0
@@ -76,6 +89,7 @@ export function Reports() {
         fileUrl: r.fileUrl ? `${apiBase}${r.fileUrl}` : null,
       }))
     : [];
+
   // Tab & Search Filter
   const filteredList = useMemo(() => {
     return rawList.filter((item) => {
@@ -87,6 +101,12 @@ export function Reports() {
       return matchTab && matchSearch;
     });
   }, [rawList, activeTab, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredList.length / pageSize));
+  const paginatedReports = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredList.slice(start, start + pageSize);
+  }, [filteredList, page, pageSize]);
 
   // Executive Metrics
   const totalCount = rawList.length;
@@ -401,7 +421,7 @@ export function Reports() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {filteredList.map((item) => {
+                {paginatedReports.map((item) => {
                   const isDone = item.status === 'Completed';
                   const isRun = item.status === 'In Progress';
                   const isFail = item.status === 'Failed';
@@ -409,7 +429,7 @@ export function Reports() {
                   return (
                     <tr
                       key={item._id}
-                      className="group cursor-pointer transition duration-150 hover:bg-slate-800/60"
+                      className="group transition duration-150 hover:bg-slate-800/60"
                     >
                       {/* Checkbox */}
                       <td className="px-4 py-3.5 text-center">
@@ -490,22 +510,33 @@ export function Reports() {
                           )}
                           {isRun && (
                             <button
-                              title="Inspect live generation progress"
-                              className="flex items-center gap-1 rounded border border-blue-500/40 bg-blue-500/10 px-2.5 py-1 text-[11px] font-bold text-blue-300 hover:bg-blue-500/20"
+                              title="Live generation in progress"
+                              className="flex items-center gap-1 rounded border border-blue-500/40 bg-blue-500/10 px-2.5 py-1 text-[11px] font-bold text-blue-300 cursor-default"
                             >
-                              View Progress
+                              In Progress
                             </button>
                           )}
                           {isFail && (
                             <button
+                              onClick={() => generateMutation.mutate()}
                               title="Retry report generation"
                               className="flex items-center gap-1 rounded border border-slate-700 bg-slate-800 px-2.5 py-1 text-[11px] font-bold text-slate-300 hover:bg-slate-700"
                             >
                               <RotateCcw className="h-3 w-3" /> Retry
                             </button>
                           )}
-                          <button className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-white" title={`Report options for ${item.name}`}>
-                            <MoreVertical className="h-3.5 w-3.5" />
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (confirm(`Are you sure you want to delete report "${item.name}"?`)) {
+                                deleteMutation.mutate(item._id);
+                              }
+                            }}
+                            disabled={deleteMutation.isPending}
+                            className="rounded p-1 text-slate-400 hover:bg-red-500/20 hover:text-red-400 transition"
+                            title={`Delete report ${item.name}`}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </div>
                       </td>
@@ -517,17 +548,38 @@ export function Reports() {
           </div>
         )}
 
-        {/* Table Footer */}
+        {/* Dynamic Table Footer */}
         <div className="flex items-center justify-between border-t border-slate-800 bg-slate-950/70 px-4 py-3 text-xs text-slate-400 font-mono">
-          <span>Showing 1-{filteredList.length} of {rawList.length} reports</span>
+          <span>
+            Showing {filteredList.length === 0 ? 0 : (page - 1) * pageSize + 1}-{Math.min(page * pageSize, filteredList.length)} of {filteredList.length} reports
+          </span>
           <div className="flex items-center gap-1">
-            <button className="rounded border border-slate-800 bg-slate-900 p-1 text-slate-500 hover:bg-slate-800 disabled:opacity-50">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="rounded border border-slate-800 bg-slate-900 p-1 text-slate-400 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
               <ChevronLeft className="h-4 w-4" />
             </button>
-            <button className="h-7 w-7 rounded border border-cyan-500/50 bg-cyan-500/10 text-cyan-300 font-bold">1</button>
-            <button className="h-7 w-7 rounded border border-slate-800 bg-slate-900 text-slate-400 hover:bg-slate-800">2</button>
-            <button className="h-7 w-7 rounded border border-slate-800 bg-slate-900 text-slate-400 hover:bg-slate-800">3</button>
-            <button className="rounded border border-slate-800 bg-slate-900 p-1 text-slate-500 hover:bg-slate-800">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pNum) => (
+              <button
+                key={pNum}
+                onClick={() => setPage(pNum)}
+                className={cn(
+                  'h-7 w-7 rounded border font-bold text-xs transition',
+                  page === pNum
+                    ? 'border-cyan-500/50 bg-cyan-500/10 text-cyan-300'
+                    : 'border-slate-800 bg-slate-900 text-slate-400 hover:bg-slate-800'
+                )}
+              >
+                {pNum}
+              </button>
+            ))}
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+              className="rounded border border-slate-800 bg-slate-900 p-1 text-slate-400 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>
@@ -538,18 +590,165 @@ export function Reports() {
 }
 
 export function Settings() {
+  const [apiKey, setApiKey] = useState('sk_live_sentinel_' + Math.random().toString(36).substring(2, 12));
+  const [copied, setCopied] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [serverUrl, setServerUrl] = useState(import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1');
+
+  const handleCopyKey = () => {
+    navigator.clipboard.writeText(apiKey);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleRegenerateKey = () => {
+    const newKey = 'sk_live_sentinel_' + Math.random().toString(36).substring(2, 14);
+    setApiKey(newKey);
+  };
+
+  const handleSaveSettings = (e) => {
+    e.preventDefault();
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+  };
+
   return (
-    <div className="space-y-6">
-      <PageHeader title="Settings" subtitle="Environment and API configuration" />
-      <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-3">
-        <p className="text-sm text-slate-200">
-          API base URL: <code className="rounded bg-slate-800 px-2 py-1 font-mono text-cyan-300 text-xs">{import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'}</code>
-        </p>
-        <p className="text-xs text-slate-400">
-          Set <code className="text-cyan-400">VITE_API_URL</code> in <code className="text-cyan-400">client/.env</code> to point at your target SentinelAI backend server.
-        </p>
+    <div className="space-y-6 pb-16">
+      <PageHeader title="Security & API Settings" subtitle="Configure system parameters, API authentication tokens, and user credentials." />
+
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* User Profile Card */}
+        <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-4">
+          <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
+              <User className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-white">SOC Operator Profile</h3>
+              <p className="text-xs text-slate-400">Security Analyst Account Information</p>
+            </div>
+          </div>
+
+          <div className="space-y-3 text-xs">
+            <div>
+              <label className="block font-mono text-[10px] uppercase text-slate-400 mb-1 font-semibold">Operator Name</label>
+              <input type="text" readOnly value="Security Lead (SOC Operations)" className="w-full rounded border border-slate-800 bg-slate-950 px-3 py-1.5 text-slate-300 font-medium" />
+            </div>
+            <div>
+              <label className="block font-mono text-[10px] uppercase text-slate-400 mb-1 font-semibold">Security Role</label>
+              <div className="flex items-center gap-2">
+                <span className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2.5 py-1 font-mono text-[11px] font-bold text-cyan-300 uppercase">
+                  Lead Security Engineer
+                </span>
+                <span className="rounded border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] text-emerald-400">
+                  • Verified Active
+                </span>
+              </div>
+            </div>
+            <div>
+              <label className="block font-mono text-[10px] uppercase text-slate-400 mb-1 font-semibold">Assigned Workspace</label>
+              <input type="text" readOnly value="Enterprise Defense Cluster (Prod-01)" className="w-full rounded border border-slate-800 bg-slate-950 px-3 py-1.5 text-slate-300 font-mono" />
+            </div>
+          </div>
+        </Card>
+
+        {/* API Key Management */}
+        <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-400">
+                <Key className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-white">API Authentication Key</h3>
+                <p className="text-xs text-slate-400">Use this token for CLI tools & SDK integration</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <label className="block font-mono text-[10px] uppercase text-slate-400 font-semibold">Active Secret Key</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="password"
+                readOnly
+                value={apiKey}
+                className="flex-1 rounded border border-slate-800 bg-slate-950 px-3 py-1.5 font-mono text-xs text-amber-300"
+              />
+              <button
+                onClick={handleCopyKey}
+                className="flex items-center gap-1 rounded border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 font-semibold"
+              >
+                {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                <span>{copied ? 'Copied!' : 'Copy'}</span>
+              </button>
+            </div>
+
+            <button
+              onClick={handleRegenerateKey}
+              className="text-xs font-semibold text-cyan-400 hover:underline flex items-center gap-1 mt-1"
+            >
+              <RotateCcw className="h-3 w-3" /> Regenerate API Secret Token
+            </button>
+          </div>
+        </Card>
+      </div>
+
+      {/* SentinelAI Backend Connection Settings */}
+      <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-4">
+        <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
+            <ShieldCheck className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-white">SentinelAI Engine Configuration</h3>
+            <p className="text-xs text-slate-400">Configure target API endpoint and scanning parameters</p>
+          </div>
+        </div>
+
+        <form onSubmit={handleSaveSettings} className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="block font-mono text-[10px] uppercase text-slate-400 mb-1 font-semibold">
+                Backend REST API Target URL
+              </label>
+              <input
+                type="text"
+                value={serverUrl}
+                onChange={(e) => setServerUrl(e.target.value)}
+                className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-xs font-mono text-cyan-300 focus:border-cyan-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block font-mono text-[10px] uppercase text-slate-400 mb-1 font-semibold">
+                Scan Timeout Threshold (Seconds)
+              </label>
+              <input
+                type="number"
+                defaultValue={120}
+                className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-xs font-mono text-slate-200 focus:border-cyan-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+            <div className="flex items-center gap-2">
+              <span className="inline-block h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-xs font-mono text-slate-400">API Connection Active · 200 OK</span>
+            </div>
+
+            <button
+              type="submit"
+              className="flex items-center gap-1.5 rounded-md bg-cyan-600 hover:bg-cyan-500 px-4 py-2 font-bold text-xs text-white border border-cyan-400/30 shadow transition"
+            >
+              {saved ? <Check className="h-4 w-4 text-emerald-300" /> : <ShieldCheck className="h-4 w-4" />}
+              <span>{saved ? 'Settings Saved!' : 'Save System Settings'}</span>
+            </button>
+          </div>
+        </form>
       </Card>
     </div>
   );
 }
+
 

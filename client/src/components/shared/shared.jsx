@@ -1,36 +1,60 @@
 import { motion } from 'framer-motion';
 import { cn } from '../../lib/utils';
 
-// Severity colors — clean, minimal enterprise dark mode badges.
-const SEVERITY_STYLES = {
-  Critical: 'bg-red-500/15 text-red-400 border border-red-500/30 font-medium',
-  High: 'bg-orange-500/15 text-orange-400 border border-orange-500/30 font-medium',
-  Medium: 'bg-amber-500/15 text-amber-400 border border-amber-500/30 font-medium',
-  Low: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-medium',
-  Informational: 'bg-slate-800 text-slate-300 border border-slate-700 font-medium',
+// Severity colors & status configurations — professional enterprise dark mode badges.
+const SEVERITY_CONFIG = {
+  Critical: { style: 'bg-red-500/10 text-red-300 border-red-500/30', dot: 'bg-red-500' },
+  High: { style: 'bg-orange-500/10 text-orange-300 border-orange-500/30', dot: 'bg-orange-500' },
+  Medium: { style: 'bg-amber-500/10 text-amber-300 border-amber-500/30', dot: 'bg-amber-500' },
+  Low: { style: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30', dot: 'bg-emerald-500' },
+  Informational: { style: 'bg-slate-800 text-slate-300 border-slate-700', dot: 'bg-slate-400' },
 };
 
-const STATUS_STYLES = {
-  Verified: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-medium',
-  'Under Review': 'bg-amber-500/15 text-amber-400 border border-amber-500/30 font-medium',
-  Potential: 'bg-sky-500/15 text-sky-400 border border-sky-500/30 font-medium',
-  Detected: 'bg-sky-500/15 text-sky-400 border border-sky-500/30 font-medium',
-  'False Positive': 'bg-slate-800 text-slate-400 border border-slate-700/60 font-medium',
-  Resolved: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-medium',
-  'Accepted Risk': 'bg-purple-500/15 text-purple-400 border border-purple-500/30 font-medium',
-  RUNNING: 'bg-sky-500/15 text-sky-400 border border-sky-500/40 font-medium',
-  COMPLETED: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-medium',
-  FAILED: 'bg-red-500/15 text-red-400 border border-red-500/30 font-medium',
-  QUEUED: 'bg-amber-500/15 text-amber-400 border border-amber-500/30 font-medium',
-  CANCELLED: 'bg-slate-800 text-slate-400 border border-slate-700/60 font-medium',
+const STATUS_CONFIG = {
+  Verified: { style: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30', dot: 'bg-emerald-500' },
+  'Under Review': { style: 'bg-amber-500/10 text-amber-300 border-amber-500/30', dot: 'bg-amber-500' },
+  Potential: { style: 'bg-sky-500/10 text-sky-300 border-sky-500/30', dot: 'bg-sky-500' },
+  Detected: { style: 'bg-sky-500/10 text-sky-300 border-sky-500/30', dot: 'bg-sky-500' },
+  'False Positive': { style: 'bg-slate-800 text-slate-400 border-slate-700', dot: 'bg-slate-500' },
+  Resolved: { style: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30', dot: 'bg-emerald-500' },
+  'Accepted Risk': { style: 'bg-purple-500/10 text-purple-300 border-purple-500/30', dot: 'bg-purple-500' },
+  RUNNING: { style: 'bg-sky-500/10 text-sky-300 border-sky-500/40', dot: 'bg-sky-400 animate-pulse' },
+  COMPLETED: { style: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30', dot: 'bg-emerald-500' },
+  FAILED: { style: 'bg-red-500/10 text-red-300 border-red-500/30', dot: 'bg-red-500' },
+  QUEUED: { style: 'bg-amber-500/10 text-amber-300 border-amber-500/30', dot: 'bg-amber-500' },
+  CANCELLED: { style: 'bg-slate-800 text-slate-400 border-slate-700', dot: 'bg-slate-500' },
 };
 
-export function SeverityBadge({ severity }) {
-  return <span className={cn('inline-flex shrink-0 rounded-full px-2.5 py-0.5 text-xs transition duration-150', SEVERITY_STYLES[severity] || SEVERITY_STYLES.Informational)}>{severity}</span>;
+export function SeverityBadge({ severity, className }) {
+  const conf = SEVERITY_CONFIG[severity] || SEVERITY_CONFIG.Informational;
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center shrink-0 rounded border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider',
+        conf.style,
+        className
+      )}
+    >
+      <span className={cn('h-1.5 w-1.5 rounded-full mr-1.5 shrink-0', conf.dot)} />
+      {severity}
+    </span>
+  );
 }
 
-export function StatusBadge({ status }) {
-  return <span className={cn('inline-flex shrink-0 rounded-full px-2.5 py-0.5 text-xs transition duration-150', STATUS_STYLES[status] || 'bg-slate-800 text-slate-300 border border-slate-700')}>{status}</span>;
+export function StatusBadge({ status, className }) {
+  const conf = STATUS_CONFIG[status] || { style: 'bg-slate-800 text-slate-300 border-slate-700', dot: 'bg-slate-400' };
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center shrink-0 rounded border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider',
+        conf.style,
+        className
+      )}
+    >
+      <span className={cn('h-1.5 w-1.5 rounded-full mr-1.5 shrink-0', conf.dot)} />
+      {status}
+    </span>
+  );
 }
 
 export function MicroLabel({ children, className }) {
