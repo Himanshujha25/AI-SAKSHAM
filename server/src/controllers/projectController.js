@@ -15,9 +15,9 @@ const list = asyncHandler(async (req, res) => {
 });
 
 const create = asyncHandler(async (req, res) => {
-  const { name, description, status, image } = req.body;
+  const { name, description, status, category, image } = req.body;
   if (!name) return res.status(400).json({ message: 'name required' });
-  const project = await Project.create({ name, description: description || '', image: image || '', status: status || 'Active', owner: req.user._id, members: [req.user._id] });
+  const project = await Project.create({ name, description: description || '', image: image || '', status: status || 'Active', category: category || 'Web Application', owner: req.user._id, members: [req.user._id] });
   await logActivity(Activity, { projectId: project._id, actor: req.user._id, action: 'Project Created', detail: name });
   res.status(201).json({ project });
 });
@@ -48,11 +48,13 @@ const update = asyncHandler(async (req, res) => {
   if (!hasProjectAccess(req.user, existing)) {
     return res.status(403).json({ message: 'Access denied: not authorized to update this project' });
   }
-  const { name, description, status, image } = req.body;
+  const { name, description, status, category, image } = req.body;
   const updateData = {};
+  if (name !== undefined) updateData.name = name;
   if (name !== undefined) updateData.name = name;
   if (description !== undefined) updateData.description = description;
   if (status !== undefined) updateData.status = status;
+  if (category !== undefined) updateData.category = category;
   if (image !== undefined) updateData.image = image;
 
   const project = await Project.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });

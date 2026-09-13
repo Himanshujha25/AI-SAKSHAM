@@ -7,7 +7,8 @@ const projectSchema = new mongoose.Schema(
     image: { type: String, default: '' },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    status: { type: String, default: 'Active' },
+    status: { type: String, enum: ['Active', 'Paused', 'Completed', 'Archived'], default: 'Active' },
+    category: { type: String, enum: ['Web Application', 'API', 'Reconnaissance', 'Monitoring'], default: 'Web Application' },
   },
   { timestamps: true }
 );
