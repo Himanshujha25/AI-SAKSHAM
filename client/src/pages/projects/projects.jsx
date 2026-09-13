@@ -680,7 +680,7 @@ export function Projects() {
                 <div>
                   <label className="text-xs font-semibold text-slate-400 block mb-1">Project Name *</label>
                   <Input
-                    placeholder="e.g. World Monitor Project or Sentinel Gateway"
+                    placeholder="e.g. World Monitor Project or Saksham Gateway"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                   />

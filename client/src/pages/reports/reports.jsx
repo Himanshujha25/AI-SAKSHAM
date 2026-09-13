@@ -590,7 +590,7 @@ export function Reports() {
 }
 
 export function Settings() {
-  const [apiKey, setApiKey] = useState('sk_live_sentinel_' + Math.random().toString(36).substring(2, 12));
+  const [apiKey, setApiKey] = useState('sk_live_saksham_' + Math.random().toString(36).substring(2, 12));
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
   const [serverUrl, setServerUrl] = useState(import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1');
@@ -602,7 +602,7 @@ export function Settings() {
   };
 
   const handleRegenerateKey = () => {
-    const newKey = 'sk_live_sentinel_' + Math.random().toString(36).substring(2, 14);
+    const newKey = 'sk_live_saksham_' + Math.random().toString(36).substring(2, 14);
     setApiKey(newKey);
   };
 
@@ -694,14 +694,14 @@ export function Settings() {
         </Card>
       </div>
 
-      {/* SentinelAI Backend Connection Settings */}
+      {/* Saksham AI Backend Connection Settings */}
       <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-4">
         <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
             <ShieldCheck className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white">SentinelAI Engine Configuration</h3>
+            <h3 className="text-sm font-bold text-white">Saksham AI Engine Configuration</h3>
             <p className="text-xs text-slate-400">Configure target API endpoint and scanning parameters</p>
           </div>
         </div>

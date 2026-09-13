@@ -27,7 +27,7 @@ Anti-goals for MVP: no microservices split, no K8s, no multiple DBs, no blockcha
 
 ## 2. Repository & Folder Structure (do not change arbitrarily)
 ```text
-sentinel-ai/
+saksham-ai/
  client/src/
   components/ui, layout, dashboard, findings, shared/
   pages/auth, dashboard, projects, assessments, findings, reports, settings/

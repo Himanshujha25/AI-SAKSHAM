@@ -8,7 +8,7 @@
 - **Organization**: National Technical Research Organisation (NTRO)
 - **Category**: Software / Cybersecurity & Smart Automation
 - **Target System**: World Monitor Web & Mobile Platform (User Auth, Data Visualization, API Communication, RBAC)
-- **Platform Name**: **SentinelAI (AI-SAKSHAM Security Command Center)**
+- **Platform Name**: **Saksham AI (AI-SAKSHAM Security Command Center)**
 
 ---
 

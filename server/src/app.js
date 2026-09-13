@@ -16,6 +16,7 @@ const reportRoutes = require('./routes/reportRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const activityRoutes = require('./routes/activityRoutes');
 const toolsRoutes = require('./routes/toolsRoutes');
+const chatRoutes = require('./routes/chatRoutes');
 
 const app = express();
 app.set('io', null);
@@ -26,12 +27,13 @@ app.use(express.json({ limit: '1mb' }));
 app.use(morgan('dev'));
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
-app.get('/health', (req, res) => res.json({ ok: true, service: 'sentinelai-server', time: new Date().toISOString() }));
+app.get('/health', (req, res) => res.json({ ok: true, service: 'saksham-ai-server', time: new Date().toISOString() }));
 
 const apiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 500 });
 app.use('/api/v1', apiLimiter);
 
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/chat', chatRoutes); // before targetRoutes: its global protect would 401 guest chat
 app.use('/api/v1/projects', projectRoutes);
 app.use('/api/v1', targetRoutes); // nested /projects/:projectId/targets + /targets/:id
 app.use('/api/v1/assessments', assessmentRoutes);

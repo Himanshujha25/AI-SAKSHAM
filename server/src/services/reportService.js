@@ -44,7 +44,7 @@ async function generateReportFile({ project, target, assessment, findings = [], 
 </head>
 <body>
   <div class="container">
-    <h1>🛡️ SentinelAI Security Assessment Report</h1>
+    <h1>🛡️ Saksham AI Security Assessment Report</h1>
     <div class="meta">
       <div>Project: <span>${project?.name || 'Target Project'}</span></div>
       <div>Type: <span>${type}</span></div>
@@ -135,7 +135,7 @@ async function generateReportFile({ project, target, assessment, findings = [], 
     </div>
 
     <div class="section" style="border-top:1px solid #1e293b; padding-top:16px; text-align:center; font-size:11px; color:#64748b;">
-      Report generated automatically by SentinelAI Command Center on ${new Date().toUTCString()}
+      Report generated automatically by Saksham AI Command Center on ${new Date().toUTCString()}
     </div>
   </div>
 </body>
@@ -176,7 +176,7 @@ async function generateReportFile({ project, target, assessment, findings = [], 
 
       // Title & Header Bar
       doc.fillColor('#0284c7').fontSize(22).text(`${(project?.name || 'Security Assessment').toUpperCase()}`, { align: 'center' });
-      doc.fillColor('#475569').fontSize(12).text('SENTINEL AI ENTERPRISE VULNERABILITY REPORT', { align: 'center' });
+      doc.fillColor('#475569').fontSize(12).text('SAKSHAM AI ENTERPRISE VULNERABILITY REPORT', { align: 'center' });
       doc.moveDown(1.5);
 
       // Metadata Block

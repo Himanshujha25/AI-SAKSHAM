@@ -50,7 +50,7 @@ const probe = asyncHandler(async (req, res) => {
       method: verb,
       data: requestData || undefined,
       headers: {
-        'User-Agent': 'SentinelAI-Probe/1.0 (Authorized Security Assessment)',
+        'User-Agent': 'SakshamAI-Probe/1.0 (Authorized Security Assessment)',
         ...safeHeaders,
       },
       timeout: TIMEOUT_MS,

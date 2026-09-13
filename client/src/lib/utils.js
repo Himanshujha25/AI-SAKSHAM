@@ -14,7 +14,7 @@ export function buildCurl(finding = {}) {
   const rawUrl = trace.url || (finding.affectedAssets || [])[0] || '';
   const url = /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://authorized-target.example${rawUrl.startsWith('/') ? '' : '/'}${rawUrl}`;
   const parts = [`curl -X ${method} '${url}'`];
-  parts.push(`-H 'User-Agent: SentinelAI-PoC/1.0 (Authorized Assessment)'`);
+  parts.push(`-H 'User-Agent: SakshamAI-PoC/1.0 (Authorized Assessment)'`);
   if (finding.evidence && /bearer/i.test(finding.evidence)) {
     parts.push(`-H 'Authorization: Bearer <paste-analyst-token>'`);
   }

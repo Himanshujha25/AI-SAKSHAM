@@ -1,5 +1,5 @@
-# 01 — SentinelAI Product & Workflow Guide
-> Read this first. Explains WHAT SentinelAI is, WHY it exists, WHO uses it, and HOW the end-to-end workflow works.
+# 01 — Saksham AI Product & Workflow Guide
+> Read this first. Explains WHAT Saksham AI is, WHY it exists, WHO uses it, and HOW the end-to-end workflow works.
 
 ## 1. Project Identity (for AI agent)
 - **Name:** Saksham-AI — Intelligent Security Assessment & Vulnerability Management Platform

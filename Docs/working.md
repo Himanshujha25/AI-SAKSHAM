@@ -1,8 +1,8 @@
-# 🛡️ Saksham AI (SentinelAI) — Working & Architecture Overview
+# 🛡️ Saksham AI () — Working & Architecture Overview
 
 ## 1. यह प्रोजेक्ट क्या करता है? (What Does This Project Do?)
 
-**Saksham AI (SentinelAI)** एक **Enterprise Autonomous Cybersecurity Operations Center (SOC) & Vulnerability Scanner Platform** है। 
+**Saksham AI ()** एक **Enterprise Autonomous Cybersecurity Operations Center (SOC) & Vulnerability Scanner Platform** है। 
 
 यह किसी भी वेब एप्लिकेशन, API एंडपॉइंट या वेब इंफ्रास्ट्रक्चर की **सुरक्षा (Security Posture)** को ऑटोमेटेड तरीके से जांचता है। यह पूरे अटैक सरफेस (Attack Surface) का विश्लेषण करके संभावित सिक्योरिटी कमियों (Vulnerabilities/Findings) को खोजता है, उनका **CVSS Severity Score** निकालता है और **Gemini AI** की मदद से उनका समाधान (Remediation Steps) प्रदान करता है।
 

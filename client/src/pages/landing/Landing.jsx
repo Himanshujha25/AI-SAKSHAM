@@ -59,12 +59,13 @@ function LandingHeader() {
     <header className="sticky top-0 z-50 w-full bg-gradient-to-r from-[#04060d]/90 via-[#070b16]/90 to-[#04060d]/90 backdrop-blur-2xl shadow-xl shadow-black/40">
       <div className="flex h-16 w-full items-center justify-between px-4 md:px-8">
         <Link to="/" className="group flex min-w-0 items-center gap-3">
-          <img
-            src="/logo.jpg"
-            alt="Saksham AI Logo"
-            className="h-9 w-9 rounded-xl object-cover ring-1 ring-cyan-400/40 shadow-[0_0_20px_-4px_rgba(34,211,238,0.8)] transition duration-300 group-hover:scale-105"
-          />
-          <span className="truncate text-xl font-extrabold tracking-tight text-white">Saksham AI</span>
+          <span className="flex h-10 items-center rounded-xl bg-white px-2.5 shadow-lg shadow-black/30 transition duration-300 group-hover:scale-[1.03]">
+            <img
+              src="/Logo.png"
+              alt="Saksham AI Logo"
+              className="h-7 w-auto object-contain"
+            />
+          </span>
         </Link>
         <nav className="hidden items-center gap-8 text-sm font-medium text-slate-300 md:flex">
           {['Demo-Video', 'Analyzer', 'Features', 'Workflow'].map((l) => (
@@ -718,7 +719,9 @@ function LandingFooter() {
       <div className="grid w-full min-w-0 gap-8 px-4 py-12 sm:grid-cols-2 md:px-6 lg:grid-cols-4">
         <div>
           <div className="flex items-center gap-3 font-bold text-white text-lg">
-            <img src="/logo.jpg" alt="Saksham AI Logo" className="h-8 w-8 rounded-xl object-cover ring-1 ring-cyan-400/40" />
+            <span className="flex h-9 items-center rounded-lg bg-white px-2">
+              <img src="/Logo.png" alt="Saksham AI Logo" className="h-6 w-auto object-contain" />
+            </span>
             Saksham AI
           </div>
           <p className="mt-3 text-xs text-slate-400 leading-relaxed">AI-Assisted Security Assessment & Vulnerability Management Platform.</p>

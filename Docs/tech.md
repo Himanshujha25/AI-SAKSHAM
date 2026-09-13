@@ -1,10 +1,10 @@
-# SentinelAI — Complete Technology Stack & Engineering Architecture (`tech.md`)
+# Saksham AI — Complete Technology Stack & Engineering Architecture (`tech.md`)
 
 ---
 
 ## 1. Executive Architecture Overview
 
-SentinelAI is an enterprise-grade, AI-assisted security assessment and vulnerability management workspace. Designed around strict scope enforcement and authorization controls, the platform automates attack surface discovery, technology fingerprinting, security header auditing, access control verification, structured AI impact analysis, and executive PDF reporting.
+Saksham AI is an enterprise-grade, AI-assisted security assessment and vulnerability management workspace. Designed around strict scope enforcement and authorization controls, the platform automates attack surface discovery, technology fingerprinting, security header auditing, access control verification, structured AI impact analysis, and executive PDF reporting.
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────────┐
@@ -79,7 +79,7 @@ The background worker engine relies on modular Node.js/npm libraries to conduct 
 
 ## 4. UI & Visual Engine Libraries (Client Side)
 
-| Library Name | Package Name | Purpose in SentinelAI |
+| Library Name | Package Name | Purpose in Saksham AI |
 |---|---|---|
 | **React Flow** | `@xyflow/react` | Visualizes target attack surface as an interactive graph topology connecting targets, API endpoints, technologies, and vulnerabilities. |
 | **Monaco Editor** | `@monaco-editor/react` | Embedded VS Code code viewer displaying raw HTTP PoC requests/responses and side-by-side vulnerable vs. remediated code diffs. |
@@ -126,9 +126,9 @@ The background worker engine relies on modular Node.js/npm libraries to conduct 
 ### 6.1 Backend (`server/package.json`)
 ```json
 {
-  "name": "sentinel-ai-server",
+  "name": "saksham-ai-server",
   "version": "1.0.0",
-  "description": "SentinelAI Security Assessment Backend API & Worker Engine",
+  "description": "Saksham AI Security Assessment Backend API & Worker Engine",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -166,7 +166,7 @@ The background worker engine relies on modular Node.js/npm libraries to conduct 
 ### 6.2 Frontend (`client/package.json`)
 ```json
 {
-  "name": "sentinel-ai-client",
+  "name": "saksham-ai-client",
   "private": true,
   "version": "1.0.0",
   "type": "module",

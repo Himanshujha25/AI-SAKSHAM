@@ -8,7 +8,7 @@
 - **Organization**: National Technical Research Organisation (NTRO)
 - **Category**: Software / Smart Automation
 - **Target System**: World Monitor Web & Mobile Application (Real-time monitoring, analytics, API communication, RBAC)
-- **Platform Name**: **SentinelAI (AI-SAKSHAM Command Center)**
+- **Platform Name**: **Saksham AI (AI-SAKSHAM Command Center)**
 
 ---
 
@@ -86,7 +86,7 @@
 
 ## 📊 4. NTRO Problem Statement 26163 Deliverables Compliance Matrix
 
-| NTRO Scope / Deliverable | SentinelAI Feature | Compliance Status |
+| NTRO Scope / Deliverable | Saksham AI Feature | Compliance Status |
 | :--- | :--- | :---: |
 | **Authentication & Session Management** | Header audits, cookie security flags, session leak checks | ✅ 100% Complete |
 | **Authorization & Access Control** | IDOR (`VUL-002`) & Broken Access Control (`VUL-003`) detection | ✅ 100% Complete |

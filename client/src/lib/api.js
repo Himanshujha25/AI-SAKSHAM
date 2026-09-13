@@ -6,7 +6,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('sentinelai_token');
+  const token = localStorage.getItem('saksham_ai_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -15,7 +15,7 @@ api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
-      localStorage.removeItem('sentinelai_token');
+      localStorage.removeItem('saksham_ai_token');
       // Only redirect if we're not on a public page (landing, auth pages, etc)
       const currentPath = window.location.pathname;
       const isPublicPage = currentPath === '/' || currentPath.startsWith('/auth');

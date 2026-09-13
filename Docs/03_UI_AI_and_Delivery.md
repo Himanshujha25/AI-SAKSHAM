@@ -46,7 +46,7 @@ Only authorized targets. Before start require Target Scope + Allowed Environment
 
 Separate controlled demo app for the live demo:
 ```text
-SentinelAI → Authorized Demo App (User module, Auth, Reports, Admin, APIs)
+Saksham AI → Authorized Demo App (User module, Auth, Reports, Admin, APIs)
  → Detection → Verification → Evidence → Risk → AI → Remediation (all visible in dashboard)
 ```
 

@@ -14,6 +14,7 @@ import { Activity } from './pages/activity/Activity';
 import { Help } from './pages/help/Help';
 
 import { ToastProvider } from './context/ToastContext';
+import { SakshamBot } from './components/chat/SakshamBot';
 
 const qc = new QueryClient();
 
@@ -51,6 +52,7 @@ export default function App() {
               </Route>
               <Route path="*" element={<p className="p-8">Not found — <a className="underline" href="/dashboard">dashboard</a></p>} />
             </Routes>
+            <SakshamBot />
           </AuthProvider>
         </BrowserRouter>
       </ToastProvider>

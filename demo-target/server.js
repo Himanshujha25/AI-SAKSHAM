@@ -1,9 +1,9 @@
 /**
- * SentinelAI Demo Target — INTENTIONALLY VULNERABLE local app.
+ * Saksham AI Demo Target — INTENTIONALLY VULNERABLE local app.
  * AUTHORIZED LOCAL DEMO ONLY. Never expose to the internet.
  *
  * Run:  node server.js   (listens on http://127.0.0.1:5199)
- * Then in SentinelAI: add target http://127.0.0.1:5199 and start an assessment.
+ * Then in Saksham AI: add target http://127.0.0.1:5199 and start an assessment.
  *
  * Expected findings: missing CSP/HSTS, wildcard CORS, missing rate-limit
  * headers, IDOR on /api/users/:id, SQL error disclosure on /search?q=

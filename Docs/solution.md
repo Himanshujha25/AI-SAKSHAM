@@ -1,4 +1,4 @@
-# 🔬 Saksham AI (SentinelAI) — Solution Architecture & Improvement Roadmap
+# 🔬 Saksham AI () — Solution Architecture & Improvement Roadmap
 
 ## 1. हम स्कैन कैसे कर रहे हैं? (How We Scan Right Now)
 

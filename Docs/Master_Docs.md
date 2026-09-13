@@ -2,7 +2,7 @@
 
 ## Project Title
 
-# SentinelAI — Intelligent Security Assessment & Vulnerability Management Platform
+# Saksham AI — Intelligent Security Assessment & Vulnerability Management Platform
 
 **SIH 2026 Problem Statement:** 26163
 **Organization:** National Technical Research Organisation (NTRO)
@@ -13,13 +13,13 @@
 
 # 1. Project Overview
 
-SentinelAI is a web-based, AI-assisted security assessment platform designed to automate and simplify the process of analyzing a web application's security posture.
+Saksham AI is a web-based, AI-assisted security assessment platform designed to automate and simplify the process of analyzing a web application's security posture.
 
-The primary target for this SIH problem statement is the **World Monitor application**. However, the architecture of SentinelAI should be designed as a reusable security assessment platform that can assess other authorized web applications as well.
+The primary target for this SIH problem statement is the **World Monitor application**. However, the architecture of Saksham AI should be designed as a reusable security assessment platform that can assess other authorized web applications as well.
 
 The platform should not behave like a simple vulnerability scanner that only displays a list of possible vulnerabilities.
 
-Instead, SentinelAI should provide a complete security assessment workflow:
+Instead, Saksham AI should provide a complete security assessment workflow:
 
 ```text
 Target Application
@@ -93,7 +93,7 @@ Remediation Recommendation
 
 # 3. Core Product Vision
 
-SentinelAI should be positioned as:
+Saksham AI should be positioned as:
 
 > An AI-assisted automated security assessment platform that discovers an application's attack surface, organizes security findings, supports safe verification, prioritizes risk using CVSS, and generates actionable remediation reports.
 
@@ -158,7 +158,7 @@ Accepted Risk
 
 # 4. Target User
 
-The primary users of SentinelAI can include:
+The primary users of Saksham AI can include:
 
 * Security analysts
 * Developers
@@ -1799,7 +1799,7 @@ For the SIH demo, create a separate controlled target application.
 Architecture:
 
 ```text
-SentinelAI Platform
+Saksham AI Platform
         │
         ▼
 Authorized Demo Application
@@ -1822,7 +1822,7 @@ AI Analysis
 Remediation
 ```
 
-The SentinelAI dashboard should show the entire lifecycle.
+The Saksham AI dashboard should show the entire lifecycle.
 
 ---
 
@@ -1832,7 +1832,7 @@ The final demonstration should follow a clear story.
 
 ## Step 1
 
-Open SentinelAI.
+Open Saksham AI.
 
 ```text
 Security Overview
@@ -2162,7 +2162,7 @@ The priority is:
 # 27. Suggested Repository Structure
 
 ```text
-sentinel-ai/
+saksham-ai/
 │
 ├── client/
 │
@@ -2345,7 +2345,7 @@ The final project should demonstrate a complete story.
 A judge should understand within a few minutes:
 
 ```text
-1. What problem does SentinelAI solve?
+1. What problem does Saksham AI solve?
 
 2. How does it assess an authorized application?
 
@@ -2423,7 +2423,7 @@ DISCOVERY             │
 
 # Final AI Agent Instruction
 
-You are building **SentinelAI**, an AI-assisted security assessment and vulnerability management platform for **SIH 2026 Problem Statement 26163**.
+You are building **Saksham AI**, an AI-assisted security assessment and vulnerability management platform for **SIH 2026 Problem Statement 26163**.
 
 The primary target context is the security assessment of the World Monitor application, but the platform architecture should remain reusable for authorized web applications.
 

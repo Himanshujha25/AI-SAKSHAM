@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ShieldCheck, ArrowLeft, Moon, Sun, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Moon, Sun, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../store/auth';
 import { errMsg } from '../../lib/utils';
 import { Button, Card, Input, Label } from '../../components/ui/primitives';
@@ -10,7 +10,7 @@ function AuthThemeToggle() {
   const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'));
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
-    localStorage.setItem('sentinelai_theme', dark ? 'dark' : 'light');
+    localStorage.setItem('saksham_ai_theme', dark ? 'dark' : 'light');
   }, [dark]);
   return (
     <button
@@ -28,10 +28,13 @@ function AuthNav({ mode }) {
     <header className="sticky top-0 z-50 w-full border-b border-slate-200/60 bg-white/70 backdrop-blur-xl dark:border-white/10 dark:bg-[#04060d]/70">
       <div className="flex h-16 w-full items-center justify-between px-4 md:px-8">
         <Link to="/" className="group flex min-w-0 items-center gap-2">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-900 text-white transition group-hover:scale-105 dark:bg-white dark:text-slate-900">
-            <ShieldCheck size={18} />
+          <span className="flex h-9 items-center rounded-lg bg-white px-2 shadow-lg shadow-black/30 transition duration-300 group-hover:scale-[1.03]">
+            <img
+              src="/Logo.png"
+              alt="Saksham AI"
+              className="h-6 w-auto object-contain"
+            />
           </span>
-          <span className="truncate font-semibold tracking-tight">SentinelAI</span>
         </Link>
         <div className="flex min-w-0 shrink-0 items-center gap-2">
           <Link

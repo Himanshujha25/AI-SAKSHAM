@@ -1,5 +1,5 @@
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FolderKanban, FlaskConical, Bug, FileText, ShieldCheck, LogOut, Menu, X, Settings as SettingsIcon, FlaskRound, ScrollText, HelpCircle } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, FlaskConical, Bug, FileText, LogOut, Menu, X, Settings as SettingsIcon, FlaskRound, ScrollText, HelpCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../store/auth';
@@ -20,11 +20,14 @@ const links = [
 function Brand() {
   return (
     <Link to="/dashboard" className="group flex shrink-0 items-center gap-3">
-      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-950 border border-cyan-500/40 text-cyan-400">
-        <ShieldCheck size={18} />
-      </div>
+      <span className="flex h-9 items-center rounded-lg bg-white px-2 shadow-lg shadow-black/30 transition duration-300 group-hover:scale-[1.03]">
+        <img
+          src="/Logo.png"
+          alt="Saksham AI"
+          className="h-6 w-auto object-contain"
+        />
+      </span>
       <div className="leading-none">
-        <span className="block truncate font-bold text-sm text-slate-100 tracking-tight">Saksham AI</span>
         <span className="block text-[10px] font-mono font-medium text-slate-400 uppercase tracking-wider mt-0.5">Command Center</span>
       </div>
     </Link>

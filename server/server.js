@@ -32,7 +32,7 @@ async function main() {
   });
 
   server.listen(env.port, () => {
-    console.log(`[server] SentinelAI API on :${env.port} (health: /health)`);
+    console.log(`[server] Saksham AI API on :${env.port} (health: /health)`);
   });
 }
 

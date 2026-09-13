@@ -197,7 +197,7 @@ async function analyzeFinding(input) {
     model: process.env.OPENROUTER_MODEL || 'liquid/lfm-2.5-2.6b:free',
     extraHeaders: {
       'HTTP-Referer': process.env.CLIENT_URL || 'http://localhost:5173',
-      'X-Title': 'SentinelAI Security Assessment',
+      'X-Title': 'Saksham AI Security Assessment',
     },
     input,
     prompt,
@@ -254,7 +254,7 @@ async function completeText(systemInstruction, userPrompt, maxTokens = 700) {
       model: process.env.OPENROUTER_MODEL || 'liquid/lfm-2.5-2.6b:free',
       extraHeaders: {
         'HTTP-Referer': process.env.CLIENT_URL || 'http://localhost:5173',
-        'X-Title': 'SentinelAI Security Assessment',
+        'X-Title': 'Saksham AI Security Assessment',
       },
     },
   ];
@@ -324,4 +324,4 @@ async function generateExecutiveSummary({ projectName, targetUrl, score, totals,
   );
 }
 
-module.exports = { analyzeFinding, executiveSummary, generateExecutiveSummary };
+module.exports = { analyzeFinding, executiveSummary, generateExecutiveSummary, completeText };

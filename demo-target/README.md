@@ -1,6 +1,6 @@
 # 🎯 Demo Target (Authorized Local Demo ONLY)
 
-Intentionally vulnerable mini-app for SentinelAI assessments. **Never expose to the internet.**
+Intentionally vulnerable mini-app for Saksham AI assessments. **Never expose to the internet.**
 
 ## Run it
 
@@ -12,7 +12,7 @@ node server.js
 
 ## Scan it
 
-1. SentinelAI → Projects → your project → add target:
+1. Saksham AI → Projects → your project → add target:
    - Name: `Local Demo App`
    - URL: `http://127.0.0.1:5199`
    - Tick the authorization checkbox

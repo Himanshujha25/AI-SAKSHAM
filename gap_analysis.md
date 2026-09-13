@@ -1,7 +1,7 @@
 # 📋 Gap Analysis — Missing Features Summary (`gap_analysis.md`)
 
 > **Target System**: World Monitor Web & Mobile Application (NTRO PS 26163)  
-> **Platform**: SentinelAI (AI-SAKSHAM Security Command Center)
+> **Platform**: Saksham AI (AI-SAKSHAM Security Command Center)
 
 ---
 
