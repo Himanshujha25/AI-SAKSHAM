@@ -18,6 +18,7 @@ import {
   FileText,
   Activity,
   Layers,
+  Bug,
   Calendar,
   RefreshCw,
   ArrowUpRight,
@@ -35,7 +36,7 @@ import {
 import api from '../../lib/api';
 import { errMsg, cn, buildCurl, slaCountdown } from '../../lib/utils';
 import CustomSelect from '../../components/ui/CustomSelect';
-import { PageHeader, LoadingState, ErrorState, EmptyState, SeverityBadge, StatusBadge } from '../../components/shared/shared';
+import { PageHeader, LoadingState, ErrorState, EmptyState, SeverityBadge, StatusBadge, PremiumIcon } from '../../components/shared/shared';
 import { Button, Card, Input } from '../../components/ui/primitives';
 
 function formatDateTime(val) {  if (!val) val = new Date().toISOString();
@@ -69,7 +70,7 @@ function CopyCurlButton({ finding, className }) {
         }
       }}
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800/80 px-3 py-1.5 font-mono text-[11px] text-slate-200 transition hover:border-cyan-500/50 hover:text-white',
+        'inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] backdrop-blur-xl px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-200 transition hover:bg-white/[0.08] hover:text-white hover:border-white/15',
         className
       )}
       title="Copy reproducible PoC cURL command"
@@ -357,6 +358,8 @@ export function Findings() {
     <div className="relative min-h-screen pb-16 space-y-6">
       {/* Page Header with Interactive Date Range Selector */}
       <PageHeader
+        icon={Bug}
+        tone="amber"
         title="Findings"
         subtitle="Vulnerabilities with evidence, verification, CVSS and analysis"
         actions={
@@ -800,10 +803,10 @@ export function Findings() {
                 key={pageNum}
                 onClick={() => setPage(pageNum)}
                 className={cn(
-                  'h-7 w-7 rounded border font-mono text-xs font-bold transition',
+                  'h-7 w-7 rounded-lg border font-mono text-[11px] font-bold transition backdrop-blur-xl',
                   page === pageNum
-                    ? 'border-cyan-500/50 bg-cyan-500/10 text-cyan-300'
-                    : 'border-slate-800 bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-white'
+                    ? 'bg-white/[0.08] border-white/[0.14] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+                    : 'border-slate-800 bg-slate-900 text-slate-400 hover:bg-white/[0.06] hover:text-white hover:border-white/10'
                 )}
               >
                 {pageNum}
@@ -891,7 +894,7 @@ export function Findings() {
                         <button
                           disabled={drawerAiMutation.isPending}
                           onClick={() => drawerAiMutation.mutate(selectedFinding._id)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-500/40 bg-cyan-500/20 px-2.5 py-1 font-mono text-[10px] font-bold text-cyan-200 transition hover:bg-cyan-500/30 disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-white transition hover:bg-white/[0.12] hover:border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <RefreshCw className={cn('h-3 w-3', drawerAiMutation.isPending && 'animate-spin')} />
                           {drawerAiMutation.isPending ? 'Analyzing…' : 'Re-analyze'}
@@ -1109,7 +1112,7 @@ export function Findings() {
                   <Button
                     variant="outline"
                     onClick={() => navigate(`/findings/${selectedFinding._id}`)}
-                    className="flex items-center gap-1.5 text-xs text-cyan-300 border-cyan-500/40 hover:bg-cyan-500/10"
+                    className="flex items-center gap-1.5"
                   >
                     Open Full Page View <ExternalLink className="h-3.5 w-3.5" />
                   </Button>
@@ -1144,17 +1147,18 @@ export function Findings() {
   );
 }
 
-// Executive Metric Card Helper Component
+// Executive Metric Card Helper Component — synced with Reports (icon + flat, no glow)
 function MetricCard({ title, value, trend, icon: Icon, color = 'cyan', badgeColor = 'bg-cyan-500', tooltip, active, onClick }) {
   const [showTooltip, setShowTooltip] = useState(false);
+  const toneMap = { cyan: 'cyan', red: 'red', orange: 'amber', amber: 'amber', green: 'emerald', emerald: 'emerald' };
   return (
     <Card
       onClick={onClick}
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
       className={cn(
-        "relative overflow-visible border-slate-800 bg-slate-900/90 p-3.5 shadow-md backdrop-blur hover:border-slate-700 hover:bg-slate-800/80 transition duration-150 cursor-pointer",
-        active && "border-cyan-500/50 bg-slate-800/90 ring-1 ring-cyan-500/30 shadow-lg"
+        "relative overflow-visible border-slate-800 bg-[#090f1f] p-3.5 shadow-md transition duration-200 cursor-pointer hover:border-slate-700",
+        active && "bg-white/[0.08] backdrop-blur-xl border-white/[0.14] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
       )}
     >
       {showTooltip && tooltip && (
@@ -1163,13 +1167,20 @@ function MetricCard({ title, value, trend, icon: Icon, color = 'cyan', badgeColo
           <span>{tooltip}</span>
         </div>
       )}
-      <div className="flex items-center justify-between">
-        <span className="text-[11px] font-medium text-slate-400 truncate">{title}</span>
-        <span className={cn('h-2 w-2 rounded-full', badgeColor)} />
+      <div className="flex items-center justify-between gap-2">
+        {Icon ? (
+          <PremiumIcon icon={Icon} tone={toneMap[color] || 'cyan'} size="sm" />
+        ) : (
+          <span className="text-[11px] font-medium text-slate-400 truncate">{title}</span>
+        )}
+        <span className={cn('h-2 w-2 shrink-0 rounded-full', badgeColor)} />
       </div>
-      <div className="mt-2 flex items-baseline justify-between">
-        <span className="text-2xl font-extrabold tracking-tight text-white font-mono">{value}</span>
-        {trend && <span className="text-[10px] font-medium text-slate-400 font-mono">{trend}</span>}
+      <div className="mt-2.5">
+        <div className="flex items-baseline justify-between gap-2">
+          <span className="text-2xl font-extrabold tracking-tight text-white font-mono">{value}</span>
+          {trend && <span className="font-mono text-[10px] font-semibold text-slate-400">{trend}</span>}
+        </div>
+        <p className="mt-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400 truncate">{title}</p>
       </div>
     </Card>
   );

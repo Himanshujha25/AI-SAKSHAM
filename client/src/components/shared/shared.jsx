@@ -58,60 +58,93 @@ export function StatusBadge({ status, className }) {
 }
 
 export function MicroLabel({ children, className }) {
-  return <p className={cn('text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400', className)}>{children}</p>;
+  return <p className={cn('font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400', className)}>{children}</p>;
 }
 
-export function PageHeader({ title, subtitle, actions, live = false }) {
+// Flat matte icon — no glow, single source of truth for every icon in the app.
+const TONE_STYLES = {
+  cyan: 'border-cyan-500/25 bg-cyan-500/[0.08] text-cyan-300',
+  emerald: 'border-emerald-500/25 bg-emerald-500/[0.08] text-emerald-300',
+  purple: 'border-purple-500/25 bg-purple-500/[0.08] text-purple-300',
+  amber: 'border-amber-500/25 bg-amber-500/[0.08] text-amber-300',
+  blue: 'border-blue-500/25 bg-blue-500/[0.08] text-blue-300',
+  red: 'border-red-500/25 bg-red-500/[0.08] text-red-300',
+  slate: 'border-slate-700/70 bg-slate-800/60 text-slate-300',
+};
+
+export function PremiumIcon({ icon: Icon, tone = 'cyan', size = 'md', className, iconSize }) {
+  const box =
+    size === 'lg'
+      ? 'h-11 w-11 rounded-xl'
+      : size === 'sm'
+        ? 'h-7 w-7 rounded-lg'
+        : 'h-8 w-8 rounded-lg';
+  return (
+    <div className={cn('flex shrink-0 items-center justify-center border', box, TONE_STYLES[tone] || TONE_STYLES.cyan, className)}>
+      {Icon && <Icon size={iconSize || (size === 'lg' ? 22 : size === 'sm' ? 14 : 16)} strokeWidth={2.1} />}
+    </div>
+  );
+}
+
+export function PageHeader({ title, subtitle, actions, live = false, icon: Icon, tone = 'cyan' }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="mb-6 flex flex-wrap items-start justify-between gap-4"
+      className="mb-6 flex flex-wrap items-center justify-between gap-4"
     >
-      <div className="min-w-0">
-        <div className="flex items-center gap-3">
-          <h1 className="truncate text-2xl font-semibold tracking-tight md:text-[28px]">{title}</h1>
-          {live && (
-            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-300">
-              <span className="live-dot relative inline-block h-1.5 w-1.5 rounded-full bg-current" /> LIVE
-            </span>
-          )}
+      <div className="flex min-w-0 items-center gap-3">
+        {Icon && <PremiumIcon icon={Icon} tone={tone} size="lg" />}
+        <div className="min-w-0">
+          <div className="flex items-center gap-2.5">
+            <h1 className="truncate text-2xl font-bold tracking-tight text-white">{title}</h1>
+            {live && (
+              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-emerald-300">
+                <span className="live-dot relative inline-block h-1.5 w-1.5 rounded-full bg-current" /> LIVE
+              </span>
+            )}
+          </div>
+          {subtitle && <p className="mt-0.5 max-w-3xl text-xs leading-relaxed text-slate-400">{subtitle}</p>}
         </div>
-        {subtitle && <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>}
       </div>
       {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
     </motion.div>
   );
 }
 
-export function StatCard({ label, value, hint, icon: Icon }) {
+export function StatCard({ label, value, hint, icon: Icon, tone = 'cyan' }) {
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-slate-800 bg-slate-900/90 p-5 shadow-sm transition duration-200 hover:border-slate-700 hover:bg-slate-900">
+    <div className="group relative overflow-hidden rounded-xl border border-slate-800 bg-[#090f1f] p-5 shadow-md transition duration-200 hover:border-slate-700 hover:shadow-lg">
       <div className="relative flex items-center justify-between gap-2">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">{label}</p>
-        {Icon && <Icon size={16} className="text-slate-500 transition duration-150 group-hover:text-slate-300" />}
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">{label}</p>
+        {Icon && <PremiumIcon icon={Icon} tone={tone} size="sm" />}
       </div>
-      <p className="mt-2.5 text-3xl font-bold leading-none tracking-tight text-white font-mono">{value}</p>
-      {hint && <p className="mt-1.5 text-xs text-slate-500 group-hover:text-slate-400">{hint}</p>}
+      <p className="mt-2.5 font-mono text-3xl font-extrabold leading-none tracking-tight text-white">{value}</p>
+      {hint && <p className="mt-1.5 text-xs text-slate-500 transition group-hover:text-slate-400">{hint}</p>}
     </div>
   );
 }
 
 export function LoadingState({ label = 'Scanning…' }) {
   return (
-    <div className="animate-pulse rounded-xl border border-dashed border-slate-800 bg-slate-900/40 p-8 text-center text-sm text-slate-400">
+    <div className="animate-pulse rounded-xl border border-dashed border-slate-800 bg-[#090f1f]/80 p-8 text-center font-mono text-xs uppercase tracking-wider text-slate-400">
       <span className="live-dot relative mx-auto mb-3 block h-2 w-2 rounded-full bg-cyan-500 text-cyan-500" />
       {label}
     </div>
   );
 }
 
-export function EmptyState({ title, hint }) {
+export function EmptyState({ title, hint, icon: Icon }) {
   return (
-    <div className="rounded-xl border border-dashed border-slate-800 bg-slate-900/40 p-8 text-center transition hover:border-slate-700 hover:bg-slate-900/70">
-      <p className="font-medium text-slate-200">{title}</p>
-      {hint && <p className="mt-1 text-sm text-slate-400">{hint}</p>}
+    <div className="rounded-xl border border-dashed border-slate-800 bg-[#090f1f]/60 p-8 text-center transition hover:border-slate-700 hover:bg-slate-900/60">
+      {Icon && (
+        <div className="mx-auto mb-3 w-fit">
+          <PremiumIcon icon={Icon} tone="slate" size="md" />
+        </div>
+      )}
+      <p className="text-sm font-bold tracking-tight text-slate-100">{title}</p>
+      {hint && <p className="mt-1 text-xs text-slate-400">{hint}</p>}
     </div>
   );
 }

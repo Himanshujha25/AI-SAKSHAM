@@ -32,7 +32,7 @@ import {
 import api from '../../lib/api';
 import { errMsg, cn } from '../../lib/utils';
 import CustomSelect from '../../components/ui/CustomSelect';
-import { PageHeader, LoadingState, ErrorState, EmptyState, StatusBadge } from '../../components/shared/shared';
+import { PageHeader, LoadingState, ErrorState, EmptyState, StatusBadge, PremiumIcon } from '../../components/shared/shared';
 import { Button, Card, Input } from '../../components/ui/primitives';
 
 export function Reports() {
@@ -119,25 +119,21 @@ export function Reports() {
       {/* Top Header with Feature Banner Card */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
-            <FileText className="h-6 w-6" />
-          </div>
+          <PremiumIcon icon={FileText} tone="cyan" size="lg" iconSize={22} />
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-white">Reports</h1>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="mt-0.5 text-xs leading-relaxed text-slate-400">
               Generate executive, technical, and summary reports with evidence and remediation.
             </p>
           </div>
         </div>
 
-        {/* Feature Banner Card */}
-        <div className="flex items-center gap-3 rounded-xl border border-cyan-500/30 bg-gradient-to-r from-cyan-950/60 to-slate-900 p-3.5 shadow-lg backdrop-blur shrink-0 max-w-md">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-cyan-400/40 bg-cyan-500/20 text-cyan-300">
-            <BarChart2 className="h-5 w-5" />
-          </div>
+        {/* Feature Banner Card — frosted glass, no glow */}
+        <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.05] p-3.5 shadow-md backdrop-blur-xl shrink-0 max-w-md">
+          <PremiumIcon icon={BarChart2} tone="cyan" size="md" iconSize={18} />
           <div>
-            <h4 className="text-xs font-bold text-white tracking-wide">Turn assessments into actionable insights</h4>
-            <p className="text-[11px] text-slate-400">
+            <h4 className="text-xs font-bold tracking-tight text-white">Turn assessments into actionable insights</h4>
+            <p className="mt-0.5 text-[11px] leading-relaxed text-slate-400">
               Generate professional reports to track security posture, share with stakeholders, and drive remediation.
             </p>
           </div>
@@ -145,18 +141,16 @@ export function Reports() {
       </div>
 
       {/* Top Executive Metric Summary Cards (4 Columns) */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {/* Card 1: Total Reports */}
-        <Card className="border-slate-800 bg-slate-900/90 p-4 shadow-md backdrop-blur">
+        <Card className="border-slate-800 bg-[#090f1f] p-4 shadow-md">
           <div className="flex items-center justify-between">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
-              <FileText className="h-4 w-4" />
-            </div>
-            <span className="text-[10px] font-mono text-cyan-400 font-semibold">+4 this month</span>
+            <PremiumIcon icon={FileText} tone="cyan" size="md" />
+            <span className="font-mono text-[10px] font-bold text-cyan-300">+4 this month</span>
           </div>
           <div className="mt-3">
-            <span className="text-3xl font-extrabold text-white font-mono">{totalCount}</span>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-0.5">Total Reports</p>
+            <span className="font-mono text-2xl font-extrabold tracking-tight text-white">{totalCount}</span>
+            <p className="mt-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Total Reports</p>
           </div>
           {/* Cyan Mini Sparkline */}
           <div className="mt-2 h-6 w-full opacity-60">
@@ -167,18 +161,16 @@ export function Reports() {
         </Card>
 
         {/* Card 2: Generated (Completed) */}
-        <Card className="border-slate-800 bg-slate-900/90 p-4 shadow-md backdrop-blur">
+        <Card className="border-slate-800 bg-[#090f1f] p-4 shadow-md">
           <div className="flex items-center justify-between">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
-              <CheckCircle2 className="h-4 w-4" />
-            </div>
-            <span className="text-[10px] font-mono text-emerald-400 font-semibold">
+            <PremiumIcon icon={CheckCircle2} tone="emerald" size="md" />
+            <span className="font-mono text-[10px] font-bold text-emerald-300">
               {Math.round((completedCount / (totalCount || 1)) * 100)}%
             </span>
           </div>
           <div className="mt-3">
-            <span className="text-3xl font-extrabold text-white font-mono">{completedCount}</span>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-0.5">Generated</p>
+            <span className="font-mono text-2xl font-extrabold tracking-tight text-white">{completedCount}</span>
+            <p className="mt-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Generated</p>
           </div>
           {/* Green Mini Sparkline */}
           <div className="mt-2 h-6 w-full opacity-60">
@@ -189,18 +181,16 @@ export function Reports() {
         </Card>
 
         {/* Card 3: In Progress */}
-        <Card className="border-slate-800 bg-slate-900/90 p-4 shadow-md backdrop-blur">
+        <Card className="border-slate-800 bg-[#090f1f] p-4 shadow-md">
           <div className="flex items-center justify-between">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-blue-500/30 bg-blue-500/10 text-blue-400">
-              <Clock className="h-4 w-4" />
-            </div>
-            <span className="text-[10px] font-mono text-blue-400 font-semibold">
+            <PremiumIcon icon={Clock} tone="blue" size="md" />
+            <span className="font-mono text-[10px] font-bold text-blue-300">
               {Math.round((inProgressCount / (totalCount || 1)) * 100)}%
             </span>
           </div>
           <div className="mt-3">
-            <span className="text-3xl font-extrabold text-white font-mono">{inProgressCount}</span>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-0.5">In Progress</p>
+            <span className="font-mono text-2xl font-extrabold tracking-tight text-white">{inProgressCount}</span>
+            <p className="mt-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">In Progress</p>
           </div>
           {/* Blue Mini Sparkline */}
           <div className="mt-2 h-6 w-full opacity-60">
@@ -211,18 +201,16 @@ export function Reports() {
         </Card>
 
         {/* Card 4: Failed */}
-        <Card className="border-slate-800 bg-slate-900/90 p-4 shadow-md backdrop-blur">
+        <Card className="border-slate-800 bg-[#090f1f] p-4 shadow-md">
           <div className="flex items-center justify-between">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-red-500/30 bg-red-500/10 text-red-400">
-              <XCircle className="h-4 w-4" />
-            </div>
-            <span className="text-[10px] font-mono text-red-400 font-semibold">
+            <PremiumIcon icon={XCircle} tone="red" size="md" />
+            <span className="font-mono text-[10px] font-bold text-red-300">
               {Math.round((failedCount / (totalCount || 1)) * 100)}%
             </span>
           </div>
           <div className="mt-3">
-            <span className="text-3xl font-extrabold text-white font-mono">{failedCount}</span>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-0.5">Failed</p>
+            <span className="font-mono text-2xl font-extrabold tracking-tight text-white">{failedCount}</span>
+            <p className="mt-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Failed</p>
           </div>
           {/* Red Mini Sparkline */}
           <div className="mt-2 h-6 w-full opacity-60">
@@ -234,22 +222,20 @@ export function Reports() {
       </div>
 
       {/* Generate New Report Control Panel */}
-      <Card className="relative z-30 border-slate-800 bg-slate-900/90 p-4 shadow-xl backdrop-blur">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
-          <div className="flex items-center gap-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded bg-cyan-500/20 text-cyan-400 font-bold text-xs">
-              📄
-            </div>
+      <Card className="relative z-30 border-slate-800 bg-[#090f1f] p-5 shadow-md">
+        <div className="mb-4 flex items-center justify-between gap-3 border-b border-slate-800 pb-3">
+          <div className="flex items-center gap-2.5">
+            <PremiumIcon icon={Plus} tone="cyan" size="sm" />
             <div>
-              <h3 className="text-sm font-bold text-white tracking-wide">Generate New Report</h3>
-              <p className="text-[11px] text-slate-400">
+              <h3 className="text-sm font-bold tracking-tight text-white">Generate New Report</h3>
+              <p className="mt-0.5 text-[11px] leading-relaxed text-slate-400">
                 Select assessment, report type, and options to generate a report with evidence and remediation steps.
               </p>
             </div>
           </div>
 
-          <button className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition">
-            <Sliders className="h-3.5 w-3.5" />
+          <button className="flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-slate-400 transition hover:text-white">
+            <Sliders size={13} />
             <span>Advanced Options</span>
           </button>
         </div>
@@ -319,7 +305,7 @@ export function Reports() {
             <button
               onClick={() => generateMutation.mutate()}
               disabled={!form.assessmentId || generateMutation.isPending}
-              className="flex h-[34px] w-full items-center justify-center gap-2 rounded-md bg-cyan-600 hover:bg-cyan-500 font-bold text-xs text-white transition border border-cyan-400/30 shadow-md disabled:opacity-50"
+              className="flex h-[34px] w-full items-center justify-center gap-2 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12] hover:border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {generateMutation.isPending ? (
                 <>
@@ -388,8 +374,8 @@ export function Reports() {
               ]}
             />
 
-            <button className="flex items-center gap-1 rounded-md border border-slate-700/80 bg-slate-800/80 px-2.5 py-1.5 text-xs text-slate-300 hover:bg-slate-700 hover:text-white">
-              <Zap className="h-3.5 w-3.5 text-cyan-400" />
+            <button className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] backdrop-blur-xl px-2.5 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-200 transition hover:bg-white/[0.08] hover:text-white hover:border-white/15">
+              <Zap size={13} />
               <span>Filter</span>
             </button>
           </div>
@@ -503,7 +489,7 @@ export function Reports() {
                               rel="noreferrer"
                               download
                               title={`Download ${item.format} report for ${item.name}`}
-                              className="flex items-center gap-1 rounded border border-cyan-500/40 bg-cyan-500/10 px-2.5 py-1 text-[11px] font-bold text-cyan-300 hover:bg-cyan-500/20"
+                              className="flex items-center gap-1 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-white transition hover:bg-white/[0.12] hover:border-white/20"
                             >
                               <Download className="h-3 w-3" /> Download
                             </a>
@@ -566,10 +552,10 @@ export function Reports() {
                 key={pNum}
                 onClick={() => setPage(pNum)}
                 className={cn(
-                  'h-7 w-7 rounded border font-bold text-xs transition',
+                  'h-7 w-7 rounded-lg border font-mono text-[11px] font-bold transition backdrop-blur-xl',
                   page === pNum
-                    ? 'border-cyan-500/50 bg-cyan-500/10 text-cyan-300'
-                    : 'border-slate-800 bg-slate-900 text-slate-400 hover:bg-slate-800'
+                    ? 'bg-white/[0.08] border-white/[0.14] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+                    : 'border-slate-800 bg-slate-900 text-slate-400 hover:bg-white/[0.06] hover:text-white hover:border-white/10'
                 )}
               >
                 {pNum}
@@ -739,7 +725,7 @@ export function Settings() {
 
             <button
               type="submit"
-              className="flex items-center gap-1.5 rounded-md bg-cyan-600 hover:bg-cyan-500 px-4 py-2 font-bold text-xs text-white border border-cyan-400/30 shadow transition"
+              className="flex items-center gap-1.5 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12] hover:border-white/20"
             >
               {saved ? <Check className="h-4 w-4 text-emerald-300" /> : <ShieldCheck className="h-4 w-4" />}
               <span>{saved ? 'Settings Saved!' : 'Save System Settings'}</span>

@@ -16,7 +16,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import api from '../../lib/api';
-import { PageHeader, LoadingState, ErrorState, EmptyState } from '../../components/shared/shared';
+import { PageHeader, LoadingState, ErrorState, EmptyState, PremiumIcon } from '../../components/shared/shared';
 import { Card } from '../../components/ui/primitives';
 import { CustomSelect } from '../../components/ui/CustomSelect';
 
@@ -50,14 +50,14 @@ export function Activity() {
     return 'System';
   };
 
-  // Helper to get styled badge & icon config
+  // Helper to get styled badge & icon config — flat, no glow
   const getEventStyle = (action = '') => {
     const act = action.toLowerCase();
     if (act.includes('completed')) {
       return {
         icon: CheckCircle2,
         badgeColor: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400',
-        dotBg: 'bg-emerald-500 shadow-[0_0_12px_2px_rgba(16,185,129,0.5)]',
+        dotBg: 'bg-emerald-500',
         category: 'Scan Completed',
       };
     }
@@ -65,7 +65,7 @@ export function Activity() {
       return {
         icon: Zap,
         badgeColor: 'border-cyan-500/30 bg-cyan-500/10 text-cyan-400',
-        dotBg: 'bg-cyan-500 shadow-[0_0_12px_2px_rgba(56,189,248,0.5)]',
+        dotBg: 'bg-cyan-500',
         category: 'Scan Execution',
       };
     }
@@ -73,7 +73,7 @@ export function Activity() {
       return {
         icon: FileText,
         badgeColor: 'border-purple-500/30 bg-purple-500/10 text-purple-400',
-        dotBg: 'bg-purple-500 shadow-[0_0_12px_2px_rgba(168,85,247,0.5)]',
+        dotBg: 'bg-purple-500',
         category: 'Report Generation',
       };
     }
@@ -81,7 +81,7 @@ export function Activity() {
       return {
         icon: FolderKanban,
         badgeColor: 'border-blue-500/30 bg-blue-500/10 text-blue-400',
-        dotBg: 'bg-blue-500 shadow-[0_0_12px_2px_rgba(59,130,246,0.5)]',
+        dotBg: 'bg-blue-500',
         category: 'Project Workspace',
       };
     }
@@ -89,14 +89,14 @@ export function Activity() {
       return {
         icon: ShieldCheck,
         badgeColor: 'border-amber-500/30 bg-amber-500/10 text-amber-400',
-        dotBg: 'bg-amber-500 shadow-[0_0_12px_2px_rgba(245,158,11,0.5)]',
+        dotBg: 'bg-amber-500',
         category: 'Security Verification',
       };
     }
     return {
       icon: ActivityIcon,
       badgeColor: 'border-slate-700 bg-slate-800 text-slate-300',
-      dotBg: 'bg-slate-400 shadow-[0_0_10px_1px_rgba(148,163,184,0.4)]',
+      dotBg: 'bg-slate-400',
       category: 'System Audit',
     };
   };
@@ -130,70 +130,74 @@ export function Activity() {
   const projectsList = projectsQuery.data?.projects || [];
 
   return (
-    <div className="relative min-h-screen pb-16 space-y-6">
-      {/* Header */}
+    <div className="relative min-h-screen space-y-6 pb-16">
+      {/* Header — synced to system design */}
       <PageHeader
+        icon={ScrollText}
+        tone="cyan"
         title="Activity Audit Trail"
         subtitle="Real-time timeline of assessment executions, target probes, findings verifications, and report exports."
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-800 bg-[#090f1f] px-3 py-1.5 font-mono text-[11px] font-bold text-slate-300 shadow-sm">
+              <ActivityIcon size={13} className="text-emerald-300" /> {metrics.total} Events
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-500/30 bg-gradient-to-r from-cyan-950/60 to-slate-900 px-3 py-1.5 font-mono text-[11px] font-bold text-white shadow-md">
+              <span className="live-dot relative inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 text-emerald-400" /> LIVE FEED
+            </span>
+          </div>
+        }
       />
 
       {/* Top Executive Metric Summary Cards (4 Columns) */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Card className="border-slate-800 bg-slate-900/90 p-4 shadow-md backdrop-blur">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Card className="border-slate-800 bg-[#090f1f] p-5 shadow-md">
           <div className="flex items-center justify-between">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
-              <ScrollText size={16} />
-            </div>
-            <span className="text-[10px] font-mono text-cyan-400 font-semibold">ALL LOGS</span>
+            <PremiumIcon icon={ScrollText} tone="cyan" size="md" />
+            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-300">All logs</span>
           </div>
           <div className="mt-3">
-            <span className="text-3xl font-extrabold text-white font-mono">{metrics.total}</span>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-0.5">Logged Events</p>
+            <span className="font-mono text-2xl font-extrabold tracking-tight text-white">{metrics.total}</span>
+            <p className="mt-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Logged Events</p>
           </div>
         </Card>
 
-        <Card className="border-slate-800 bg-slate-900/90 p-4 shadow-md backdrop-blur">
+        <Card className="border-slate-800 bg-[#090f1f] p-5 shadow-md">
           <div className="flex items-center justify-between">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
-              <Zap size={16} />
-            </div>
-            <span className="text-[10px] font-mono text-emerald-400 font-semibold">AUDITS</span>
+            <PremiumIcon icon={Zap} tone="emerald" size="md" />
+            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-300">Audits</span>
           </div>
           <div className="mt-3">
-            <span className="text-3xl font-extrabold text-white font-mono">{metrics.scans}</span>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-0.5">Scans Executed</p>
+            <span className="font-mono text-2xl font-extrabold tracking-tight text-white">{metrics.scans}</span>
+            <p className="mt-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Scans Executed</p>
           </div>
         </Card>
 
-        <Card className="border-slate-800 bg-slate-900/90 p-4 shadow-md backdrop-blur">
+        <Card className="border-slate-800 bg-[#090f1f] p-5 shadow-md">
           <div className="flex items-center justify-between">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-purple-500/30 bg-purple-500/10 text-purple-400">
-              <FileText size={16} />
-            </div>
-            <span className="text-[10px] font-mono text-purple-400 font-semibold">REPORTS</span>
+            <PremiumIcon icon={FileText} tone="purple" size="md" />
+            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-purple-300">Reports</span>
           </div>
           <div className="mt-3">
-            <span className="text-3xl font-extrabold text-white font-mono">{metrics.reports}</span>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-0.5">Reports Exported</p>
+            <span className="font-mono text-2xl font-extrabold tracking-tight text-white">{metrics.reports}</span>
+            <p className="mt-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Reports Exported</p>
           </div>
         </Card>
 
-        <Card className="border-slate-800 bg-slate-900/90 p-4 shadow-md backdrop-blur">
+        <Card className="border-slate-800 bg-[#090f1f] p-5 shadow-md">
           <div className="flex items-center justify-between">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-blue-500/30 bg-blue-500/10 text-blue-400">
-              <FolderKanban size={16} />
-            </div>
-            <span className="text-[10px] font-mono text-blue-400 font-semibold">WORKSPACES</span>
+            <PremiumIcon icon={FolderKanban} tone="blue" size="md" />
+            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-blue-300">Workspaces</span>
           </div>
           <div className="mt-3">
-            <span className="text-3xl font-extrabold text-white font-mono">{metrics.projectsCount}</span>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-0.5">Project Operations</p>
+            <span className="font-mono text-2xl font-extrabold tracking-tight text-white">{metrics.projectsCount}</span>
+            <p className="mt-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Project Operations</p>
           </div>
         </Card>
       </div>
 
       {/* Filter & Search Bar Card */}
-      <Card className="relative z-20 border-slate-800 bg-slate-900/90 p-4 shadow-md backdrop-blur">
+      <Card className="relative z-20 border-slate-800 bg-[#090f1f] p-4 shadow-md">
         <div className="flex flex-wrap items-center justify-between gap-3">
           {/* Search Box */}
           <div className="relative min-w-[260px] flex-1">
@@ -244,11 +248,11 @@ export function Activity() {
       </Card>
 
       {/* Audit Feed Status States */}
-      {isLoading && <LoadingState label="Loading detailed audit trail events..." />}
+      {isLoading && <LoadingState label="Loading audit trail…" />}
       {isError && <ErrorState message="Could not load security activity log." onRetry={() => refetch()} />}
 
       {!isLoading && !isError && filteredEvents.length === 0 && (
-        <EmptyState title="No matching activity events found" hint="Try adjusting your project or search filter." />
+        <EmptyState title="No matching activity events found" hint="Try adjusting your project or search filter." icon={Search} />
       )}
 
       {/* Main Audit Feed Timeline */}
@@ -264,15 +268,15 @@ export function Activity() {
 
             return (
               <div key={e._id} className="relative group">
-                {/* Glowing Node Dot */}
-                <span className={`absolute -left-6 top-4 flex h-5 w-5 items-center justify-center rounded-full ${style.dotBg} transition-transform duration-200 group-hover:scale-125 z-10`}>
-                  <Icon size={10} className="text-slate-950 font-bold" />
+                {/* Node Dot — flat, no glow */}
+                <span className={`absolute -left-6 top-4 flex h-6 w-6 items-center justify-center rounded-lg border border-white/20 ${style.dotBg} ring-1 ring-black/20 transition-transform duration-200 group-hover:scale-110 z-10`}>
+                  <Icon size={12} strokeWidth={2.4} className="text-white" />
                 </span>
 
                 {/* Card Container */}
                 <div
                   onClick={() => setSelectedEvent(e)}
-                  className="cursor-pointer rounded-xl border border-slate-800 bg-[#090f1f]/90 p-4 shadow-sm transition duration-200 hover:border-cyan-500/40 hover:bg-slate-900 hover:shadow-md"
+                  className="cursor-pointer rounded-xl border border-slate-800 bg-[#090f1f] p-4 shadow-md transition duration-200 hover:border-cyan-500/40 hover:shadow-lg"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="space-y-1.5 flex-1">
@@ -293,12 +297,12 @@ export function Activity() {
                       </div>
 
                       {/* Detail Message */}
-                      <p className="text-sm font-semibold text-slate-100 leading-snug">
+                      <p className="text-sm font-bold tracking-tight text-slate-100 leading-snug">
                         {e.detail || e.action}
                       </p>
 
                       {/* Detailed Meta Sub-row */}
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400 font-mono pt-1">
+                      <div className="flex flex-wrap items-center gap-3 pt-1 font-mono text-[11px] text-slate-400">
                         <span className="flex items-center gap-1 text-slate-300">
                           <User size={12} className="text-cyan-400" />
                           {actorName}
@@ -315,9 +319,9 @@ export function Activity() {
                     </div>
 
                     {/* View Details Indicator */}
-                    <div className="flex items-center gap-1 text-xs font-mono font-bold text-slate-500 transition group-hover:text-cyan-400">
-                      <span>Inspect Event</span>
-                      <ChevronRight size={14} className="transition-transform group-hover:translate-x-1" />
+                    <div className="flex items-center gap-1 font-mono text-[11px] font-bold uppercase tracking-wider text-slate-500 transition group-hover:text-cyan-300">
+                      <span>Inspect</span>
+                      <ChevronRight size={14} className="transition-transform group-hover:translate-x-0.5" />
                     </div>
                   </div>
                 </div>
@@ -335,11 +339,11 @@ export function Activity() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-lg overflow-hidden rounded-xl border border-slate-800 bg-[#091024] p-6 shadow-2xl space-y-4"
+              className="relative w-full max-w-lg overflow-hidden rounded-xl border border-slate-800 bg-[#090f1f] p-6 shadow-2xl space-y-4"
             >
               <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <div className="flex items-center gap-2 text-slate-100 font-bold text-base">
-                  <ActivityIcon className="text-cyan-400" size={18} />
+                <div className="flex items-center gap-2.5 font-bold tracking-tight text-slate-100 text-base">
+                  <PremiumIcon icon={ActivityIcon} tone="cyan" size="sm" />
                   Security Event Audit Record
                 </div>
                 <button

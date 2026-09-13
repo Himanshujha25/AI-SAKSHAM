@@ -8,11 +8,11 @@ import {
   Play, X, Globe, Cpu, Zap, Code2, GitFork, Layers,
   Lock, FileCode, Box, AlertOctagon, AlertTriangle, BarChart2,
   CheckCircle2, TrendingUp, Activity, Clock, FolderPlus, ArrowRight,
-  ShieldAlert, ChevronRight
+  ShieldAlert, ChevronRight, LayoutDashboard
 } from 'lucide-react';
 import api from '../../lib/api';
 import { getSocket } from '../../lib/socket';
-import { PageHeader, LoadingState, ErrorState, EmptyState, StatusBadge, SeverityBadge, MicroLabel } from '../../components/shared/shared';
+import { PageHeader, LoadingState, ErrorState, EmptyState, StatusBadge, SeverityBadge, MicroLabel, PremiumIcon } from '../../components/shared/shared';
 import { CustomSelect } from '../../components/ui/CustomSelect';
 
 const SEVERITY_COLORS = ['#ef4444', '#f97316', '#f59e0b', '#10b981', '#64748b'];
@@ -294,7 +294,7 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex items-center gap-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 px-5 py-2 text-xs font-bold text-white transition disabled:opacity-50 border border-cyan-400/30"
+              className="flex items-center gap-1.5 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-5 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12] hover:border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? <Cpu size={14} className="animate-spin text-white" /> : <Play size={14} className="fill-current" />}
               {isSubmitting ? 'Starting...' : 'Launch Assessment'}
@@ -460,17 +460,20 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Header Bar */}
+      {/* Header Bar — synced with Reports/Findings (icon + flat, no glow) */}
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-100 tracking-tight flex items-center gap-2">
-            Security Operations Center
-          </h1>
-          <p className="text-xs text-slate-400 mt-0.5">Live attack surface posture & security audit pipeline</p>
+        <div className="flex min-w-0 items-center gap-3">
+          <PremiumIcon icon={LayoutDashboard} tone="cyan" size="lg" iconSize={22} />
+          <div className="min-w-0">
+            <h1 className="truncate text-2xl font-bold tracking-tight text-white">
+              Security Operations Center
+            </h1>
+            <p className="mt-0.5 text-xs leading-relaxed text-slate-400">Live attack surface posture & security audit pipeline</p>
+          </div>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 px-4 py-2 text-xs font-semibold text-white transition shadow-sm border border-cyan-400/30"
+          className="flex items-center gap-2 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12] hover:border-white/20"
         >
           <Zap size={14} className="fill-current text-white" />
           <span>Start Assessment</span>
@@ -500,7 +503,7 @@ export function Dashboard() {
               </p>
             </div>
           </div>
-          <Link to={`/assessments/${latestId}`} className="rounded-lg bg-cyan-500/20 px-3 py-1 font-mono text-xs font-semibold text-cyan-300 hover:bg-cyan-500/30 border border-cyan-500/30">
+          <Link to={`/assessments/${latestId}`} className="rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-3 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12]">
             View Stream →
           </Link>
         </motion.div>

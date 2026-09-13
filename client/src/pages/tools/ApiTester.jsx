@@ -1,42 +1,45 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { FlaskConical, Play, Scale } from 'lucide-react';
+import { FlaskConical, FlaskRound, Play, Scale, ShieldCheck, Timer, Database, ScrollText } from 'lucide-react';
 import api from '../../lib/api';
 import { errMsg, cn } from '../../lib/utils';
-import { PageHeader, LoadingState, EmptyState } from '../../components/shared/shared';
+import { PageHeader, LoadingState, EmptyState, PremiumIcon } from '../../components/shared/shared';
 import { Button, Card, Input, Select, Label } from '../../components/ui/primitives';
 
-function ResultPane({ title, tokenLabel, result, busy }) {
+function ResultPane({ title, tokenLabel, result, busy, tone }) {
   return (
-    <div className="min-w-0 rounded-xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-white/[0.03]">
-      <p className="mb-2 truncate text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-        {title} · <span className="text-cyan-600 dark:text-cyan-300">{tokenLabel}</span>
-      </p>
+    <div className="rounded-xl border border-slate-800 bg-[#090f1f] p-5 shadow-md transition hover:border-slate-700/80">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <p className="truncate font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+          {title} · <span className="text-cyan-300">{tokenLabel}</span>
+        </p>
+        <PremiumIcon icon={ShieldCheck} tone={tone || 'cyan'} size="sm" />
+      </div>
       {busy && <LoadingState label="Probing…" />}
-      {!busy && !result && <EmptyState title="No result yet" hint="Run the probe to compare." />}
+      {!busy && !result && <EmptyState title="No result yet" hint="Run the probe to compare." icon={Database} />}
       {!busy && result && (
-        <div className="space-y-2 text-sm">
-          <div className="flex items-center gap-2">
+        <div className="space-y-2.5 text-sm">
+          <div className="flex flex-wrap items-center gap-2">
             <span className={cn(
-              'rounded-md px-2 py-0.5 font-mono text-xs font-bold',
-              result.status >= 200 && result.status < 300 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300'
-              : result.status >= 400 ? 'bg-red-500/15 text-red-600 dark:text-red-300'
-              : 'bg-slate-500/15 text-slate-500 dark:text-slate-300'
+              'rounded-md border px-2 py-0.5 font-mono text-[11px] font-bold',
+              result.status >= 200 && result.status < 300 ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
+              : result.status >= 400 ? 'border-red-500/30 bg-red-500/10 text-red-300'
+              : 'border-slate-700 bg-slate-800 text-slate-300'
             )}>
               {result.status ?? 'ERR'}
             </span>
-            <span className="font-mono text-xs text-slate-500">{result.ms}ms</span>
-            {result.error && <span className="truncate text-xs text-red-500">{result.error}</span>}
+            <span className="font-mono text-[11px] text-slate-400">{result.ms}ms</span>
+            {result.error && <span className="truncate font-mono text-[11px] text-red-400">{result.error}</span>}
           </div>
           <details className="text-xs">
-            <summary className="cursor-pointer text-slate-500">Headers ({Object.keys(result.headers || {}).length})</summary>
-            <pre className="mt-1 max-h-40 overflow-auto rounded-lg bg-slate-950 p-2 font-mono text-[11px] text-slate-300">
+            <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:text-slate-300">Headers ({Object.keys(result.headers || {}).length})</summary>
+            <pre className="mt-1.5 max-h-40 overflow-auto rounded-lg border border-slate-800 bg-slate-950 p-2.5 font-mono text-[11px] leading-relaxed text-slate-300">
               {JSON.stringify(result.headers || {}, null, 1)}
             </pre>
           </details>
           <details className="text-xs" open>
-            <summary className="cursor-pointer text-slate-500">Body snippet</summary>
-            <pre className="mt-1 max-h-48 overflow-auto whitespace-pre-wrap rounded-lg bg-slate-950 p-2 font-mono text-[11px] text-emerald-400">
+            <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:text-slate-300">Body snippet</summary>
+            <pre className="mt-1.5 max-h-48 overflow-auto whitespace-pre-wrap rounded-lg border border-slate-800 bg-slate-950 p-2.5 font-mono text-[11px] leading-relaxed text-emerald-300">
               {result.bodySnippet || '(empty)'}
             </pre>
           </details>
@@ -89,16 +92,37 @@ export function ApiTester() {
     : null;
 
   return (
-    <div>
+    <div className="relative min-h-screen space-y-6 pb-16">
       <PageHeader
+        icon={FlaskRound}
+        tone="cyan"
         title="RBAC / IDOR API Tester"
         subtitle="Probe an authorized endpoint as two roles side-by-side — server executes, browser never touches the target"
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-800 bg-[#090f1f] px-3 py-1.5 font-mono text-[11px] font-bold text-slate-300 shadow-sm">
+              <Timer size={13} className="text-cyan-300" /> 10s timeout
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-500/30 bg-gradient-to-r from-cyan-950/60 to-slate-900 px-3 py-1.5 font-mono text-[11px] font-bold text-white shadow-md">
+              <ScrollText size={13} className="text-cyan-300" /> Audit-logged
+            </span>
+          </div>
+        }
       />
-      <Card className="mb-4">
-        <div className="grid gap-3 md:grid-cols-[1fr_140px]">
+
+      <Card className="border-slate-800 bg-[#090f1f] p-5 shadow-xl">
+        <div className="mb-4 flex items-center gap-2 border-b border-slate-800 pb-3">
+          <PremiumIcon icon={FlaskConical} tone="cyan" size="sm" />
+          <div>
+            <h3 className="text-sm font-bold tracking-tight text-white">Role Comparison Probe</h3>
+            <p className="font-mono text-[10px] uppercase tracking-wider text-slate-500">Read-only style probe · 50KB cap · logged to audit trail</p>
+          </div>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-[1fr_160px]">
           <div>
             <Label>Target endpoint URL (authorized only)</Label>
-            <Input placeholder="https://target.example/api/users/123" value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} />
+            <Input placeholder="https://target.example/api/users/123" value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} className="font-mono" />
           </div>
           <div>
             <Label>Method</Label>
@@ -116,7 +140,7 @@ export function ApiTester() {
               placeholder='{"amount": 100, "description": "topup"}'
               value={form.bodyData}
               onChange={(e) => setForm({ ...form, bodyData: e.target.value })}
-              className="w-full rounded-lg border border-slate-700 bg-slate-950 p-2.5 font-mono text-xs text-emerald-400 focus:border-cyan-500 focus:outline-none"
+              className="w-full rounded-lg border border-slate-800 bg-slate-950 p-2.5 font-mono text-xs leading-relaxed text-emerald-300 placeholder-slate-600 transition focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/30"
             />
           </div>
         )}
@@ -124,35 +148,37 @@ export function ApiTester() {
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           <div>
             <Label>Role A token (e.g. low-priv user JWT)</Label>
-            <Input type="password" placeholder="Bearer token A" value={form.tokenA} onChange={(e) => setForm({ ...form, tokenA: e.target.value })} />
+            <Input type="password" placeholder="Bearer token A" value={form.tokenA} onChange={(e) => setForm({ ...form, tokenA: e.target.value })} className="font-mono" />
           </div>
           <div>
             <Label>Role B token (e.g. admin JWT)</Label>
-            <Input type="password" placeholder="Bearer token B" value={form.tokenB} onChange={(e) => setForm({ ...form, tokenB: e.target.value })} />
+            <Input type="password" placeholder="Bearer token B" value={form.tokenB} onChange={(e) => setForm({ ...form, tokenB: e.target.value })} className="font-mono" />
           </div>
         </div>
-        <div className="mt-4 flex items-center gap-2">
-          <Button disabled={!form.url || run.isPending} onClick={compare}>
-            <Play size={14} /> {run.isPending ? 'Probing…' : 'Run role comparison'}
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <Button disabled={!form.url || run.isPending} onClick={compare} className="px-5 py-2">
+            <Play size={14} className="fill-current" /> {run.isPending ? 'Probing…' : 'Run role comparison'}
           </Button>
-          <FlaskConical size={15} className="text-slate-400" />
-          <span className="text-xs text-slate-500">Read-only style probe · 10s timeout · 50KB cap · logged to audit trail</span>
+          <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-slate-500">
+            <FlaskConical size={13} className="text-slate-500" /> Read-only style probe · 10s timeout · 50KB cap
+          </span>
         </div>
-        {run.isError && <p className="mt-2 text-sm text-red-500">{errMsg(run.error)}</p>}
+        {run.isError && <p className="mt-2 font-mono text-xs font-semibold text-red-400">{errMsg(run.error)}</p>}
       </Card>
 
       {verdict && (
         <div className={cn(
-          'mb-4 flex items-start gap-2 rounded-xl border p-4 text-sm',
-          verdict.bad ? 'border-amber-400/30 bg-amber-500/10 text-amber-200' : 'border-emerald-400/30 bg-emerald-500/10 text-emerald-200'
+          'flex items-start gap-3 rounded-xl border p-4 text-xs leading-relaxed shadow-md',
+          verdict.bad ? 'border-amber-500/30 bg-amber-500/10 text-amber-200' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200'
         )}>
-          <Scale size={16} className="mt-0.5 shrink-0" /> {verdict.text}
+          <PremiumIcon icon={Scale} tone={verdict.bad ? 'amber' : 'emerald'} size="sm" />
+          <p className="pt-1 font-semibold">{verdict.text}</p>
         </div>
       )}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <ResultPane title="Role A" tokenLabel="token A" result={resA} busy={run.isPending && !resA} />
-        <ResultPane title="Role B" tokenLabel="token B" result={resB} busy={run.isPending && !resB} />
+        <ResultPane title="Role A" tokenLabel="token A" result={resA} busy={run.isPending && !resA} tone="cyan" />
+        <ResultPane title="Role B" tokenLabel="token B" result={resB} busy={run.isPending && !resB} tone="purple" />
       </div>
     </div>
   );

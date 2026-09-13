@@ -40,7 +40,7 @@ import {
 } from 'lucide-react';
 import api from '../../lib/api';
 import { errMsg, cn } from '../../lib/utils';
-import { PageHeader, LoadingState, ErrorState, EmptyState, StatusBadge } from '../../components/shared/shared';
+import { PageHeader, LoadingState, ErrorState, EmptyState, StatusBadge, PremiumIcon } from '../../components/shared/shared';
 import { Button, Card, Input } from '../../components/ui/primitives';
 import { CustomSelect } from '../../components/ui/CustomSelect';
 
@@ -268,6 +268,8 @@ export function Projects() {
       {/* Top Header with Feature Banner Card */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <PageHeader
+          icon={FolderKanban}
+          tone="blue"
           title="Security Projects"
           subtitle="Workspace containers for multi-target security auditing and attack surface management."
         />
@@ -401,7 +403,7 @@ export function Projects() {
             <button
               onClick={() => setShowCreateModal(true)}
               title="Create a new security audit project container"
-              className="flex items-center gap-1.5 rounded-md bg-cyan-600 hover:bg-cyan-500 px-3.5 py-1.5 text-xs font-bold text-white transition shadow-sm border border-cyan-400/30"
+              className="flex items-center gap-1.5 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-3.5 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12] hover:border-white/20"
             >
               <Plus className="h-4 w-4" />
               <span>Create New Project</span>
@@ -548,7 +550,7 @@ export function Projects() {
                     <Link
                       to={`/projects/${p._id}`}
                       title={`Open project workspace for ${p.name}`}
-                      className="flex items-center gap-1 rounded-md border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-xs font-bold text-cyan-300 transition hover:bg-cyan-500/20"
+                      className="flex items-center gap-1 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-white transition hover:bg-white/[0.12] hover:border-white/20"
                     >
                       Open Project <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
@@ -624,10 +626,10 @@ export function Projects() {
               key={pNum}
               onClick={() => setPage(pNum)}
               className={cn(
-                'h-7 w-7 rounded border font-bold text-xs transition',
+                'h-7 w-7 rounded-lg border font-mono text-[11px] font-bold transition backdrop-blur-xl',
                 page === pNum
-                  ? 'border-cyan-500/50 bg-cyan-500/10 text-cyan-300'
-                  : 'border-slate-800 bg-slate-900 text-slate-400 hover:bg-slate-800'
+                  ? 'bg-white/[0.08] border-white/[0.14] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+                  : 'border-slate-800 bg-slate-900 text-slate-400 hover:bg-white/[0.06] hover:text-white hover:border-white/10'
               )}
             >
               {pNum}
@@ -785,7 +787,6 @@ export function Projects() {
                 <Button
                   onClick={() => createMutation.mutate()}
                   disabled={!form.name || createMutation.isPending}
-                  className="bg-cyan-600 hover:bg-cyan-500 text-white"
                 >
                   {createMutation.isPending ? 'Creating Project…' : 'Create Project'}
                 </Button>
@@ -946,7 +947,6 @@ export function Projects() {
                     })
                   }
                   disabled={!editProject.name || updateMutation.isPending}
-                  className="bg-cyan-600 hover:bg-cyan-500 text-white"
                 >
                   {updateMutation.isPending ? 'Saving Changes…' : 'Save Changes'}
                 </Button>
@@ -1098,7 +1098,7 @@ export function ProjectDetail() {
           <div className="flex items-center gap-2">
             <Link
               to="/assessments"
-              className="flex items-center gap-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 px-4 py-2 text-xs font-bold text-white transition shadow-sm border border-cyan-400/30"
+              className="flex items-center gap-1.5 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12] hover:border-white/20"
             >
               <Play size={13} className="fill-current" />
               <span>Launch Assessment</span>
@@ -1157,7 +1157,7 @@ export function ProjectDetail() {
           <button
             onClick={() => addTarget.mutate()}
             disabled={!target.name || !target.url || addTarget.isPending}
-            className="flex items-center justify-center gap-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 font-bold text-xs text-white transition disabled:opacity-50 border border-cyan-400/30 shadow-sm px-4 py-2"
+            className="flex items-center justify-center gap-2 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12] hover:border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {addTarget.isPending ? 'Adding...' : 'Add Target'}
           </button>

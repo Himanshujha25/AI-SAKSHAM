@@ -46,14 +46,14 @@ function AuthNav({ mode }) {
           {mode === 'login' ? (
             <Link
               to="/auth/register"
-              className="group rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:-translate-y-0.5 hover:shadow-lg sm:px-4 dark:bg-white dark:text-slate-900"
+              className="group rounded-xl border border-slate-900 bg-slate-900 px-3 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-white transition hover:bg-slate-800 sm:px-4 dark:border-white/[0.14] dark:bg-white/[0.08] dark:backdrop-blur-xl dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] dark:hover:bg-white/[0.12] dark:hover:border-white/20"
             >
               Get started <ArrowRight size={14} className="ml-1 inline transition group-hover:translate-x-0.5" />
             </Link>
           ) : (
             <Link
               to="/auth/login"
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium transition hover:-translate-y-0.5 hover:bg-white hover:shadow-md sm:px-4 dark:border-slate-700 dark:hover:bg-slate-800"
+              className="rounded-xl border border-slate-300 bg-white px-3 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-slate-700 transition hover:bg-slate-100 sm:px-4 dark:border-white/10 dark:bg-white/[0.04] dark:backdrop-blur-xl dark:text-slate-200 dark:hover:bg-white/[0.08] dark:hover:text-white dark:hover:border-white/15"
             >
               Sign in
             </Link>
@@ -128,7 +128,7 @@ export function Login() {
         <div><Label>Email</Label><Input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
         <div><Label>Password</Label><Input type="password" required value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></div>
         {error && <p className="text-sm text-red-600">{error}</p>}
-        <Button disabled={busy} className="transition hover:-translate-y-0.5 hover:shadow-lg">{busy ? 'Signing in…' : 'Sign in →'}</Button>
+        <Button disabled={busy}>{busy ? 'Signing in…' : 'Sign in →'}</Button>
       </form>
     </AuthShell>
   );
@@ -169,7 +169,7 @@ export function Register() {
         <div><Label>Email</Label><Input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
         <div><Label>Password</Label><Input type="password" required minLength={6} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></div>
         {error && <p className="text-sm text-red-600">{error}</p>}
-        <Button disabled={busy} className="transition hover:-translate-y-0.5 hover:shadow-lg">{busy ? 'Creating…' : 'Create account →'}</Button>
+        <Button disabled={busy}>{busy ? 'Creating…' : 'Create account →'}</Button>
       </form>
     </AuthShell>
   );

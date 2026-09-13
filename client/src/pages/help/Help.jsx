@@ -22,7 +22,7 @@ import {
   Terminal,
   Activity as ActivityIcon,
 } from 'lucide-react';
-import { PageHeader } from '../../components/shared/shared';
+import { PageHeader, PremiumIcon } from '../../components/shared/shared';
 import { Card, Button, Input } from '../../components/ui/primitives';
 import { cn } from '../../lib/utils';
 
@@ -370,55 +370,67 @@ app.use(helmet({
   };
 
   return (
-    <div className="relative min-h-screen pb-16 space-y-8 max-w-7xl mx-auto">
-      {/* Page Header */}
+    <div className="relative min-h-screen space-y-6 pb-16">
+      {/* Page Header — synced to system */}
       <PageHeader
+        icon={BookOpen}
+        tone="cyan"
         title="Help & User Guide"
         subtitle="Learn how Saksham AI works with simple explanations, visual diagrams, and jargon definitions"
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-800 bg-[#090f1f] px-3 py-1.5 font-mono text-[11px] font-bold text-slate-300 shadow-sm">
+              <Layers size={13} className="text-cyan-300" /> 5 Simple Steps
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-gradient-to-r from-emerald-950/60 to-slate-900 px-3 py-1.5 font-mono text-[11px] font-bold text-white shadow-md">
+              <CheckCircle2 size={13} className="text-emerald-300" /> 100% Automated
+            </span>
+          </div>
+        }
       />
 
       {/* Overview Intro Banner */}
-      <Card className="border-slate-800 bg-gradient-to-r from-slate-900 via-[#0b1325] to-slate-900 p-6 shadow-xl space-y-4">
+      <Card className="border-slate-800 bg-gradient-to-r from-slate-900 via-[#0b1325] to-slate-900 p-5 shadow-xl space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="space-y-1.5 max-w-3xl">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-300 border border-cyan-500/30 font-mono">
-              <BookOpen className="h-3.5 w-3.5 text-cyan-400" />
-              BEGINNER TO ENTERPRISE GUIDE
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-500/10 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-300 border border-cyan-500/30">
+              <BookOpen className="h-3.5 w-3.5" />
+              Beginner to enterprise guide
             </span>
-            <h2 className="text-2xl font-bold text-white tracking-tight">How Saksham AI Works</h2>
-            <p className="text-xs text-slate-300 leading-relaxed">
+            <h2 className="text-xl font-bold text-white tracking-tight">How Saksham AI Works</h2>
+            <p className="text-xs text-slate-400 leading-relaxed">
               Saksham AI automatically tests your web applications and REST APIs for security vulnerabilities, generates instant code remediation snippets, and keeps a complete audit log of all security activities. Hover over any underlined term in the app for both technical and plain-English definitions!
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="rounded-xl border border-slate-800 bg-slate-950 p-4 text-center">
-              <span className="block text-2xl font-extrabold text-cyan-400 font-mono">5</span>
-              <span className="block text-[10px] font-mono uppercase tracking-wider text-slate-400">Simple Steps</span>
+            <div className="rounded-xl border border-slate-800 bg-slate-950 p-4 text-center shadow-md">
+              <span className="block text-2xl font-extrabold tracking-tight text-cyan-300 font-mono">5</span>
+              <span className="block font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Simple Steps</span>
             </div>
-            <div className="rounded-xl border border-slate-800 bg-slate-950 p-4 text-center">
-              <span className="block text-2xl font-extrabold text-emerald-400 font-mono">100%</span>
-              <span className="block text-[10px] font-mono uppercase tracking-wider text-slate-400">Automated</span>
+            <div className="rounded-xl border border-slate-800 bg-slate-950 p-4 text-center shadow-md">
+              <span className="block text-2xl font-extrabold tracking-tight text-emerald-300 font-mono">100%</span>
+              <span className="block font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Automated</span>
             </div>
           </div>
         </div>
       </Card>
 
       {/* Visual System Architecture Diagram */}
-      <Card className="border-slate-800 bg-[#0a101d] p-6 space-y-5 shadow-lg">
-        <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-          <ActivityIcon className="h-4 w-4 text-cyan-400" />
+      <Card className="border-slate-800 bg-[#090f1f] p-5 space-y-5 shadow-md">
+        <h3 className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 flex items-center gap-2">
+          <PremiumIcon icon={ActivityIcon} tone="cyan" size="sm" />
           <span>Interactive Security Workflow Diagram</span>
         </h3>
 
         {/* Workflow Diagram Steps */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-3 pt-2">
+        <div className="grid grid-cols-1 gap-3 pt-1 sm:grid-cols-2 lg:grid-cols-5">
           {[
-            { step: 1, title: 'Target Registration', desc: 'Add project API URL, HTTP Method & Payload', icon: FolderKanban, color: 'text-cyan-400 border-cyan-500/40 bg-cyan-500/10' },
-            { step: 2, title: 'Automated Scan', desc: 'Active security testing & CVSS scoring', icon: FlaskConical, color: 'text-purple-400 border-purple-500/40 bg-purple-500/10' },
-            { step: 3, title: 'Finding Analysis', desc: 'Inspect PoC cURL & HTTP evidence logs', icon: Bug, color: 'text-amber-400 border-amber-500/40 bg-amber-500/10' },
-            { step: 4, title: 'Code Remediation', desc: 'Copy Express.js fix & retest target', icon: Code2, color: 'text-emerald-400 border-emerald-500/40 bg-emerald-500/10' },
-            { step: 5, title: 'Audit & Reports', desc: 'View Activity Stream & generate PDF', icon: FileText, color: 'text-blue-400 border-blue-500/40 bg-blue-500/10' },
+            { step: 1, title: 'Target Registration', desc: 'Add project API URL, HTTP Method & Payload', icon: FolderKanban, tone: 'cyan', color: 'text-cyan-300 border-cyan-500/25 bg-cyan-500/[0.08]' },
+            { step: 2, title: 'Automated Scan', desc: 'Active security testing & CVSS scoring', icon: FlaskConical, tone: 'purple', color: 'text-purple-300 border-purple-500/25 bg-purple-500/[0.08]' },
+            { step: 3, title: 'Finding Analysis', desc: 'Inspect PoC cURL & HTTP evidence logs', icon: Bug, tone: 'amber', color: 'text-amber-300 border-amber-500/25 bg-amber-500/[0.08]' },
+            { step: 4, title: 'Code Remediation', desc: 'Copy Express.js fix & retest target', icon: Code2, tone: 'emerald', color: 'text-emerald-300 border-emerald-500/25 bg-emerald-500/[0.08]' },
+            { step: 5, title: 'Audit & Reports', desc: 'View Activity Stream & generate PDF', icon: FileText, tone: 'blue', color: 'text-blue-300 border-blue-500/25 bg-blue-500/[0.08]' },
           ].map((item) => {
             const Icon = item.icon;
             const isSelected = activeStep === item.step;
@@ -432,21 +444,21 @@ app.use(helmet({
                 className={cn(
                   'flex flex-col justify-between rounded-xl border p-4 text-left transition duration-200 cursor-pointer group',
                   isSelected
-                    ? 'border-cyan-400 bg-slate-900 shadow-lg scale-102 ring-1 ring-cyan-400/50'
+                    ? 'bg-white/[0.08] backdrop-blur-xl border-white/[0.14] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] scale-[1.02]'
                     : 'border-slate-800 bg-slate-950/80 hover:border-slate-700 hover:bg-slate-900'
                 )}
               >
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-800 text-xs font-mono font-bold text-slate-300">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-800 border border-slate-700 font-mono text-[11px] font-bold text-slate-300">
                       {item.step}
                     </span>
                     <div className={cn('flex h-8 w-8 items-center justify-center rounded-lg border', item.color)}>
-                      <Icon className="h-4 w-4" />
+                      <Icon size={15} strokeWidth={2.2} />
                     </div>
                   </div>
-                  <h4 className="text-xs font-bold text-white mb-1 group-hover:text-cyan-300 transition">{item.title}</h4>
-                  <p className="text-[11px] text-slate-400 leading-snug">{item.desc}</p>
+                  <h4 className="text-xs font-bold tracking-tight text-white mb-1 group-hover:text-cyan-200 transition">{item.title}</h4>
+                  <p className="text-[11px] leading-snug text-slate-400">{item.desc}</p>
                 </div>
                 <button
                   type="button"
@@ -455,7 +467,7 @@ app.use(helmet({
                     setActiveStep(item.step);
                     setModalStep(item.step);
                   }}
-                  className="mt-3 flex items-center text-[10px] font-mono font-semibold text-cyan-400 group-hover:underline"
+                  className="mt-3 flex items-center font-mono text-[10px] font-bold uppercase tracking-wider text-cyan-300 group-hover:underline"
                 >
                   <span>View Details</span>
                   <ArrowRight className="h-3 w-3 ml-1" />
@@ -473,7 +485,7 @@ app.use(helmet({
             onClick={() => setModalStep(null)}
             className="fixed inset-0 bg-black/80 backdrop-blur-xs transition-opacity"
           />
-          <div className="relative w-full max-w-2xl rounded-2xl border border-slate-800 bg-slate-950 p-6 shadow-2xl z-10 space-y-5">
+          <div className="relative w-full max-w-2xl rounded-2xl border border-slate-800 bg-[#090f1f] p-6 shadow-2xl z-10 space-y-5">
             {/* Modal Header */}
             <div className="flex items-start justify-between border-b border-slate-800 pb-4">
               <div className="flex items-center gap-3">
@@ -481,8 +493,8 @@ app.use(helmet({
                   {modalStep}
                 </span>
                 <div>
-                  <h3 className="text-lg font-bold text-white">{stepDetails[modalStep].subtitle}</h3>
-                  <p className="text-xs text-slate-400">{stepDetails[modalStep].desc}</p>
+                  <h3 className="text-lg font-bold tracking-tight text-white">{stepDetails[modalStep].subtitle}</h3>
+                  <p className="mt-0.5 text-xs text-slate-400">{stepDetails[modalStep].desc}</p>
                 </div>
               </div>
               <button
@@ -516,7 +528,7 @@ app.use(helmet({
               </div>
 
               <div className="flex items-center gap-2">
-                <Button variant="outline" onClick={() => setModalStep(null)} className="text-xs">
+                <Button variant="outline" onClick={() => setModalStep(null)}>
                   Close
                 </Button>
                 {stepDetails[modalStep].navTo && (
@@ -525,7 +537,6 @@ app.use(helmet({
                       setModalStep(null);
                       navigate(stepDetails[modalStep].navTo);
                     }}
-                    className="bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold"
                   >
                     {stepDetails[modalStep].navText} →
                   </Button>
@@ -539,7 +550,7 @@ app.use(helmet({
       {/* Step-by-Step Detailed Explanations (Step 1 to Step 5) */}
       <div className="space-y-6">
         {/* Step 1 */}
-        <Card className={cn('border-slate-800 bg-[#0a101d] p-6 shadow-lg space-y-4', activeStep === 1 && 'ring-1 ring-cyan-500/40')}>
+        <Card className={cn('border-slate-800 bg-[#090f1f] p-5 shadow-md space-y-4', activeStep === 1 && 'ring-1 ring-cyan-500/40')}>
           <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
             <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-600/20 font-mono text-sm font-bold text-cyan-400 border border-cyan-500/30">
               1
@@ -592,7 +603,7 @@ app.use(helmet({
         </Card>
 
         {/* Step 2 */}
-        <Card className={cn('border-slate-800 bg-[#0a101d] p-6 shadow-lg space-y-4', activeStep === 2 && 'ring-1 ring-cyan-500/40')}>
+        <Card className={cn('border-slate-800 bg-[#090f1f] p-5 shadow-md space-y-4', activeStep === 2 && 'ring-1 ring-cyan-500/40')}>
           <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
             <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-600/20 font-mono text-sm font-bold text-purple-400 border border-purple-500/30">
               2
@@ -658,7 +669,7 @@ app.use(helmet({
         </Card>
 
         {/* Step 3 */}
-        <Card className={cn('border-slate-800 bg-[#0a101d] p-6 shadow-lg space-y-4', activeStep === 3 && 'ring-1 ring-cyan-500/40')}>
+        <Card className={cn('border-slate-800 bg-[#090f1f] p-5 shadow-md space-y-4', activeStep === 3 && 'ring-1 ring-cyan-500/40')}>
           <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
             <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-600/20 font-mono text-sm font-bold text-amber-400 border border-amber-500/30">
               3
@@ -706,7 +717,7 @@ Date: Sun, 13 Sep 2026 14:55:00 GMT
         </Card>
 
         {/* Step 4 */}
-        <Card className={cn('border-slate-800 bg-[#0a101d] p-6 shadow-lg space-y-4', activeStep === 4 && 'ring-1 ring-cyan-500/40')}>
+        <Card className={cn('border-slate-800 bg-[#090f1f] p-5 shadow-md space-y-4', activeStep === 4 && 'ring-1 ring-cyan-500/40')}>
           <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
             <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-600/20 font-mono text-sm font-bold text-emerald-400 border border-emerald-500/30">
               4
@@ -759,7 +770,7 @@ app.use(helmet({
         </Card>
 
         {/* Step 5 */}
-        <Card className={cn('border-slate-800 bg-[#0a101d] p-6 shadow-lg space-y-4', activeStep === 5 && 'ring-1 ring-cyan-500/40')}>
+        <Card className={cn('border-slate-800 bg-[#090f1f] p-5 shadow-md space-y-4', activeStep === 5 && 'ring-1 ring-cyan-500/40')}>
           <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
             <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-600/20 font-mono text-sm font-bold text-blue-400 border border-blue-500/30">
               5
@@ -812,14 +823,14 @@ app.use(helmet({
       </div>
 
       {/* Interactive Jargon Buster / Glossary Section */}
-      <Card className="border-slate-800 bg-[#0a101d] p-6 shadow-xl space-y-5">
+      <Card className="border-slate-800 bg-[#090f1f] p-5 shadow-md space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
           <div>
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <HelpCircle className="h-5 w-5 text-cyan-400" />
+            <h3 className="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+              <PremiumIcon icon={HelpCircle} tone="cyan" size="sm" />
               <span>Jargon Buster & Term Glossary</span>
             </h3>
-            <p className="text-xs text-slate-400">Search any cybersecurity term for both Technical and Simple English definitions</p>
+            <p className="mt-0.5 text-xs text-slate-400">Search any cybersecurity term for both Technical and Simple English definitions</p>
           </div>
 
           <div className="relative min-w-[260px]">
@@ -834,12 +845,12 @@ app.use(helmet({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           {filteredGlossary.map((item, idx) => (
-            <div key={idx} className="rounded-xl border border-slate-800 bg-slate-950/80 p-4 space-y-2 hover:border-slate-700 transition">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-bold text-cyan-300 font-mono">{item.term}</h4>
-                <span className="rounded bg-slate-800 px-2 py-0.5 font-mono text-[9px] text-slate-400 uppercase tracking-wider font-semibold">
+            <div key={idx} className="rounded-xl border border-slate-800 bg-slate-950/80 p-4 space-y-2 shadow-sm transition hover:border-slate-700 hover:shadow-md">
+              <div className="flex items-center justify-between gap-2">
+                <h4 className="text-xs font-bold tracking-tight text-cyan-200 font-mono">{item.term}</h4>
+                <span className="rounded-md bg-slate-800 border border-slate-700 px-2 py-0.5 font-mono text-[9px] text-slate-400 uppercase tracking-[0.14em] font-bold">
                   {item.category}
                 </span>
               </div>

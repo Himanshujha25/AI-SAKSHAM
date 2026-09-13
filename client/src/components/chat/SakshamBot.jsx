@@ -56,6 +56,18 @@ export function SakshamBot() {
   const [greeted, setGreeted] = useState(false);
   const bottomRef = useRef(null);
   const authed = !!user;
+  const identity = authed ? (user?._id || user?.id || user?.email || 'user') : 'guest';
+
+  // Reset stale conversation on login/logout/account-switch so the bot never
+  // shows a cached "full visibility" greeting after access is gone (or vice versa).
+  const identityRef = useRef(identity);
+  useEffect(() => {
+    if (identityRef.current !== identity) {
+      identityRef.current = identity;
+      setMsgs([]);
+      setGreeted(false);
+    }
+  }, [identity]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });

@@ -76,15 +76,15 @@ function LandingHeader() {
         </nav>
         <div className="flex min-w-0 shrink-0 items-center gap-3">
           {user ? (
-            <Link to="/dashboard" className="rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:shadow-[0_0_24px_-4px_rgba(34,211,238,0.7)]">
+            <Link to="/dashboard" className="rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-4 py-2 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12] hover:border-white/20">
               Dashboard
             </Link>
           ) : (
             <>
-              <Link to="/auth/login" className="flex items-center gap-1.5 rounded-xl bg-white/[0.05] px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/[0.1] hover:text-white border border-white/10">
+              <Link to="/auth/login" className="flex items-center gap-1.5 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-4 py-2 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12] hover:border-white/20">
                 <KeyRound size={14} /> Sign in
               </Link>
-              <Link to="/auth/register" className="group rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 px-4 py-2 text-sm font-bold text-slate-950 transition hover:-translate-y-0.5 hover:shadow-[0_0_24px_-4px_rgba(34,211,238,0.7)]">
+              <Link to="/auth/register" className="group rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-4 py-2 text-sm font-bold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12] hover:border-white/20">
                 Request access <ArrowRight size={14} className="ml-1 inline transition group-hover:translate-x-0.5" />
               </Link>
             </>
@@ -178,7 +178,7 @@ function MockVideoPlayer() {
           {!isPlaying && (
             <button
               onClick={() => setIsPlaying(true)}
-              className="group absolute inset-0 m-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 text-slate-950 transition duration-300 hover:scale-110 shadow-[0_0_40px_rgba(34,211,238,0.8)] z-20"
+              className="group absolute inset-0 m-auto flex h-20 w-20 items-center justify-center rounded-full bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition duration-300 hover:bg-white/[0.12] hover:border-white/20 z-20"
             >
               <Play size={32} className="ml-1 fill-current" />
             </button>
@@ -208,7 +208,7 @@ function MockVideoPlayer() {
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setIsPlaying(!isPlaying)}
-                className="flex items-center gap-1.5 rounded-lg bg-cyan-500/20 px-3 py-1.5 font-bold text-cyan-300 transition hover:bg-cyan-500/30"
+                className="flex items-center gap-1.5 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12] hover:border-white/20"
               >
                 {isPlaying ? <Pause size={15} /> : <Play size={15} className="fill-current" />}
                 {isPlaying ? 'Pause' : 'Play Video'}
@@ -333,7 +333,7 @@ function InteractiveAnalyzer() {
             {phase === 'COMPLETED' ? (
               <button
                 onClick={resetScan}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-800 px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:bg-slate-700"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-white/[0.04] backdrop-blur-xl border border-white/10 px-4 py-2.5 font-mono text-[11px] font-bold uppercase tracking-wider text-slate-200 transition hover:bg-white/[0.08] hover:text-white hover:border-white/15"
               >
                 <RotateCcw size={15} /> Reset Simulator
               </button>
@@ -341,9 +341,9 @@ function InteractiveAnalyzer() {
               <button
                 onClick={runSimulatedScan}
                 disabled={scanning}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 px-4 py-2.5 text-sm font-bold text-slate-950 transition hover:-translate-y-0.5 hover:shadow-[0_0_24px_-4px_rgba(34,211,238,0.8)] disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-4 py-2.5 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12] hover:border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {scanning ? <Cpu size={16} className="animate-spin text-slate-950" /> : <Play size={16} className="fill-current" />}
+                {scanning ? <Cpu size={16} className="animate-spin" /> : <Play size={16} className="fill-current" />}
                 {scanning ? 'Analyzing Target...' : 'Analyze Target'}
               </button>
             )}
@@ -382,10 +382,10 @@ function InteractiveAnalyzer() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                className={`flex items-center gap-2 rounded-xl px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wider transition backdrop-blur-xl border ${
                   activeTab === tab.id
-                    ? 'bg-cyan-500/20 text-cyan-300 ring-1 ring-cyan-400/40'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-white/[0.08] border-white/[0.14] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+                    : 'border-transparent text-slate-400 hover:text-white hover:bg-white/[0.05]'
                 }`}
               >
                 <tab.icon size={14} /> {tab.label}
@@ -563,10 +563,10 @@ function Hero() {
             Map the attack surface, back every finding with raw PoC evidence, score risk with CVSS, and hand your team an actionable security report.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <a href="#demo-video" className="group rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 px-5 py-3 text-sm font-bold text-slate-950 transition hover:-translate-y-0.5 hover:shadow-[0_0_24px_-4px_rgba(34,211,238,0.8)] flex items-center gap-2">
-              <Play size={16} className="fill-current text-slate-950" /> See Live Demo <ArrowRight size={15} className="ml-1 inline transition group-hover:translate-x-1" />
+            <a href="#demo-video" className="group rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-5 py-3 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12] hover:border-white/20 flex items-center gap-2">
+              <Play size={16} className="fill-current" /> See Live Demo <ArrowRight size={15} className="ml-1 inline transition group-hover:translate-x-1" />
             </a>
-            <a href="#analyzer" className="flex items-center gap-2 rounded-xl bg-white/[0.04] px-5 py-3 text-sm font-semibold text-slate-200 transition hover:bg-white/[0.08] hover:text-white">
+            <a href="#analyzer" className="flex items-center gap-2 rounded-xl bg-white/[0.04] backdrop-blur-xl border border-white/10 px-5 py-3 font-mono text-[11px] font-bold uppercase tracking-wider text-slate-200 transition hover:bg-white/[0.08] hover:text-white hover:border-white/15">
               Try Interactive Simulator
             </a>
           </div>
@@ -700,10 +700,10 @@ function CTA() {
           <h2 className="max-w-xl text-3xl font-extrabold tracking-tight text-white md:text-4xl">Bring Your Team into Saksham AI</h2>
           <p className="mt-4 max-w-lg text-slate-300 text-sm md:text-base">Every assessment is scoped to an authorized target, every finding is verified, and every report is ready for stakeholders.</p>
           <div className="relative mt-8 flex flex-wrap gap-4">
-            <Link to="/auth/register" className="rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 px-6 py-3 font-bold text-slate-950 transition hover:-translate-y-0.5 hover:shadow-[0_0_28px_-6px_rgba(34,211,238,0.8)]">
+            <Link to="/auth/register" className="rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-6 py-3 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12] hover:border-white/20">
               Request Access
             </Link>
-            <Link to="/auth/login" className="rounded-xl bg-white/[0.04] px-6 py-3 font-semibold text-slate-200 transition hover:bg-white/[0.08] hover:text-white">
+            <Link to="/auth/login" className="rounded-xl bg-white/[0.04] backdrop-blur-xl border border-white/10 px-6 py-3 font-mono text-[11px] font-bold uppercase tracking-wider text-slate-200 transition hover:bg-white/[0.08] hover:text-white hover:border-white/15">
               Operator Sign In
             </Link>
           </div>

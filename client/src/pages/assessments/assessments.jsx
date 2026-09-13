@@ -46,7 +46,7 @@ import api from '../../lib/api';
 import { getSocket } from '../../lib/socket';
 import { errMsg, cn } from '../../lib/utils';
 import CustomSelect from '../../components/ui/CustomSelect';
-import { PageHeader, LoadingState, ErrorState, EmptyState, StatusBadge, SeverityBadge } from '../../components/shared/shared';
+import { PageHeader, LoadingState, ErrorState, EmptyState, StatusBadge, SeverityBadge, PremiumIcon } from '../../components/shared/shared';
 import { Button, Card, Input } from '../../components/ui/primitives';
 
 const STAGE_LABELS = {
@@ -170,12 +170,10 @@ export function Assessments() {
       {/* Top Header with Date/Time & Continuous Security Widget */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
-            <FlaskConical className="h-6 w-6" />
-          </div>
+          <PremiumIcon icon={FlaskConical} tone="cyan" size="lg" iconSize={22} />
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-white">Security Assessments</h1>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="mt-0.5 text-xs leading-relaxed text-slate-400">
               Queue and execute dynamic vulnerability assessments with live progress tracking.
             </p>
           </div>
@@ -210,113 +208,99 @@ export function Assessments() {
       {/* Top Row: 6 Executive Metric Cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {/* Total Assessments */}
-        <Card className="border-slate-800 bg-slate-900/90 p-3.5 shadow-md">
+        <Card className="border-slate-800 bg-[#090f1f] p-3.5 shadow-md">
           <div className="flex items-center justify-between">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
-              <FlaskConical className="h-3.5 w-3.5" />
-            </div>
-            <Activity className="h-3.5 w-3.5 text-cyan-400 opacity-60" />
+            <PremiumIcon icon={FlaskConical} tone="cyan" size="sm" />
+            <Activity className="h-3.5 w-3.5 text-cyan-400/60" />
           </div>
           <div className="mt-2.5">
-            <span className="text-2xl font-extrabold text-white font-mono">{totalCount}</span>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mt-0.5">Total Assessments</p>
+            <span className="font-mono text-2xl font-extrabold tracking-tight text-white">{totalCount}</span>
+            <p className="mt-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Total Assessments</p>
           </div>
         </Card>
 
         {/* Completed */}
-        <Card className="border-slate-800 bg-slate-900/90 p-3.5 shadow-md">
+        <Card className="border-slate-800 bg-[#090f1f] p-3.5 shadow-md">
           <div className="flex items-center justify-between">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
-              <CheckCircle2 className="h-3.5 w-3.5" />
-            </div>
-            <span className="text-[10px] font-mono text-emerald-400 font-bold">
+            <PremiumIcon icon={CheckCircle2} tone="emerald" size="sm" />
+            <span className="font-mono text-[10px] font-bold text-emerald-300">
               {Math.round((completedCount / (totalCount || 1)) * 100)}%
             </span>
           </div>
           <div className="mt-2.5">
-            <span className="text-2xl font-extrabold text-white font-mono">{completedCount}</span>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mt-0.5">Completed</p>
+            <span className="font-mono text-2xl font-extrabold tracking-tight text-white">{completedCount}</span>
+            <p className="mt-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Completed</p>
           </div>
         </Card>
 
         {/* Failed */}
-        <Card className="border-slate-800 bg-slate-900/90 p-3.5 shadow-md">
+        <Card className="border-slate-800 bg-[#090f1f] p-3.5 shadow-md">
           <div className="flex items-center justify-between">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-red-500/30 bg-red-500/10 text-red-400">
-              <XCircle className="h-3.5 w-3.5" />
-            </div>
-            <span className="text-[10px] font-mono text-red-400 font-bold">
+            <PremiumIcon icon={XCircle} tone="red" size="sm" />
+            <span className="font-mono text-[10px] font-bold text-red-300">
               {Math.round((failedCount / (totalCount || 1)) * 100)}%
             </span>
           </div>
           <div className="mt-2.5">
-            <span className="text-2xl font-extrabold text-white font-mono">{failedCount}</span>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mt-0.5">Failed</p>
+            <span className="font-mono text-2xl font-extrabold tracking-tight text-white">{failedCount}</span>
+            <p className="mt-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Failed</p>
           </div>
         </Card>
 
         {/* Running */}
-        <Card className="border-slate-800 bg-slate-900/90 p-3.5 shadow-md">
+        <Card className="border-slate-800 bg-[#090f1f] p-3.5 shadow-md">
           <div className="flex items-center justify-between">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-blue-500/30 bg-blue-500/10 text-blue-400">
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            </div>
-            <span className="text-[10px] font-mono text-blue-400 font-bold">
+            <PremiumIcon icon={Loader2} tone="blue" size="sm" />
+            <span className="font-mono text-[10px] font-bold text-blue-300">
               {Math.round((runningCount / (totalCount || 1)) * 100)}%
             </span>
           </div>
           <div className="mt-2.5">
-            <span className="text-2xl font-extrabold text-white font-mono">{runningCount}</span>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mt-0.5">Running</p>
+            <span className="font-mono text-2xl font-extrabold tracking-tight text-white">{runningCount}</span>
+            <p className="mt-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Running</p>
           </div>
         </Card>
 
         {/* Queued */}
-        <Card className="border-slate-800 bg-slate-900/90 p-3.5 shadow-md">
+        <Card className="border-slate-800 bg-[#090f1f] p-3.5 shadow-md">
           <div className="flex items-center justify-between">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-400">
-              <Clock className="h-3.5 w-3.5" />
-            </div>
-            <span className="text-[10px] font-mono text-slate-500 font-bold">0%</span>
+            <PremiumIcon icon={Clock} tone="amber" size="sm" />
+            <span className="font-mono text-[10px] font-bold text-slate-500">0%</span>
           </div>
           <div className="mt-2.5">
-            <span className="text-2xl font-extrabold text-white font-mono">{queuedCount}</span>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mt-0.5">Queued</p>
+            <span className="font-mono text-2xl font-extrabold tracking-tight text-white">{queuedCount}</span>
+            <p className="mt-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Queued</p>
           </div>
         </Card>
 
         {/* Avg. Security Score */}
-        <Card className="border-slate-800 bg-slate-900/90 p-3.5 shadow-md">
+        <Card className="border-slate-800 bg-[#090f1f] p-3.5 shadow-md">
           <div className="flex items-center justify-between">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
-              <BarChart2 className="h-3.5 w-3.5" />
-            </div>
-            <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+            <PremiumIcon icon={BarChart2} tone="emerald" size="sm" />
+            <ShieldCheck className="h-3.5 w-3.5 text-emerald-300" />
           </div>
           <div className="mt-2.5">
-            <span className="text-2xl font-extrabold text-emerald-400 font-mono">{avgScore}</span>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mt-0.5">Avg. Security Score</p>
+            <span className="font-mono text-2xl font-extrabold tracking-tight text-emerald-300">{avgScore}</span>
+            <p className="mt-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Avg. Security Score</p>
           </div>
         </Card>
       </div>
 
       {/* Launch New Assessment Control Panel */}
-      <Card className="relative z-30 border-slate-800 bg-slate-900/90 p-4 shadow-xl backdrop-blur">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
-          <div className="flex items-center gap-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded bg-cyan-500/20 text-cyan-400 font-bold text-xs">
-              ▶
-            </div>
+      <Card className="relative z-30 border-slate-800 bg-[#090f1f] p-5 shadow-xl">
+        <div className="mb-4 flex items-center justify-between gap-3 border-b border-slate-800 pb-3">
+          <div className="flex items-center gap-2.5">
+            <PremiumIcon icon={Play} tone="cyan" size="sm" />
             <div>
-              <h3 className="text-sm font-bold text-white tracking-wide">Launch New Assessment</h3>
-              <p className="text-[11px] text-slate-400">
+              <h3 className="text-sm font-bold tracking-tight text-white">Launch New Assessment</h3>
+              <p className="mt-0.5 text-[11px] leading-relaxed text-slate-400">
                 Select a project, target asset, and audit profile to start a security assessment.
               </p>
             </div>
           </div>
 
-          <button className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition">
-            <Sliders className="h-3.5 w-3.5" />
+          <button className="flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-slate-400 transition hover:text-white">
+            <Sliders size={13} />
             <span>Advanced Options</span>
           </button>
         </div>
@@ -384,7 +368,7 @@ export function Assessments() {
             <button
               onClick={() => startMutation.mutate()}
               disabled={startMutation.isPending || !form.projectId || !form.targetId || !form.authorizationConfirmed}
-              className="flex h-[34px] w-full items-center justify-center gap-2 rounded-md bg-cyan-600 hover:bg-cyan-500 font-bold text-xs text-white transition border border-cyan-400/30 shadow-md disabled:opacity-50"
+              className="flex h-[34px] w-full items-center justify-center gap-2 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12] hover:border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {startMutation.isPending ? (
                 <>
@@ -469,8 +453,8 @@ export function Assessments() {
               ]}
             />
 
-            <button className="flex items-center gap-1 rounded-md border border-slate-700/80 bg-slate-800/80 px-2.5 py-1.5 text-xs text-slate-300 hover:bg-slate-700 hover:text-white">
-              <Zap className="h-3.5 w-3.5 text-cyan-400" />
+            <button className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] backdrop-blur-xl px-2.5 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-200 transition hover:bg-white/[0.08] hover:text-white hover:border-white/15">
+              <Zap size={13} />
               <span>Filter</span>
             </button>
           </div>
@@ -613,7 +597,7 @@ export function Assessments() {
                           {isDone && (
                             <Link
                               to={`/assessments/${item._id}`}
-                              className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2.5 py-1 text-[11px] font-bold text-cyan-300 hover:bg-cyan-500/20"
+                              className="rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-white transition hover:bg-white/[0.12]"
                             >
                               View Report
                             </Link>
@@ -621,7 +605,7 @@ export function Assessments() {
                           {isRun && (
                             <Link
                               to={`/assessments/${item._id}`}
-                              className="rounded border border-blue-500/40 bg-blue-500/10 px-2.5 py-1 text-[11px] font-bold text-blue-300 hover:bg-blue-500/20"
+                              className="rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-white transition hover:bg-white/[0.12]"
                             >
                               View Progress
                             </Link>
@@ -629,7 +613,7 @@ export function Assessments() {
                           {isFail && (
                             <Link
                               to={`/assessments/${item._id}`}
-                              className="rounded border border-slate-700 bg-slate-800 px-2.5 py-1 text-[11px] font-bold text-slate-300 hover:bg-slate-700"
+                              className="rounded-xl bg-white/[0.06] backdrop-blur-xl border border-white/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-200 transition hover:bg-white/[0.1] hover:text-white"
                             >
                               View Logs
                             </Link>
@@ -669,10 +653,10 @@ export function Assessments() {
                 key={pNum}
                 onClick={() => setPage(pNum)}
                 className={cn(
-                  'h-7 w-7 rounded border font-bold text-xs transition',
+                  'h-7 w-7 rounded-lg border font-mono text-[11px] font-bold transition backdrop-blur-xl',
                   page === pNum
-                    ? 'border-cyan-500/50 bg-cyan-500/10 text-cyan-300'
-                    : 'border-slate-800 bg-slate-900 text-slate-400 hover:bg-slate-800'
+                    ? 'bg-white/[0.08] border-white/[0.14] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+                    : 'border-slate-800 bg-slate-900 text-slate-400 hover:bg-white/[0.06] hover:text-white hover:border-white/10'
                 )}
               >
                 {pNum}
@@ -919,10 +903,10 @@ export function AssessmentDetail() {
               <button
                 key={f.label}
                 onClick={() => setActiveAssetFilter(f.label)}
-                className={`rounded-md px-2.5 py-1 font-mono text-[10px] font-bold transition ${
+                className={`rounded-xl px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider transition backdrop-blur-xl border ${
                   activeAssetFilter === f.label
-                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                    : 'bg-slate-800/80 text-slate-400 border border-slate-700/60 hover:text-white'
+                    ? 'bg-white/[0.08] border-white/[0.14] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+                    : 'bg-slate-800/80 text-slate-400 border-slate-700/60 hover:text-white hover:bg-white/[0.06]'
                 }`}
               >
                 {f.label} ({f.count})
