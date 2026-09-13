@@ -30,6 +30,7 @@ import {
   Bell,
 } from 'lucide-react';
 import api from '../../lib/api';
+import { useAuth } from '../../store/auth';
 import { errMsg, cn } from '../../lib/utils';
 import CustomSelect from '../../components/ui/CustomSelect';
 import { PageHeader, LoadingState, ErrorState, EmptyState, StatusBadge, PremiumIcon } from '../../components/shared/shared';
@@ -576,6 +577,7 @@ export function Reports() {
 }
 
 export function Settings() {
+  const { user } = useAuth();
   const [apiKey, setApiKey] = useState('sk_live_saksham_' + Math.random().toString(36).substring(2, 12));
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -603,37 +605,60 @@ export function Settings() {
       <PageHeader title="Security & API Settings" subtitle="Configure system parameters, API authentication tokens, and user credentials." />
 
       <div className="grid gap-6 md:grid-cols-2">
-        {/* User Profile Card */}
-        <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-4">
+        {/* User Profile Card — live data from the logged-in account */}
+        <Card className="border-slate-800 bg-[#090f1f] p-5 space-y-4 shadow-md">
           <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
-              <User className="h-5 w-5" />
+            {user?.avatar ? (
+              <img src={user.avatar} alt={user.name} className="h-10 w-10 shrink-0 rounded-lg border border-slate-700 object-cover" />
+            ) : (
+              <PremiumIcon icon={User} tone="cyan" size="md" iconSize={18} />
+            )}
+            <div className="min-w-0">
+              <h3 className="truncate text-sm font-bold tracking-tight text-white">{user?.name || 'SOC Operator'}</h3>
+              <p className="truncate text-xs text-slate-400">{user?.email || 'Not signed in'}</p>
             </div>
-            <div>
-              <h3 className="text-sm font-bold text-white">SOC Operator Profile</h3>
-              <p className="text-xs text-slate-400">Security Analyst Account Information</p>
-            </div>
+            <span className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-emerald-300">
+              <span className="live-dot relative inline-block h-1.5 w-1.5 rounded-full bg-current" /> Active
+            </span>
           </div>
 
           <div className="space-y-3 text-xs">
             <div>
-              <label className="block font-mono text-[10px] uppercase text-slate-400 mb-1 font-semibold">Operator Name</label>
-              <input type="text" readOnly value="Security Lead (SOC Operations)" className="w-full rounded border border-slate-800 bg-slate-950 px-3 py-1.5 text-slate-300 font-medium" />
+              <label className="mb-1 block font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Operator Name</label>
+              <input type="text" readOnly value={user?.name || '—'} className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-1.5 font-medium text-slate-200" />
             </div>
             <div>
-              <label className="block font-mono text-[10px] uppercase text-slate-400 mb-1 font-semibold">Security Role</label>
-              <div className="flex items-center gap-2">
-                <span className="rounded border border-cyan-500/40 bg-cyan-500/10 px-2.5 py-1 font-mono text-[11px] font-bold text-cyan-300 uppercase">
-                  Lead Security Engineer
+              <label className="mb-1 block font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Login Email</label>
+              <input type="text" readOnly value={user?.email || '—'} className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-1.5 font-mono text-slate-200" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="mb-1 block font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Security Role</label>
+                <span className="inline-flex rounded-md border border-cyan-500/25 bg-cyan-500/[0.08] px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-cyan-300">
+                  {user?.role || 'ANALYST'}
                 </span>
-                <span className="rounded border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] text-emerald-400">
-                  • Verified Active
+              </div>
+              <div>
+                <label className="mb-1 block font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Login Method</label>
+                <span className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-slate-200">
+                  {(user?.provider || 'local') === 'google' ? 'Google' : 'Password'}
                 </span>
               </div>
             </div>
-            <div>
-              <label className="block font-mono text-[10px] uppercase text-slate-400 mb-1 font-semibold">Assigned Workspace</label>
-              <input type="text" readOnly value="Enterprise Defense Cluster (Prod-01)" className="w-full rounded border border-slate-800 bg-slate-950 px-3 py-1.5 text-slate-300 font-mono" />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="mb-1 block font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Member Since</label>
+                <input
+                  type="text"
+                  readOnly
+                  value={user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                  className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-1.5 font-mono text-slate-200"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Account ID</label>
+                <input type="text" readOnly value={user?.id ? String(user.id).slice(-8).toUpperCase() : '—'} className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-1.5 font-mono text-slate-200" />
+              </div>
             </div>
           </div>
         </Card>

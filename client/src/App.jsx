@@ -25,6 +25,14 @@ function Protected() {
   return <AppLayout><Outlet /></AppLayout>;
 }
 
+// Logged-in users never see auth pages (also stops Google One Tap re-firing post-login).
+function PublicOnly() {
+  const { user, loading } = useAuth();
+  if (loading) return <p className="p-8 text-sm text-slate-500">Loading session…</p>;
+  if (user) return <Navigate to="/dashboard" replace />;
+  return <Outlet />;
+}
+
 export default function App() {
   return (
     <QueryClientProvider client={qc}>
@@ -33,8 +41,10 @@ export default function App() {
           <AuthProvider>
             <Routes>
               <Route path="/" element={<Landing />} />
-              <Route path="/auth/login" element={<Login />} />
-              <Route path="/auth/register" element={<Register />} />
+              <Route element={<PublicOnly />}>
+                <Route path="/auth/login" element={<Login />} />
+                <Route path="/auth/register" element={<Register />} />
+              </Route>
               <Route element={<Protected />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/projects" element={<Projects />} />

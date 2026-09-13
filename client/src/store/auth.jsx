@@ -40,6 +40,17 @@ export function AuthProvider({ children }) {
     return res.data.user;
   };
 
+  // One-tap Google login: sends the Google credential (ID token from One Tap
+  // or one-time code from the popup) to the server, which verifies it and
+  // creates/links the Gmail account, then returns our own JWT.
+  const googleLogin = async (credential) => {
+    qc.clear();
+    const res = await api.post('/auth/google', credential);
+    localStorage.setItem('saksham_ai_token', res.data.token);
+    setUser(res.data.user);
+    return res.data.user;
+  };
+
   const logout = async () => {
     try {
       await api.post('/auth/logout');
@@ -47,10 +58,13 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('saksham_ai_token');
     qc.clear();
     setUser(null);
+    // Tell Google not to silently re-select this browser's account (One Tap
+    // stays off until the user explicitly clicks Sign in with Google again).
+    try { window.google?.accounts?.id?.disableAutoSelect(); } catch { /* ignore */ }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, googleLogin, logout }}>
       {children}
     </AuthContext.Provider>
   );

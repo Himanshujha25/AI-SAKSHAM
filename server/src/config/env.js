@@ -9,6 +9,8 @@ const env = {
   redisUrl: process.env.REDIS_URL || '',
   aiApiKey: process.env.AI_API_KEY || '',
   aiModel: process.env.AI_MODEL || 'gpt-4o-mini',
+  googleClientId: process.env.GOOGLE_CLIENT_ID || '',
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
 };
 
 if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {

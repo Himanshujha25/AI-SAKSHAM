@@ -10,6 +10,8 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true, minlength: 6, select: false },
     role: { type: String, enum: ROLES, default: 'ANALYST' },
     avatar: { type: String, default: '' },
+    provider: { type: String, enum: ['local', 'google'], default: 'local' },
+    googleId: { type: String, default: undefined, sparse: true, unique: true },
   },
   { timestamps: true }
 );
@@ -31,6 +33,7 @@ userSchema.methods.toSafeJSON = function () {
     email: this.email,
     role: this.role,
     avatar: this.avatar,
+    provider: this.provider || 'local',
     createdAt: this.createdAt,
   };
 };

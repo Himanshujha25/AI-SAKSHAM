@@ -5,6 +5,17 @@ import { ArrowLeft, Moon, Sun, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../store/auth';
 import { errMsg } from '../../lib/utils';
 import { Button, Card, Input, Label } from '../../components/ui/primitives';
+import { GoogleAuth } from '../../components/auth/GoogleAuth';
+
+function OrDivider() {
+  return (
+    <div className="my-1 flex items-center gap-3">
+      <span className="h-px flex-1 bg-slate-200 dark:bg-white/10" />
+      <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">or</span>
+      <span className="h-px flex-1 bg-slate-200 dark:bg-white/10" />
+    </div>
+  );
+}
 
 function AuthThemeToggle() {
   const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'));
@@ -85,14 +96,13 @@ function AuthShell({ mode, title, subtitle, children, switchHint, switchTo, swit
               <p className="mt-4 text-center text-sm text-slate-500">
                 {switchHint} <Link to={switchTo} className="font-medium underline underline-offset-4 transition hover:text-slate-900 dark:hover:text-white">{switchLabel}</Link>
               </p>
-            </Card>
-            <p className="mt-4 text-center text-xs text-slate-400">Authorized testing only · JWT-protected workspace</p>
-          </motion.div>
-        </main>
+              </Card>
+            </motion.div>
+          </main>
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
 export function Login() {
   const { login } = useAuth();
@@ -129,6 +139,8 @@ export function Login() {
         <div><Label>Password</Label><Input type="password" required value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></div>
         {error && <p className="text-sm text-red-600">{error}</p>}
         <Button disabled={busy}>{busy ? 'Signing in…' : 'Sign in →'}</Button>
+        <OrDivider />
+        <GoogleAuth text="signin_with" />
       </form>
     </AuthShell>
   );
@@ -170,6 +182,8 @@ export function Register() {
         <div><Label>Password</Label><Input type="password" required minLength={6} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></div>
         {error && <p className="text-sm text-red-600">{error}</p>}
         <Button disabled={busy}>{busy ? 'Creating…' : 'Create account →'}</Button>
+        <OrDivider />
+        <GoogleAuth text="signup_with" />
       </form>
     </AuthShell>
   );
