@@ -1,11 +1,19 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Moon, Sun, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../store/auth';
-import { errMsg } from '../../lib/utils';
+import { errMsg, safeNext } from '../../lib/utils';
 import { Button, Card, Input, Label } from '../../components/ui/primitives';
 import { GoogleAuth } from '../../components/auth/GoogleAuth';
+
+// Where to land after a successful login: the page the user was on
+// (?next= or router state), falling back to the dashboard.
+export function usePostLoginTarget() {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  return safeNext(params.get('next') || location.state?.from);
+}
 
 function OrDivider() {
   return (
@@ -107,6 +115,7 @@ function AuthShell({ mode, title, subtitle, children, switchHint, switchTo, swit
 export function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const target = usePostLoginTarget();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -117,7 +126,7 @@ export function Login() {
     setError('');
     try {
       await login(form.email, form.password);
-      navigate('/dashboard');
+      navigate(target, { replace: true });
     } catch (err) {
       setError(errMsg(err, 'Login failed'));
     } finally {
@@ -149,6 +158,7 @@ export function Login() {
 export function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
+  const target = usePostLoginTarget();
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -159,7 +169,7 @@ export function Register() {
     setError('');
     try {
       await register(form.name, form.email, form.password);
-      navigate('/dashboard');
+      navigate(target, { replace: true });
     } catch (err) {
       setError(errMsg(err, 'Registration failed'));
     } finally {

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
@@ -28,6 +28,8 @@ import {
   ShieldCheck,
   User,
   Bell,
+  Lock,
+  Save,
 } from 'lucide-react';
 import api from '../../lib/api';
 import { useAuth } from '../../store/auth';
@@ -577,8 +579,17 @@ export function Reports() {
 }
 
 export function Settings() {
-  const { user } = useAuth();
+  const { user, updateProfile } = useAuth();
   const [apiKey, setApiKey] = useState('sk_live_saksham_' + Math.random().toString(36).substring(2, 12));
+  // Editable display name (email stays locked to the login account).
+  const [name, setName] = useState(user?.name || '');
+  const [savingName, setSavingName] = useState(false);
+  const [nameMsg, setNameMsg] = useState(null); // { ok: bool, text: string }
+
+  useEffect(() => {
+    setName(user?.name || '');
+    setNameMsg(null);
+  }, [user?.id]);
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
   const [serverUrl, setServerUrl] = useState(import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1');
@@ -598,6 +609,21 @@ export function Settings() {
     e.preventDefault();
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
+  };
+
+  const nameDirty = name.trim() !== (user?.name || '');
+  const handleSaveName = async () => {
+    if (!name.trim() || !nameDirty || savingName) return;
+    setSavingName(true);
+    setNameMsg(null);
+    try {
+      await updateProfile(name.trim());
+      setNameMsg({ ok: true, text: 'Name saved — updated everywhere in the app.' });
+    } catch (e) {
+      setNameMsg({ ok: false, text: errMsg(e, 'Could not save name') });
+    } finally {
+      setSavingName(false);
+    }
   };
 
   return (
@@ -624,12 +650,41 @@ export function Settings() {
 
           <div className="space-y-3 text-xs">
             <div>
-              <label className="mb-1 block font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Operator Name</label>
-              <input type="text" readOnly value={user?.name || '—'} className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-1.5 font-medium text-slate-200" />
+              <label className="mb-1 block font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Operator Name (editable)</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={name}
+                  maxLength={80}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Your display name"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-medium text-white transition focus:border-cyan-500/60 focus:outline-none focus:ring-1 focus:ring-cyan-500/30"
+                />
+                <Button
+                  onClick={handleSaveName}
+                  disabled={!nameDirty || !name.trim() || savingName}
+                  className="shrink-0 px-3.5"
+                >
+                  {savingName ? <Loader2 size={13} className="animate-spin" /> : nameMsg?.ok ? <Check size={13} className="text-emerald-300" /> : <Save size={13} />}
+                  {savingName ? 'Saving…' : nameMsg?.ok ? 'Saved' : 'Save'}
+                </Button>
+              </div>
+              {nameMsg && !nameMsg.ok && <p className="mt-1.5 font-medium text-red-400">{nameMsg.text}</p>}
+              {nameMsg?.ok && <p className="mt-1.5 font-medium text-emerald-300">{nameMsg.text}</p>}
             </div>
             <div>
-              <label className="mb-1 block font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Login Email</label>
-              <input type="text" readOnly value={user?.email || '—'} className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-1.5 font-mono text-slate-200" />
+              <label className="mb-1 flex items-center gap-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                Login Email <Lock size={11} className="text-slate-500" />
+                <span className="font-medium normal-case tracking-normal text-slate-500">locked to your login account</span>
+              </label>
+              <input
+                type="text"
+                readOnly
+                tabIndex={-1}
+                title="Email cannot be changed — it is your login identity"
+                value={user?.email || '—'}
+                className="w-full cursor-not-allowed select-all rounded-lg border border-slate-800/80 bg-slate-900/60 px-3 py-1.5 font-mono text-slate-400 focus:outline-none"
+              />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>

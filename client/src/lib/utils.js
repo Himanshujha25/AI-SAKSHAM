@@ -6,6 +6,12 @@ export function errMsg(err, fallback = 'Something went wrong') {
   return err?.response?.data?.message || err?.message || fallback;
 }
 
+// Post-login landing page: only same-app paths, never external URLs.
+export function safeNext(raw) {
+  if (typeof raw === 'string' && raw.startsWith('/') && !raw.startsWith('//')) return raw;
+  return '/dashboard';
+}
+
 // Build a reproducible PoC cURL command from a finding's HTTP trace.
 // Safe-by-design: GET/HEAD only snapshots; analyst edits before running.
 export function buildCurl(finding = {}) {

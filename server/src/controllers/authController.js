@@ -33,6 +33,21 @@ const me = asyncHandler(async (req, res) => {
   res.json({ user: req.user.toSafeJSON() });
 });
 
+// PATCH /auth/me { name } — rename only. Email/role/provider can never be
+// changed here (identity stays locked to the login account).
+const updateMe = asyncHandler(async (req, res) => {
+  const { name } = req.body || {};
+  if (!name || typeof name !== 'string' || !name.trim()) {
+    return res.status(400).json({ message: 'name is required' });
+  }
+  if (name.trim().length > 80) {
+    return res.status(400).json({ message: 'name is too long (max 80 chars)' });
+  }
+  req.user.name = name.trim().slice(0, 80);
+  await req.user.save();
+  res.json({ user: req.user.toSafeJSON() });
+});
+
 const logout = asyncHandler(async (req, res) => {
   // Stateless JWT: client discards token. Endpoint exists for symmetrical API.
   res.json({ message: 'Logged out' });
@@ -98,9 +113,10 @@ const google = asyncHandler(async (req, res) => {
 
   if (user) {
     // Link Google identity to the existing account (keeps role + password login intact).
+    // Avatar always refreshes to the latest Google photo (dynamic sync).
     let changed = false;
     if (!user.googleId) { user.googleId = payload.sub; changed = true; }
-    if (!user.avatar && payload.picture) { user.avatar = payload.picture; changed = true; }
+    if (payload.picture && user.avatar !== payload.picture) { user.avatar = payload.picture; changed = true; }
     if (changed) await user.save();
   } else {
     user = await User.create({
@@ -116,4 +132,4 @@ const google = asyncHandler(async (req, res) => {
   res.json({ token: signToken(user), user: user.toSafeJSON() });
 });
 
-module.exports = { register, login, me, logout, google };
+module.exports = { register, login, me, updateMe, logout, google };

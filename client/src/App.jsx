@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './store/auth';
 import { AppLayout } from './components/layout/layout';
@@ -20,8 +20,11 @@ const qc = new QueryClient();
 
 function Protected() {
   const { user, loading } = useAuth();
+  const location = useLocation();
   if (loading) return <p className="p-8 text-sm text-slate-500">Loading session…</p>;
-  if (!user) return <Navigate to="/auth/login" replace />;
+  // Remember where the refresh/login interruption happened so auth can send
+  // the user straight back to the same page afterwards.
+  if (!user) return <Navigate to="/auth/login" replace state={{ from: location.pathname + location.search }} />;
   return <AppLayout><Outlet /></AppLayout>;
 }
 

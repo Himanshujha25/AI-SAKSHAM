@@ -16,11 +16,12 @@ api.interceptors.response.use(
   (err) => {
     if (err.response?.status === 401) {
       localStorage.removeItem('saksham_ai_token');
-      // Only redirect if we're not on a public page (landing, auth pages, etc)
-      const currentPath = window.location.pathname;
-      const isPublicPage = currentPath === '/' || currentPath.startsWith('/auth');
-      if (!isPublicPage && !currentPath.startsWith('/auth')) {
-        window.location.href = '/auth/login';
+      // Only redirect if we're not on a public page (landing, auth pages, etc).
+      // Preserve the current page so re-login lands straight back here.
+      const currentPath = window.location.pathname + window.location.search;
+      const isPublicPage = window.location.pathname === '/' || window.location.pathname.startsWith('/auth');
+      if (!isPublicPage) {
+        window.location.href = '/auth/login?next=' + encodeURIComponent(currentPath);
       }
     }
     return Promise.reject(err);

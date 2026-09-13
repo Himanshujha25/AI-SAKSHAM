@@ -14,6 +14,7 @@ router.post('/register', authLimiter, c.register);
 router.post('/login', authLimiter, c.login);
 router.post('/google', authLimiter, c.google);
 router.get('/me', protect, c.me);
+router.patch('/me', protect, c.updateMe);
 router.post('/logout', protect, c.logout);
 module.exports = router;
 

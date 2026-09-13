@@ -123,7 +123,7 @@ export function SakshamBot() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.97 }}
             transition={{ duration: 0.2 }}
-            className="flex h-[480px] w-[330px] max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#070b16] dark:shadow-[0_0_60px_-12px_rgba(34,211,238,0.35)]"
+            className="flex h-[480px] w-[330px] max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#070b16] dark:shadow-2xl dark:shadow-black/60"
           >
             {/* Header */}
             <div className="flex items-center gap-2.5 border-b border-slate-200 bg-slate-50 px-4 py-3 dark:border-white/10 dark:bg-white/[0.04]">
@@ -213,7 +213,7 @@ export function SakshamBot() {
               <button
                 type="submit"
                 disabled={busy || !input.trim()}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white transition hover:-translate-y-px hover:shadow-lg disabled:opacity-40 dark:bg-cyan-400 dark:text-slate-950 dark:shadow-[0_0_20px_-6px_rgba(34,211,238,0.7)]"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white transition hover:-translate-y-px disabled:opacity-40 dark:border dark:border-white/[0.14] dark:bg-white/[0.08] dark:text-white dark:backdrop-blur-xl dark:hover:bg-white/[0.12] dark:hover:translate-y-0"
               >
                 <Send size={15} />
               </button>
@@ -222,23 +222,20 @@ export function SakshamBot() {
         )}
       </AnimatePresence>
 
-      {/* FAB */}
+      {/* FAB — flat frosted, no glow */}
       <motion.button
         whileHover={{ scale: 1.07 }}
         whileTap={{ scale: 0.93 }}
         onClick={() => { setOpen((o) => !o); greet(); }}
-        className="relative flex h-[54px] w-[54px] items-center justify-center rounded-full bg-gradient-to-b from-[#0d1628] to-[#060b16] text-cyan-300 ring-2 ring-cyan-400/50 shadow-[0_0_30px_-4px_rgba(34,211,238,0.65),inset_0_1px_0_rgba(255,255,255,0.15)] transition"
+        className="relative flex h-[54px] w-[54px] items-center justify-center rounded-full border border-white/[0.14] bg-white/[0.08] text-slate-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl transition hover:bg-white/[0.12] hover:border-white/20"
         title="Chat with Saksham Bot"
       >
-        {!open && (
-          <span className="absolute inset-0 animate-ping rounded-full bg-cyan-400/20" style={{ animationDuration: '2.4s' }} />
-        )}
         {open
           ? <X size={22} className="relative" />
-          : <Bot size={25} className="relative drop-shadow-[0_0_8px_rgba(34,211,238,0.9)]" />}
+          : <Bot size={25} className="relative" />}
         {!open && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#060b16] ring-2 ring-cyan-400/50">
-            <span className="live-dot relative inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 text-emerald-400" />
+          <span className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full border border-white/15 bg-[#0b1120]">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
           </span>
         )}
       </motion.button>

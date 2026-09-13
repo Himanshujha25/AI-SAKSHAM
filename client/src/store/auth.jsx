@@ -15,13 +15,31 @@ export function AuthProvider({ children }) {
       setLoading(false);
       return;
     }
-    api.get('/auth/me')
-      .then((res) => setUser(res.data.user))
-      .catch(() => {
-        localStorage.removeItem('saksham_ai_token');
-        qc.clear();
-      })
-      .finally(() => setLoading(false));
+    let cancelled = false;
+    // Rehydrate the session without ever killing a good token on a mere
+    // network hiccup: only a 401 (invalid/expired token) wipes storage.
+    // Anything else (server booting, flaky net) keeps the token — one retry,
+    // then the UI just waits for the backend instead of logging out.
+    const restore = async (retried = false) => {
+      try {
+        const res = await api.get('/auth/me');
+        if (!cancelled) setUser(res.data.user);
+      } catch (err) {
+        if (cancelled) return;
+        if (err?.response?.status === 401) {
+          localStorage.removeItem('saksham_ai_token');
+          qc.clear();
+        } else if (!retried) {
+          await new Promise((r) => setTimeout(r, 1200));
+          if (!cancelled) await restore(true);
+          return;
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    restore();
+    return () => { cancelled = true; };
   }, [qc]);
 
   const login = async (email, password) => {
@@ -51,6 +69,14 @@ export function AuthProvider({ children }) {
     return res.data.user;
   };
 
+  // Rename only (email/role stay locked). Server returns the fresh user,
+  // so every screen (navbar, bot, settings) updates instantly.
+  const updateProfile = async (name) => {
+    const res = await api.patch('/auth/me', { name });
+    setUser(res.data.user);
+    return res.data.user;
+  };
+
   const logout = async () => {
     try {
       await api.post('/auth/logout');
@@ -64,7 +90,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, googleLogin, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, googleLogin, updateProfile, logout }}>
       {children}
     </AuthContext.Provider>
   );

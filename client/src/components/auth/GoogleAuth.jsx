@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '../../store/auth';
-import { errMsg } from '../../lib/utils';
+import { errMsg, safeNext } from '../../lib/utils';
 
 const GIS_SRC = 'https://accounts.google.com/gsi/client';
 let gisPromise = null;
@@ -48,6 +48,9 @@ function GoogleMark() {
 export function GoogleAuth({ text = 'continue_with' }) {
   const { user, googleLogin } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  // After Google login, return to the page the user was on (?next= / state).
+  const target = safeNext(new URLSearchParams(location.search).get('next') || location.state?.from);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const clientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim();
@@ -68,7 +71,7 @@ export function GoogleAuth({ text = 'continue_with' }) {
         try {
           await googleLogin({ idToken: resp.credential });
           try { window.google.accounts.id.cancel(); } catch { /* ignore */ }
-          navigate('/dashboard', { replace: true });
+          navigate(target, { replace: true });
         } catch (e) {
           if (mountedRef.current) {
             setError(errMsg(e, 'Google login failed'));
@@ -134,7 +137,7 @@ export function GoogleAuth({ text = 'continue_with' }) {
             if (mountedRef.current) setError('');
             try {
               await googleLogin({ code: resp.code });
-              navigate('/dashboard', { replace: true });
+              navigate(target, { replace: true });
             } catch (e) {
               if (mountedRef.current) {
                 setError(errMsg(e, 'Google login failed'));
