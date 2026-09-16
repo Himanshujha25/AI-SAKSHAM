@@ -26,10 +26,16 @@ app.set('io', null);
 app.use(helmet());
 app.use(cors({
   origin: (origin, cb) => {
-    // Allow same-origin / curl / mobile (no Origin header) + whitelisted web origins.
-    // CLIENT_URL can be comma-separated: "http://localhost:5173,https://ai-saksham-mocha.vercel.app"
+    // Allow same-origin / curl / mobile / server-to-server (no Origin header)
     if (!origin) return cb(null, true);
-    if (env.clientUrls.includes(origin)) return cb(null, true);
+
+    const cleanOrigin = origin.trim().replace(/\/$/, '');
+    const isWhitelisted =
+      env.clientUrls.includes(cleanOrigin) ||
+      /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(cleanOrigin) ||
+      /^https:\/\/ai-saksham.*\.vercel\.app$/.test(cleanOrigin);
+
+    if (isWhitelisted) return cb(null, true);
     return cb(new Error(`CORS blocked for origin ${origin}`));
   },
   credentials: true,

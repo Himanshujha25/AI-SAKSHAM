@@ -772,7 +772,7 @@ export function Projects() {
                         onChange={(e) => setForm({ ...form, image: e.target.value })}
                       />
                       <span className="text-[10px] text-slate-500 mt-1 block font-mono">
-                        Click 'Upload' to pick an image file or paste an image URL.
+                        Click 'Upload' to pick an image file or paste an image URL
                       </span>
                     </div>
                   </div>

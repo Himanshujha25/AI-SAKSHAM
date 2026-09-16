@@ -22,7 +22,23 @@ async function main() {
     console.warn('[server] recovery skipped:', e.message);
   }
   const server = http.createServer(app);
-  const io = new Server(server, { cors: { origin: env.clientUrls, methods: ['GET', 'POST', 'PATCH'] } });
+  const io = new Server(server, {
+    cors: {
+      origin: (origin, cb) => {
+        if (!origin) return cb(null, true);
+        const cleanOrigin = origin.trim().replace(/\/$/, '');
+        const isWhitelisted =
+          env.clientUrls.includes(cleanOrigin) ||
+          /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(cleanOrigin) ||
+          /^https:\/\/ai-saksham.*\.vercel\.app$/.test(cleanOrigin);
+
+        if (isWhitelisted) return cb(null, true);
+        return cb(new Error('CORS blocked for socket origin'));
+      },
+      methods: ['GET', 'POST', 'PATCH'],
+      credentials: true,
+    },
+  });
   app.set('io', io);
 
   io.on('connection', (socket) => {
