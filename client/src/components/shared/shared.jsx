@@ -1,58 +1,76 @@
 import { motion } from 'framer-motion';
+import {
+  AlertOctagon,
+  AlertTriangle,
+  BarChart2,
+  CheckCircle2,
+  Info,
+  Clock,
+  Activity,
+  XCircle,
+  Shield,
+  Loader2
+} from 'lucide-react';
 import { cn } from '../../lib/utils';
 
-// Severity colors & status configurations — professional enterprise dark mode badges.
+// Severity colors, icons & status configurations — professional enterprise dark mode badges.
 const SEVERITY_CONFIG = {
-  Critical: { style: 'bg-red-500/10 text-red-300 border-red-500/30', dot: 'bg-red-500' },
-  High: { style: 'bg-orange-500/10 text-orange-300 border-orange-500/30', dot: 'bg-orange-500' },
-  Medium: { style: 'bg-amber-500/10 text-amber-300 border-amber-500/30', dot: 'bg-amber-500' },
-  Low: { style: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30', dot: 'bg-emerald-500' },
-  Informational: { style: 'bg-slate-800 text-slate-300 border-slate-700', dot: 'bg-slate-400' },
+  Critical: { style: 'bg-red-500/10 text-red-300 border-red-500/30', dot: 'bg-red-500', icon: AlertOctagon },
+  High: { style: 'bg-orange-500/10 text-orange-300 border-orange-500/30', dot: 'bg-orange-500', icon: AlertTriangle },
+  Medium: { style: 'bg-amber-500/10 text-amber-300 border-amber-500/30', dot: 'bg-amber-500', icon: BarChart2 },
+  Low: { style: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30', dot: 'bg-emerald-500', icon: CheckCircle2 },
+  Informational: { style: 'bg-slate-800 text-slate-300 border-slate-700', dot: 'bg-slate-400', icon: Info },
 };
 
 const STATUS_CONFIG = {
-  Verified: { style: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30', dot: 'bg-emerald-500' },
-  'Under Review': { style: 'bg-amber-500/10 text-amber-300 border-amber-500/30', dot: 'bg-amber-500' },
-  Potential: { style: 'bg-sky-500/10 text-sky-300 border-sky-500/30', dot: 'bg-sky-500' },
-  Detected: { style: 'bg-sky-500/10 text-sky-300 border-sky-500/30', dot: 'bg-sky-500' },
-  'False Positive': { style: 'bg-slate-800 text-slate-400 border-slate-700', dot: 'bg-slate-500' },
-  Resolved: { style: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30', dot: 'bg-emerald-500' },
-  'Accepted Risk': { style: 'bg-purple-500/10 text-purple-300 border-purple-500/30', dot: 'bg-purple-500' },
-  RUNNING: { style: 'bg-sky-500/10 text-sky-300 border-sky-500/40', dot: 'bg-sky-400 animate-pulse' },
-  COMPLETED: { style: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30', dot: 'bg-emerald-500' },
-  FAILED: { style: 'bg-red-500/10 text-red-300 border-red-500/30', dot: 'bg-red-500' },
-  QUEUED: { style: 'bg-amber-500/10 text-amber-300 border-amber-500/30', dot: 'bg-amber-500' },
-  CANCELLED: { style: 'bg-slate-800 text-slate-400 border-slate-700', dot: 'bg-slate-500' },
+  Verified: { style: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30', dot: 'bg-emerald-500', icon: CheckCircle2 },
+  'Under Review': { style: 'bg-amber-500/10 text-amber-300 border-amber-500/30', dot: 'bg-amber-500', icon: Clock },
+  Potential: { style: 'bg-sky-500/10 text-sky-300 border-sky-500/30', dot: 'bg-sky-500', icon: Activity },
+  Detected: { style: 'bg-sky-500/10 text-sky-300 border-sky-500/30', dot: 'bg-sky-500', icon: Activity },
+  'False Positive': { style: 'bg-slate-800 text-slate-400 border-slate-700', dot: 'bg-slate-500', icon: Shield },
+  Resolved: { style: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30', dot: 'bg-emerald-500', icon: CheckCircle2 },
+  'Accepted Risk': { style: 'bg-purple-500/10 text-purple-300 border-purple-500/30', dot: 'bg-purple-500', icon: Shield },
+  RUNNING: { style: 'bg-sky-500/10 text-sky-300 border-sky-500/40', dot: 'bg-sky-400 animate-pulse', icon: Activity },
+  COMPLETED: { style: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30', dot: 'bg-emerald-500', icon: CheckCircle2 },
+  FAILED: { style: 'bg-red-500/10 text-red-300 border-red-500/30', dot: 'bg-red-500', icon: XCircle },
+  QUEUED: { style: 'bg-amber-500/10 text-amber-300 border-amber-500/30', dot: 'bg-amber-500', icon: Clock },
+  CANCELLED: { style: 'bg-slate-800 text-slate-400 border-slate-700', dot: 'bg-slate-500', icon: Shield },
 };
 
 export function SeverityBadge({ severity, className }) {
   const conf = SEVERITY_CONFIG[severity] || SEVERITY_CONFIG.Informational;
+  const SevIcon = conf.icon;
   return (
     <span
       className={cn(
-        'inline-flex items-center shrink-0 rounded border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider',
+        'inline-flex items-center gap-1.5 shrink-0 rounded border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider',
         conf.style,
         className
       )}
+      role="status"
+      aria-label={`Severity: ${severity}`}
     >
-      <span className={cn('h-1.5 w-1.5 rounded-full mr-1.5 shrink-0', conf.dot)} />
-      {severity}
+      <SevIcon className="h-3 w-3 shrink-0" aria-hidden="true" />
+      <span>{severity}</span>
     </span>
   );
 }
 
 export function StatusBadge({ status, className }) {
-  const conf = STATUS_CONFIG[status] || { style: 'bg-slate-800 text-slate-300 border-slate-700', dot: 'bg-slate-400' };
+  const conf = STATUS_CONFIG[status] || { style: 'bg-slate-800 text-slate-300 border-slate-700', dot: 'bg-slate-400', icon: Info };
+  const StatIcon = conf.icon;
   return (
     <span
       className={cn(
-        'inline-flex items-center shrink-0 rounded border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider',
+        'inline-flex items-center gap-1.5 shrink-0 rounded border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider',
         conf.style,
         className
       )}
+      role="status"
+      aria-label={`Status: ${status}`}
     >
-      <span className={cn('h-1.5 w-1.5 rounded-full mr-1.5 shrink-0', conf.dot)} />
-      {status}
+      <StatIcon className="h-3 w-3 shrink-0" aria-hidden="true" />
+      <span>{status}</span>
     </span>
   );
 }
@@ -151,12 +169,149 @@ export function EmptyState({ title, hint, icon: Icon }) {
 
 export function ErrorState({ message, onRetry }) {
   return (
-    <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-400/30 dark:bg-red-500/10 dark:text-red-300">
-      <p>{message}</p>
-      {onRetry && <button onClick={onRetry} className="mt-2 font-medium underline underline-offset-4 transition hover:opacity-80">Retry</button>}
+    <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300" role="alert">
+      <div className="flex items-center gap-2 font-bold mb-1">
+        <XCircle className="h-4 w-4 text-red-400" />
+        <span>Operation Error</span>
+      </div>
+      <p className="text-xs text-red-200/90">{message}</p>
+      {onRetry && (
+        <button
+          onClick={onRetry}
+          className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-red-500/40 bg-red-500/20 px-3 py-1.5 font-mono text-xs font-bold text-red-200 hover:bg-red-500/30 transition min-h-[44px]"
+        >
+          Retry Request
+        </button>
+      )}
+    </div>
+  );
+}
+
+// —— Skeletons for Cumulative Layout Shift (CLS) Prevention ——
+export function SkeletonBlock({ className = '' }) {
+  return <div className={cn('animate-pulse rounded-lg bg-slate-800/60', className)} aria-hidden="true" />;
+}
+
+export function StatCardSkeleton() {
+  return (
+    <div className="rounded-xl border border-slate-800 bg-[#090f1f] p-4 shadow-sm space-y-3">
+      <div className="flex items-center justify-between">
+        <SkeletonBlock className="h-3 w-20" />
+        <SkeletonBlock className="h-5 w-5 rounded-md" />
+      </div>
+      <SkeletonBlock className="h-8 w-16" />
+      <SkeletonBlock className="h-2.5 w-24" />
+    </div>
+  );
+}
+
+export function TableSkeleton({ rows = 5, cols = 5 }) {
+  return (
+    <div className="rounded-xl border border-slate-800 bg-[#090f1f] p-4 space-y-4">
+      <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+        <SkeletonBlock className="h-4 w-32" />
+        <SkeletonBlock className="h-8 w-24 rounded-lg" />
+      </div>
+      <div className="space-y-3">
+        {Array.from({ length: rows }).map((_, i) => (
+          <div key={i} className="flex items-center gap-3">
+            {Array.from({ length: cols }).map((_, j) => (
+              <SkeletonBlock key={j} className="h-4 flex-1" />
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function PageSkeleton({ title = 'Loading Workspace...' }) {
+  return (
+    <div className="space-y-6 animate-in fade-in duration-200" aria-busy="true" aria-label="Loading content">
+      <div className="flex items-center justify-between gap-4">
+        <div className="space-y-2">
+          <SkeletonBlock className="h-8 w-48" />
+          <SkeletonBlock className="h-4 w-72" />
+        </div>
+        <SkeletonBlock className="h-10 w-32 rounded-xl" />
+      </div>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatCardSkeleton />
+        <StatCardSkeleton />
+        <StatCardSkeleton />
+        <StatCardSkeleton />
+      </div>
+      <TableSkeleton rows={4} cols={5} />
+    </div>
+  );
+}
+
+export function AuthSkeleton({ mode = 'register' }) {
+  return (
+    <div className="h-screen max-h-screen w-full flex flex-col overflow-hidden bg-slate-50 text-slate-900 dark:bg-[#04060d] dark:text-slate-100" aria-busy="true" aria-label="Loading security authentication...">
+      {/* Header Skeleton */}
+      <header className="shrink-0 h-16 w-full border-b border-slate-200/60 dark:border-white/10 px-4 md:px-8 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <SkeletonBlock className="h-8 w-8 rounded-lg" />
+          <SkeletonBlock className="h-5 w-28" />
+        </div>
+        <SkeletonBlock className="h-9 w-24 rounded-xl" />
+      </header>
+
+      {/* Centered Auth Card Skeleton */}
+      <div className="relative flex-1 flex flex-col justify-center items-center p-4">
+        <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-[#090f1f]/90 p-5 sm:p-6 shadow-2xl space-y-4">
+          <div className="space-y-1.5">
+            <SkeletonBlock className="h-6 w-36" />
+            <SkeletonBlock className="h-3.5 w-60" />
+          </div>
+
+          <div className="space-y-2.5">
+            {mode === 'register' && (
+              <div className="space-y-1">
+                <SkeletonBlock className="h-3 w-12" />
+                <SkeletonBlock className="h-10 w-full rounded-lg" />
+              </div>
+            )}
+            <div className="space-y-1">
+              <SkeletonBlock className="h-3 w-12" />
+              <SkeletonBlock className="h-10 w-full rounded-lg" />
+            </div>
+            <div className="space-y-1">
+              <SkeletonBlock className="h-3 w-16" />
+              <SkeletonBlock className="h-10 w-full rounded-lg" />
+            </div>
+
+            {mode === 'register' ? (
+              <div className="space-y-1 pt-1">
+                <SkeletonBlock className="h-3 w-28" />
+                <div className="grid grid-cols-3 gap-2">
+                  <SkeletonBlock className="h-14 rounded-xl" />
+                  <SkeletonBlock className="h-14 rounded-xl" />
+                  <SkeletonBlock className="h-14 rounded-xl" />
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-2 py-1">
+                <SkeletonBlock className="h-14 rounded-xl" />
+                <SkeletonBlock className="h-14 rounded-xl" />
+                <SkeletonBlock className="h-14 rounded-xl" />
+              </div>
+            )}
+
+            <SkeletonBlock className="h-10 w-full rounded-xl mt-3" />
+            <SkeletonBlock className="h-9 w-full rounded-xl" />
+          </div>
+
+          <div className="flex justify-center pt-1">
+            <SkeletonBlock className="h-3 w-36" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
 export { SakshamLogo, SakshamIcon } from './SakshamLogo';
+
 

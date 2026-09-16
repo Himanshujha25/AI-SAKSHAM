@@ -3,6 +3,8 @@ const Activity = require('../models/Activity');
 const { asyncHandler } = require('../middleware/errors');
 const { logActivity } = require('../utils/security');
 
+const { validateSafeUrl } = require('../utils/ssrfGuard');
+
 const ALLOWED_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
 const TIMEOUT_MS = 10000;
 const MAX_BODY = 50 * 1024; // 50KB cap
@@ -20,15 +22,15 @@ const probe = asyncHandler(async (req, res) => {
   if (!ALLOWED_METHODS.includes(verb)) {
     return res.status(400).json({ message: `method must be one of ${ALLOWED_METHODS.join(', ')}` });
   }
-  let parsed;
+
+  // Enforce SSRF validation
   try {
-    parsed = new URL(url);
-  } catch (e) {
-    return res.status(400).json({ message: 'Invalid URL' });
+    await validateSafeUrl(url, { allowLocalhost: process.env.NODE_ENV !== 'production' });
+  } catch (err) {
+    return res.status(400).json({ message: `Security violation: ${err.message}` });
   }
-  if (!['http:', 'https:'].includes(parsed.protocol)) {
-    return res.status(400).json({ message: 'Only http(s) URLs are allowed' });
-  }
+
+  let parsed = new URL(url);
 
   const safeHeaders = {};
   if (headers && typeof headers === 'object') {

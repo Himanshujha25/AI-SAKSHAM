@@ -232,18 +232,30 @@ export function Assessments() {
       })
     : [];
 
-  // Tab & Search Filtering
+  // Tab & Search & Date Filtering
   const filteredList = useMemo(() => {
     return rawList.filter((item) => {
       const matchTab = activeTab === 'ALL' || item.status === activeTab;
+      const q = (search || '').trim().toLowerCase();
       const matchSearch =
-        !search ||
-        item.title.toLowerCase().includes(search.toLowerCase()) ||
-        item.project.toLowerCase().includes(search.toLowerCase()) ||
-        item.target.toLowerCase().includes(search.toLowerCase());
-      return matchTab && matchSearch;
+        !q ||
+        (item.title && item.title.toLowerCase().includes(q)) ||
+        (item.project && item.project.toLowerCase().includes(q)) ||
+        (item.target && item.target.toLowerCase().includes(q)) ||
+        (item.hash && item.hash.toLowerCase().includes(q));
+
+      let matchDate = true;
+      if (dateRange === '7d') {
+        const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        matchDate = new Date(item.createdAt).getTime() >= cutoff;
+      } else if (dateRange === '30d') {
+        const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+        matchDate = new Date(item.createdAt).getTime() >= cutoff;
+      }
+
+      return matchTab && matchSearch && matchDate;
     });
-  }, [rawList, activeTab, search]);
+  }, [rawList, activeTab, search, dateRange]);
 
   // Dynamic Pagination
   const [page, setPage] = useState(1);
@@ -742,7 +754,10 @@ export function Assessments() {
 
             <CustomSelect
               value={dateRange}
-              onChange={(e) => setDateRange(e.target.value)}
+              onChange={(e) => {
+                setDateRange(e.target.value);
+                setPage(1);
+              }}
               className="w-32"
               options={[
                 { value: '30d', label: 'Last 30 days' },
@@ -765,185 +780,253 @@ export function Assessments() {
         {list.isError && <ErrorState message="Could not fetch assessment database." onRetry={() => list.refetch()} />}
 
         {!list.isLoading && !list.isError && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-800 bg-slate-950/60 font-mono text-[11px] uppercase tracking-wider text-slate-400">
-                <tr>
-                  <th className="w-10 px-4 py-3 text-center">
-                    <input type="checkbox" className="rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0" />
-                  </th>
-                  <th className="px-3 py-3">NAME / ID</th>
-                  <th className="px-3 py-3">PROJECT</th>
-                  <th className="px-4 py-3">TARGET</th>
-                  <th className="px-3 py-3">METHOD</th>
-                  <th className="px-3 py-3">PROFILE</th>
-                  <th className="px-3 py-3">STATUS</th>
-                  <th className="px-4 py-3">PROGRESS</th>
-                  <th className="px-3 py-3">SCORE</th>
-                  <th className="px-4 py-3">CREATED</th>
-                  <th className="px-3 py-3">DURATION</th>
-                  <th className="px-4 py-3 text-center">ACTIONS</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60">
-                {paginatedList.map((item) => {
-                  const isDone = item.status === 'COMPLETED';
-                  const isRun = item.status === 'RUNNING';
-                  const isFail = item.status === 'FAILED';
+          <div className="w-full">
+            {/* Mobile View: Compact Assessment Cards (< 768px) */}
+            <div className="divide-y divide-slate-800/70 md:hidden">
+              {paginatedList.map((item) => {
+                const isDone = item.status === 'COMPLETED';
+                const isRun = item.status === 'RUNNING';
 
-                  return (
-                    <tr
-                      key={item._id}
-                      onClick={() => navigate(`/assessments/${item._id}`)}
-                      className="group cursor-pointer transition duration-150 hover:bg-slate-800/60"
-                    >
-                      {/* Checkbox */}
-                      <td className="px-4 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
-                        <input type="checkbox" className="rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0" />
-                      </td>
-
-                      {/* Name / ID */}
-                      <td className="px-3 py-3.5">
-                        <div className="font-semibold text-white group-hover:text-cyan-300 transition">
-                          {item.title}
-                        </div>
-                        <div className="font-mono text-[10px] text-slate-500">#{item.hash}</div>
-                      </td>
-
-                      {/* Project Badge */}
-                      <td className="px-3 py-3.5 whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-700/80 bg-slate-800/80 px-2.5 py-1 font-mono text-[11px] font-medium text-slate-200 shadow-sm whitespace-nowrap">
-                          <Folder className="h-3 w-3 text-cyan-400 shrink-0" />
-                          <span>{item.project}</span>
+                return (
+                  <div
+                    key={item._id}
+                    onClick={() => navigate(`/assessments/${item._id}`)}
+                    className="p-3.5 space-y-2.5 transition active:bg-slate-800/40 cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs font-bold text-cyan-400">#{item.hash}</span>
+                        <span className="font-mono text-[10px] text-slate-400 rounded bg-slate-800 px-2 py-0.5">
+                          {item.profile}
                         </span>
-                      </td>
+                      </div>
+                      <StatusBadge status={item.status} />
+                    </div>
 
-                      {/* Target URL */}
-                      <td className="px-4 py-3.5 font-mono text-cyan-400">
-                        <a
-                          href={item.target}
-                          target="_blank"
-                          rel="noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="flex items-center gap-1 hover:underline"
-                        >
-                          {item.target} <ExternalLink className="h-3 w-3 opacity-70" />
-                        </a>
-                      </td>
-
-                      {/* Method Badge */}
-                      <td className="px-3 py-3.5 whitespace-nowrap">
+                    <div>
+                      <h4 className="font-bold text-sm text-slate-100">{item.title}</h4>
+                      <div className="flex items-center gap-1.5 mt-1 font-mono text-[11px] text-slate-400 truncate">
                         <span className={cn(
-                          'rounded px-2 py-0.5 font-mono text-[10px] font-bold border',
-                          item.method === 'GET' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' :
-                          item.method === 'POST' ? 'border-amber-500/30 bg-amber-500/10 text-amber-300' :
-                          item.method === 'PUT' || item.method === 'PATCH' ? 'border-cyan-500/30 bg-cyan-500/10 text-cyan-300' :
-                          'border-red-500/30 bg-red-500/10 text-red-300'
+                          'rounded px-1.5 py-0.2 font-bold text-[9px]',
+                          item.method === 'GET' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'
                         )}>
                           {item.method}
                         </span>
-                      </td>
+                        <span className="truncate text-cyan-300">{item.target}</span>
+                      </div>
+                    </div>
 
-                      {/* Profile */}
-                      <td className="px-3 py-3.5 text-slate-400 font-mono text-[11px]">
-                        {item.profile}
-                      </td>
-
-                      {/* Status Badge */}
-                      <td className="px-3 py-3.5">
-                        <StatusBadge status={item.status} />
-                      </td>
-
-                      {/* Progress Bar */}
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center gap-2 min-w-[100px]">
-                          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-800">
-                            <div
-                              className={cn(
-                                'h-full rounded-full transition-all duration-500',
-                                isDone ? 'bg-emerald-500' : isRun ? 'bg-cyan-400 animate-pulse' : 'bg-red-500'
-                              )}
-                              style={{ width: `${item.progress}%` }}
-                            />
-                          </div>
-                          <span className="font-mono text-[10px] text-slate-400 font-semibold">{item.progress}%</span>
-                        </div>
-                      </td>
-
-                      {/* Security Score Badge */}
-                      <td className="px-3 py-3.5 font-mono">
-                        {item.score !== null && item.score !== undefined ? (
-                          <span
-                            className={cn(
-                              'rounded px-2 py-0.5 text-xs font-bold border',
-                              item.score >= 80
-                                ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
-                                : item.score >= 60
-                                ? 'border-amber-500/30 bg-amber-500/10 text-amber-400'
-                                : 'border-red-500/30 bg-red-500/10 text-red-400'
-                            )}
-                          >
-                            {item.score}/100
-                          </span>
-                        ) : (
-                          <span className="text-slate-600">—</span>
+                    {/* Progress Bar & Score */}
+                    <div className="space-y-1.5 pt-1">
+                      <div className="flex items-center justify-between font-mono text-[10px] text-slate-400">
+                        <span>Progress: {item.progress}%</span>
+                        {item.score !== null && item.score !== undefined && (
+                          <span className="font-bold text-emerald-400">Score: {item.score}/100</span>
                         )}
-                      </td>
-
-                      {/* Created Timestamp */}
-                      <td className="px-4 py-3.5 font-mono text-[11px] text-slate-400">
-                        {new Date(item.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                        <span className="block text-[10px] text-slate-500">
-                          {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                        </span>
-                      </td>
-
-                      {/* Duration */}
-                      <td className="px-3 py-3.5 font-mono text-slate-400 text-[11px]">
-                        {item.duration}
-                      </td>
-
-                      {/* Actions Buttons */}
-                      <td className="px-4 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-center gap-1.5">
-                          {isDone && (
-                            <Link
-                              to={`/assessments/${item._id}`}
-                              className="rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-white transition hover:bg-white/[0.12]"
-                            >
-                              View Report
-                            </Link>
+                      </div>
+                      <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
+                        <div
+                          className={cn(
+                            'h-full rounded-full transition-all duration-300',
+                            isDone ? 'bg-emerald-500' : isRun ? 'bg-cyan-400 animate-pulse' : 'bg-red-500'
                           )}
-                          {isRun && (
-                            <Link
-                              to={`/assessments/${item._id}`}
-                              className="rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-white transition hover:bg-white/[0.12]"
-                            >
-                              View Progress
-                            </Link>
-                          )}
-                          {isFail && (
-                            <Link
-                              to={`/assessments/${item._id}`}
-                              className="rounded-xl bg-white/[0.06] backdrop-blur-xl border border-white/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-200 transition hover:bg-white/[0.1] hover:text-white"
-                            >
-                              View Logs
-                            </Link>
-                          )}
-                          <Link
-                            to={`/assessments/${item._id}`}
-                            className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-white"
-                            title="Inspect Assessment"
+                          style={{ width: `${item.progress}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1 border-t border-slate-800/50 font-mono text-[10px] text-slate-400">
+                      <span>{new Date(item.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</span>
+                      <span className="inline-flex items-center gap-1 font-bold text-cyan-400 text-xs">
+                        View Assessment <ChevronRight size={13} />
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop View: High-Density Table (>= 768px) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="border-b border-slate-800 bg-slate-950/60 font-mono text-[11px] uppercase tracking-wider text-slate-400">
+                  <tr>
+                    <th className="w-10 px-4 py-3 text-center">
+                      <input type="checkbox" className="rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0" />
+                    </th>
+                    <th className="px-3 py-3">NAME / ID</th>
+                    <th className="px-3 py-3">PROJECT</th>
+                    <th className="px-4 py-3">TARGET</th>
+                    <th className="px-3 py-3">METHOD</th>
+                    <th className="px-3 py-3">PROFILE</th>
+                    <th className="px-3 py-3">STATUS</th>
+                    <th className="px-4 py-3">PROGRESS</th>
+                    <th className="px-3 py-3">SCORE</th>
+                    <th className="px-4 py-3">CREATED</th>
+                    <th className="px-3 py-3">DURATION</th>
+                    <th className="px-4 py-3 text-center">ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60">
+                  {paginatedList.map((item) => {
+                    const isDone = item.status === 'COMPLETED';
+                    const isRun = item.status === 'RUNNING';
+                    const isFail = item.status === 'FAILED';
+
+                    return (
+                      <tr
+                        key={item._id}
+                        onClick={() => navigate(`/assessments/${item._id}`)}
+                        className="group cursor-pointer transition duration-150 hover:bg-slate-800/60"
+                      >
+                        {/* Checkbox */}
+                        <td className="px-4 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
+                          <input type="checkbox" className="rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0" />
+                        </td>
+
+                        {/* Name / ID */}
+                        <td className="px-3 py-3.5">
+                          <div className="font-semibold text-white group-hover:text-cyan-300 transition">
+                            {item.title}
+                          </div>
+                          <div className="font-mono text-[10px] text-slate-500">#{item.hash}</div>
+                        </td>
+
+                        {/* Project Badge */}
+                        <td className="px-3 py-3.5 whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-700/80 bg-slate-800/80 px-2.5 py-1 font-mono text-[11px] font-medium text-slate-200 shadow-sm whitespace-nowrap">
+                            <Folder className="h-3 w-3 text-cyan-400 shrink-0" />
+                            <span>{item.project}</span>
+                          </span>
+                        </td>
+
+                        {/* Target URL */}
+                        <td className="px-4 py-3.5 font-mono text-cyan-400">
+                          <a
+                            href={item.target}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex items-center gap-1 hover:underline"
                           >
-                            <ChevronRight className="h-4 w-4 text-cyan-400" />
-                          </Link>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                            {item.target} <ExternalLink className="h-3 w-3 opacity-70" />
+                          </a>
+                        </td>
+
+                        {/* Method Badge */}
+                        <td className="px-3 py-3.5 whitespace-nowrap">
+                          <span className={cn(
+                            'rounded px-2 py-0.5 font-mono text-[10px] font-bold border',
+                            item.method === 'GET' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' :
+                            item.method === 'POST' ? 'border-amber-500/30 bg-amber-500/10 text-amber-300' :
+                            item.method === 'PUT' || item.method === 'PATCH' ? 'border-cyan-500/30 bg-cyan-500/10 text-cyan-300' :
+                            'border-red-500/30 bg-red-500/10 text-red-300'
+                          )}>
+                            {item.method}
+                          </span>
+                        </td>
+
+                        {/* Profile */}
+                        <td className="px-3 py-3.5 text-slate-400 font-mono text-[11px]">
+                          {item.profile}
+                        </td>
+
+                        {/* Status Badge */}
+                        <td className="px-3 py-3.5">
+                          <StatusBadge status={item.status} />
+                        </td>
+
+                        {/* Progress Bar */}
+                        <td className="px-4 py-3.5">
+                          <div className="flex items-center gap-2 min-w-[100px]">
+                            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-800">
+                              <div
+                                className={cn(
+                                  'h-full rounded-full transition-all duration-500',
+                                  isDone ? 'bg-emerald-500' : isRun ? 'bg-cyan-400 animate-pulse' : 'bg-red-500'
+                                )}
+                                style={{ width: `${item.progress}%` }}
+                              />
+                            </div>
+                            <span className="font-mono text-[10px] text-slate-400 font-semibold">{item.progress}%</span>
+                          </div>
+                        </td>
+
+                        {/* Security Score Badge */}
+                        <td className="px-3 py-3.5 font-mono">
+                          {item.score !== null && item.score !== undefined ? (
+                            <span
+                              className={cn(
+                                'rounded px-2 py-0.5 text-xs font-bold border',
+                                item.score >= 80
+                                  ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
+                                  : item.score >= 60
+                                  ? 'border-amber-500/30 bg-amber-500/10 text-amber-400'
+                                  : 'border-red-500/30 bg-red-500/10 text-red-400'
+                              )}
+                            >
+                              {item.score}/100
+                            </span>
+                          ) : (
+                            <span className="text-slate-600">—</span>
+                          )}
+                        </td>
+
+                        {/* Created Timestamp */}
+                        <td className="px-4 py-3.5 font-mono text-[11px] text-slate-400">
+                          {new Date(item.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                          <span className="block text-[10px] text-slate-500">
+                            {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                          </span>
+                        </td>
+
+                        {/* Duration */}
+                        <td className="px-3 py-3.5 font-mono text-slate-400 text-[11px]">
+                          {item.duration}
+                        </td>
+
+                        {/* Actions Buttons */}
+                        <td className="px-4 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-center gap-1.5">
+                            {isDone && (
+                              <Link
+                                to={`/assessments/${item._id}`}
+                                className="rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-white transition hover:bg-white/[0.12]"
+                              >
+                                View Report
+                              </Link>
+                            )}
+                            {isRun && (
+                              <Link
+                                to={`/assessments/${item._id}`}
+                                className="rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-white transition hover:bg-white/[0.12]"
+                              >
+                                View Progress
+                              </Link>
+                            )}
+                            {isFail && (
+                              <Link
+                                to={`/assessments/${item._id}`}
+                                className="rounded-xl bg-white/[0.06] backdrop-blur-xl border border-white/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-200 transition hover:bg-white/[0.1] hover:text-white"
+                              >
+                                View Logs
+                              </Link>
+                            )}
+                            <Link
+                              to={`/assessments/${item._id}`}
+                              className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-white"
+                              title="Inspect Assessment"
+                            >
+                              <ChevronRight className="h-4 w-4 text-cyan-400" />
+                            </Link>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
@@ -1505,19 +1588,7 @@ export function AssessmentDetail() {
 
                 <button
                   onClick={() => {
-                    const bodyStr = selectedAssetResponse.metadata?.responseBody || JSON.stringify({
-                      monitoring: {
-                        currentPpm: 426.5,
-                        yearAgoPpm: 423.8,
-                        annualGrowthRate: 2.7,
-                        preIndustrialBaseline: 280,
-                        monthlyAverage: 425.9,
-                        methanePpb: 1923.5,
-                        nitrousOxidePpb: 336.8,
-                        measuredAt: new Date().toISOString().slice(0, 10),
-                        station: "Mauna Loa Observatory, Hawaii"
-                      }
-                    }, null, 2);
+                    const bodyStr = selectedAssetResponse.metadata?.responseBody || '';
                     
                     let textToCopy = bodyStr;
                     try {
@@ -1539,19 +1610,7 @@ export function AssessmentDetail() {
               <div className="flex-1 overflow-y-auto rounded-xl border border-slate-800 bg-slate-950 p-4 font-mono text-xs leading-relaxed text-emerald-400 max-h-[350px]">
                 <pre className="whitespace-pre-wrap">
                   {(() => {
-                    const bodyStr = selectedAssetResponse.metadata?.responseBody || JSON.stringify({
-                      monitoring: {
-                        currentPpm: 426.5,
-                        yearAgoPpm: 423.8,
-                        annualGrowthRate: 2.7,
-                        preIndustrialBaseline: 280,
-                        monthlyAverage: 425.9,
-                        methanePpb: 1923.5,
-                        nitrousOxidePpb: 336.8,
-                        measuredAt: new Date().toISOString().slice(0, 10),
-                        station: "Mauna Loa Observatory, Hawaii"
-                      }
-                    }, null, 2);
+                    const bodyStr = selectedAssetResponse.metadata?.responseBody || 'No payload captured (or request was empty/unreachable).';
 
                     try {
                       return JSON.stringify(JSON.parse(bodyStr), null, 2);

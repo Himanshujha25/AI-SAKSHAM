@@ -29,6 +29,32 @@ const login = asyncHandler(async (req, res) => {
   res.json({ token: signToken(user), user: user.toSafeJSON() });
 });
 
+const demoLogin = asyncHandler(async (req, res) => {
+  const { role } = req.body || {};
+  const targetRole = role && ['ADMIN', 'ANALYST', 'VIEWER'].includes(role) ? role : 'ANALYST';
+
+  const roleConfig = {
+    ADMIN: { email: 'admin@saksham.ai', name: 'Security Administrator' },
+    ANALYST: { email: 'analyst@saksham.ai', name: 'Lead SOC Analyst' },
+    VIEWER: { email: 'viewer@saksham.ai', name: 'Compliance Auditor' },
+  }[targetRole];
+
+  let user = await User.findOne({ email: roleConfig.email });
+  if (!user) {
+    user = await User.create({
+      name: roleConfig.name,
+      email: roleConfig.email,
+      password: 'DemoPassword123!',
+      role: targetRole,
+    });
+  } else if (user.role !== targetRole) {
+    user.role = targetRole;
+    await user.save();
+  }
+
+  res.json({ token: signToken(user), user: user.toSafeJSON() });
+});
+
 const me = asyncHandler(async (req, res) => {
   res.json({ user: req.user.toSafeJSON() });
 });
@@ -49,7 +75,10 @@ const updateMe = asyncHandler(async (req, res) => {
 });
 
 const logout = asyncHandler(async (req, res) => {
-  // Stateless JWT: client discards token. Endpoint exists for symmetrical API.
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+  const { revokeToken } = require('../middleware/auth');
+  revokeToken(token);
   res.json({ message: 'Logged out' });
 });
 
@@ -132,4 +161,4 @@ const google = asyncHandler(async (req, res) => {
   res.json({ token: signToken(user), user: user.toSafeJSON() });
 });
 
-module.exports = { register, login, me, updateMe, logout, google };
+module.exports = { register, login, demoLogin, me, updateMe, logout, google };

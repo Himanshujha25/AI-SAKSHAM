@@ -33,8 +33,34 @@ export function NotificationCenter() {
     findingId: f.findingId,
     _realId: f._id,
   }));
-  const [readIds, setReadIds] = useState([]);
-  const [dismissedIds, setDismissedIds] = useState([]);
+  const [readIds, setReadIds] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('saksham_read_notifs') || '[]');
+    } catch {
+      return [];
+    }
+  });
+
+  const [dismissedIds, setDismissedIds] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('saksham_dismissed_notifs') || '[]');
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('saksham_read_notifs', JSON.stringify(readIds));
+    } catch { /* ignore */ }
+  }, [readIds]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('saksham_dismissed_notifs', JSON.stringify(dismissedIds));
+    } catch { /* ignore */ }
+  }, [dismissedIds]);
+
   const notifications = live
     .filter((n) => !dismissedIds.includes(n.id))
     .map((n) => ({ ...n, read: readIds.includes(n.id) }));
@@ -60,7 +86,14 @@ export function NotificationCenter() {
 
   const toggleOpen = () => {
     playCyberSound('click');
-    setIsOpen((prev) => !prev);
+    setIsOpen((prev) => {
+      const next = !prev;
+      if (next && live.length > 0) {
+        // Automatically mark all as read when opening notification tray
+        setReadIds((old) => [...new Set([...old, ...live.map((n) => n.id)])]);
+      }
+      return next;
+    });
   };
 
   const markAsRead = (id) => {

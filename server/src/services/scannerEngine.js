@@ -56,8 +56,9 @@ async function scanTarget(targetUrl, customHeadersString = '', profile = 'Standa
 
   // Build HTTP Request Headers
   const reqHeaders = {
-    'User-Agent': 'SakshamAI-SecurityScanner/1.0 (Authorized Security Assessment)',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Origin': parsedUrl.protocol + '//' + hostname,
   };
 
   // Set default Content-Type to application/json if sending a payload and not specified
@@ -78,6 +79,13 @@ async function scanTarget(targetUrl, customHeadersString = '', profile = 'Standa
       cleanVal = cleanVal.slice(1, -1).trim();
     }
     cleanVal = cleanVal.replace(/[\r\n]/g, '');
+    
+    if (cleanKey.toLowerCase() === 'authorization' && cleanVal.length > 0) {
+      if (!/^Bearer\s+/i.test(cleanVal) && !/^(Basic|Digest)\s+/i.test(cleanVal)) {
+        cleanVal = 'Bearer ' + cleanVal;
+      }
+    }
+
     return { key: cleanKey, val: cleanVal };
   }
 

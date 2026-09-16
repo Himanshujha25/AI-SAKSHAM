@@ -12,6 +12,7 @@ const authLimiter = rateLimit({
 const router = express.Router();
 router.post('/register', authLimiter, c.register);
 router.post('/login', authLimiter, c.login);
+router.post('/demo-login', authLimiter, c.demoLogin);
 router.post('/google', authLimiter, c.google);
 router.get('/me', protect, c.me);
 router.patch('/me', protect, c.updateMe);

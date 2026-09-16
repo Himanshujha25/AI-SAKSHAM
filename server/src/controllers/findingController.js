@@ -21,7 +21,12 @@ const list = asyncHandler(async (req, res) => {
   if (req.query.status) filter.status = String(req.query.status);
   if (req.query.search) {
     const cleanSearch = String(req.query.search).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    filter.title = { $regex: cleanSearch, $options: 'i' };
+    filter.$or = [
+      { title: { $regex: cleanSearch, $options: 'i' } },
+      { category: { $regex: cleanSearch, $options: 'i' } },
+      { description: { $regex: cleanSearch, $options: 'i' } },
+      { affectedAssets: { $regex: cleanSearch, $options: 'i' } },
+    ];
   }
   const findings = await Finding.find(filter).sort({ cvssScore: -1, updatedAt: -1 }).limit(200);
   res.json({ findings });

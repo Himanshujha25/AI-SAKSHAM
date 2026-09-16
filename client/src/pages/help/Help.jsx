@@ -21,6 +21,10 @@ import {
   ShieldAlert,
   Terminal,
   Activity as ActivityIcon,
+  Crown,
+  Eye,
+  Lightbulb,
+  Shield,
 } from 'lucide-react';
 import { PageHeader, PremiumIcon } from '../../components/shared/shared';
 import { Card, Button, Input } from '../../components/ui/primitives';
@@ -103,6 +107,18 @@ const GLOSSARY_ITEMS = [
     tech: 'HTTP header restricting external scripts, objects, and framing to mitigate Cross-Site Scripting (XSS) and injection.',
     simple: 'A security rule header that blocks untrusted scripts and hackers from injecting malware into your webpage.',
     category: 'Security Controls',
+  },
+  {
+    term: 'User Roles & RBAC (Admin, Analyst, Viewer)',
+    tech: 'Three-tier cryptographic JWT authorization policy partitioning administrative authority, active probing execution, and read-only inspection.',
+    simple: 'Defines permissions: Admin manages everything, Analyst launches scans & verifies bugs, and Viewer reads reports and code fixes.',
+    category: 'Access Control',
+  },
+  {
+    term: 'Viewer Access & Scan Cost Governance',
+    tech: 'Economical access-control tier disabling automated scanner worker queue dispatches and LLM token expenditures for read-only stakeholders.',
+    simple: 'Junior devs and auditors get Viewer access so they can see fix guides and reports without launching expensive AI scans that cost company budget.',
+    category: 'Access Control',
   },
 ];
 
@@ -416,6 +432,101 @@ app.use(helmet({
         </div>
       </Card>
 
+      {/* 3-Tier Roles, Responsibilities & Cost Governance */}
+      <Card className="border-slate-800 bg-[#090f1f] p-5 space-y-4 shadow-md">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+          <div>
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <PremiumIcon icon={ShieldCheck} tone="purple" size="sm" />
+              <span>Roles & Responsibilities (RBAC & Cost Governance)</span>
+            </h3>
+            <p className="mt-0.5 text-xs text-slate-400">
+              Saksham AI implements strict 3-tier Role-Based Access Control to govern security operations and protect API/cloud scanning compute costs.
+            </p>
+          </div>
+          <span className="rounded-lg border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-purple-300">
+            3 User Roles
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          {/* Admin Role */}
+          <div className="rounded-xl border border-purple-500/30 bg-purple-950/20 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-purple-500/30 bg-purple-500/10 text-purple-400">
+                <Crown className="h-5 w-5" />
+              </div>
+              <span className="rounded-md border border-purple-500/40 bg-purple-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-purple-300 uppercase tracking-wider">
+                Full Control
+              </span>
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-white">Administrator</h4>
+              <p className="text-[11px] text-purple-300 font-mono">CISO · Lead Architect · Owner</p>
+            </div>
+            <ul className="space-y-1.5 text-xs text-slate-300 list-disc pl-4">
+              <li>Views all organization analytics, targets, and projects</li>
+              <li>Manages team accounts and organizational settings</li>
+              <li>Oversees full forensic audit trails and activity logs</li>
+              <li>Controls project scope and global compliance thresholds</li>
+            </ul>
+          </div>
+
+          {/* Analyst Role */}
+          <div className="rounded-xl border border-blue-500/30 bg-blue-950/20 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-blue-500/30 bg-blue-500/10 text-blue-400">
+                <Shield className="h-5 w-5" />
+              </div>
+              <span className="rounded-md border border-blue-500/40 bg-blue-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-blue-300 uppercase tracking-wider">
+                Scan & Verify
+              </span>
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-white">Security Analyst</h4>
+              <p className="text-[11px] text-blue-300 font-mono">SOC Engineer · Pentester · DevSecOps</p>
+            </div>
+            <ul className="space-y-1.5 text-xs text-slate-300 list-disc pl-4">
+              <li>Registers target APIs and launches 8-stage live assessments</li>
+              <li>Analyzes attack surfaces, routes, and technology stacks</li>
+              <li>Verifies genuine vulnerabilities and eliminates false positives</li>
+              <li>Runs Gemini AI threat analysis and exports PDF reports</li>
+            </ul>
+          </div>
+
+          {/* Viewer / Auditor Role */}
+          <div className="rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+                <Eye className="h-5 w-5" />
+              </div>
+              <span className="rounded-md border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-300 uppercase tracking-wider">
+                Read-Only · Cost Guard
+              </span>
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-white">Viewer / Auditor</h4>
+              <p className="text-[11px] text-emerald-300 font-mono">Junior Developers · Stakeholders · Auditors</p>
+            </div>
+            <ul className="space-y-1.5 text-xs text-slate-300 list-disc pl-4">
+              <li>Reads verified vulnerabilities, CVSS scores, and PoCs</li>
+              <li>Follows step-by-step code remediation patch guidelines</li>
+              <li>Downloads compliance and executive audit reports</li>
+              <li><strong className="text-emerald-300">Scan Disabled:</strong> Protects company budget by stopping unauthorized or accidental heavy AI/network scan costs</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Why Viewer Exists Card */}
+        <div className="rounded-xl border border-slate-800 bg-[#040814] p-3.5 flex items-start gap-3 text-xs text-slate-300">
+          <Lightbulb className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+          <div>
+            <strong className="text-white font-mono block mb-0.5">Why does Viewer / Read-Only access exist?</strong>
+            Automated scanning and AI threat analysis consume live network probing bandwidth and AI model tokens. Giving <span className="text-emerald-300 font-semibold">Viewer access</span> to junior developers, external compliance auditors, or clients allows them to view vulnerabilities and follow fix guides without racking up expensive scan bills or generating unnecessary traffic on live servers.
+          </div>
+        </div>
+      </Card>
+
       {/* Visual System Architecture Diagram */}
       <Card className="border-slate-800 bg-[#090f1f] p-5 space-y-5 shadow-md">
         <h3 className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 flex items-center gap-2">
@@ -480,12 +591,12 @@ app.use(helmet({
 
       {/* Step Modal Dialog */}
       {modalStep && stepDetails[modalStep] && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
           <div
             onClick={() => setModalStep(null)}
             className="fixed inset-0 bg-black/80 backdrop-blur-xs transition-opacity"
           />
-          <div className="relative w-full max-w-2xl rounded-2xl border border-slate-800 bg-[#090f1f] p-6 shadow-2xl z-10 space-y-5">
+          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-800 bg-[#090f1f] p-4 sm:p-6 shadow-2xl z-10 space-y-4 sm:space-y-5">
             {/* Modal Header */}
             <div className="flex items-start justify-between border-b border-slate-800 pb-4">
               <div className="flex items-center gap-3">
@@ -493,13 +604,14 @@ app.use(helmet({
                   {modalStep}
                 </span>
                 <div>
-                  <h3 className="text-lg font-bold tracking-tight text-white">{stepDetails[modalStep].subtitle}</h3>
+                  <h3 className="text-base sm:text-lg font-bold tracking-tight text-white">{stepDetails[modalStep].subtitle}</h3>
                   <p className="mt-0.5 text-xs text-slate-400">{stepDetails[modalStep].desc}</p>
                 </div>
               </div>
               <button
                 onClick={() => setModalStep(null)}
-                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition"
+                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 text-slate-400 hover:bg-slate-800 hover:text-white transition"
+                aria-label="Close dialog"
               >
                 ✕
               </button>
@@ -509,30 +621,31 @@ app.use(helmet({
             <div>{stepDetails[modalStep].content}</div>
 
             {/* Modal Footer */}
-            <div className="flex items-center justify-between border-t border-slate-800 pt-4">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-800 pt-4">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
                 <button
                   disabled={modalStep <= 1}
                   onClick={() => setModalStep((s) => Math.max(1, s - 1))}
-                  className="rounded-lg border border-slate-800 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 disabled:opacity-40"
+                  className="flex-1 sm:flex-initial min-h-[44px] rounded-lg border border-slate-800 bg-slate-900 px-3.5 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 disabled:opacity-40"
                 >
-                  ← Previous Step
+                  ← Prev
                 </button>
                 <button
                   disabled={modalStep >= 5}
                   onClick={() => setModalStep((s) => Math.min(5, s + 1))}
-                  className="rounded-lg border border-slate-800 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 disabled:opacity-40"
+                  className="flex-1 sm:flex-initial min-h-[44px] rounded-lg border border-slate-800 bg-slate-900 px-3.5 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 disabled:opacity-40"
                 >
-                  Next Step →
+                  Next →
                 </button>
               </div>
 
-              <div className="flex items-center gap-2">
-                <Button variant="outline" onClick={() => setModalStep(null)}>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <Button variant="outline" onClick={() => setModalStep(null)} className="flex-1 sm:flex-initial">
                   Close
                 </Button>
                 {stepDetails[modalStep].navTo && (
                   <Button
+                    className="flex-1 sm:flex-initial"
                     onClick={() => {
                       setModalStep(null);
                       navigate(stepDetails[modalStep].navTo);
@@ -833,14 +946,14 @@ app.use(helmet({
             <p className="mt-0.5 text-xs text-slate-400">Search any cybersecurity term for both Technical and Simple English definitions</p>
           </div>
 
-          <div className="relative min-w-[260px]">
+          <div className="relative w-full sm:w-72 min-w-0">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
             <input
               type="text"
               placeholder="Search CVSS, CWE, OWASP, SLA..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-slate-700/80 bg-slate-950 py-1.5 pl-9 pr-3 text-xs text-slate-200 placeholder-slate-500 focus:border-cyan-500/50 focus:outline-none"
+              className="w-full rounded-lg border border-slate-700/80 bg-slate-950 min-h-[44px] py-2 pl-9 pr-3 text-xs text-slate-200 placeholder-slate-500 focus:border-cyan-500/50 focus:outline-none"
             />
           </div>
         </div>

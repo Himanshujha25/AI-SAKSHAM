@@ -221,32 +221,57 @@ export function Projects() {
     },
   });
 
-  const hasFetchedProjects = Array.isArray(data?.projects);
-  const rawProjectsList = hasFetchedProjects
-    ? (data.projects.length > 0
-        ? data.projects.map((p, idx) => ({
-            ...p,
-            tags: p.category ? [p.category] : ['Web Application'],
-            avatarBg: idx % 3 === 0 ? 'bg-cyan-600' : idx % 3 === 1 ? 'bg-purple-600' : 'bg-emerald-600',
-            avatarChar: (p.name || 'P').charAt(0).toUpperCase(),
-            targets: p.targets || { count: 1, sample: p.name ? `${p.name.toLowerCase()}.com` : 'target.com' },
-            assessments: p.assessments || { total: 2, completed: 1 },
-            findings: p.findings || { total: 5, critical: 0, high: 2, medium: 2, low: 1 },
-          }))
-        : [])
-    : [];
+  const rawProjectsList = useMemo(() => {
+    const hasFetchedProjects = Array.isArray(data?.projects);
+    return hasFetchedProjects
+      ? (data.projects.length > 0
+          ? data.projects.map((p, idx) => ({
+              ...p,
+              tags: p.category ? [p.category] : ['Web Application'],
+              avatarBg: idx % 3 === 0 ? 'bg-cyan-600' : idx % 3 === 1 ? 'bg-purple-600' : 'bg-emerald-600',
+              avatarChar: (p.name || 'P').charAt(0).toUpperCase(),
+              targets: p.targets || { count: 1, sample: p.name ? `${p.name.toLowerCase()}.com` : 'target.com' },
+              assessments: p.assessments || { total: 2, completed: 1 },
+              findings: p.findings || { total: 5, critical: 0, high: 2, medium: 2, low: 1 },
+            }))
+          : [])
+      : [];
+  }, [data?.projects]);
 
-  // Filter projects dynamically
-  const filteredProjects = rawProjectsList.filter((p) => {
-    const matchSearch =
-      !filters.search ||
-      p.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-      p.description.toLowerCase().includes(filters.search.toLowerCase());
-    const matchStatus = !filters.status || p.status.toLowerCase() === filters.status.toLowerCase();
-    const matchType =
-      !filters.type || p.tags.some((t) => t.toLowerCase().includes(filters.type.toLowerCase()));
-    return matchSearch && matchStatus && matchType;
-  });
+  // Filter and sort projects dynamically
+  const filteredProjects = useMemo(() => {
+    const q = (filters.search || '').trim().toLowerCase();
+    const list = rawProjectsList.filter((p) => {
+      const matchSearch =
+        !q ||
+        (p.name && p.name.toLowerCase().includes(q)) ||
+        (p.description && p.description.toLowerCase().includes(q)) ||
+        (p.category && p.category.toLowerCase().includes(q)) ||
+        (p.targets?.sample && p.targets.sample.toLowerCase().includes(q)) ||
+        (Array.isArray(p.tags) && p.tags.some((t) => t.toLowerCase().includes(q)));
+
+      const matchStatus =
+        !filters.status || (p.status && p.status.toLowerCase() === filters.status.toLowerCase());
+
+      const matchType =
+        !filters.type ||
+        (p.category && p.category.toLowerCase().includes(filters.type.toLowerCase())) ||
+        (Array.isArray(p.tags) && p.tags.some((t) => t.toLowerCase().includes(filters.type.toLowerCase())));
+
+      return matchSearch && matchStatus && matchType;
+    });
+
+    if (filters.sort === 'name') {
+      list.sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }));
+    } else if (filters.sort === 'created') {
+      list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    } else {
+      // 'updated'
+      list.sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0));
+    }
+
+    return list;
+  }, [rawProjectsList, filters]);
 
   // Dynamic Pagination
   const [page, setPage] = useState(1);
@@ -275,8 +300,8 @@ export function Projects() {
         />
       </div>
 
-      {/* Top Executive Metric Summary Cards (4 Columns with Dynamic Interactive Sparklines) */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      {/* Top Executive Metric Summary Cards (Responsive Grid) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <DynamicSparklineCard
           title="Total Projects"
           count={totalCount}
@@ -337,9 +362,9 @@ export function Projects() {
 
       {/* Filter Toolbar & Actions Bar */}
       <Card className="relative z-30 border-slate-800 bg-slate-900/90 p-3 shadow-md backdrop-blur">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           {/* Search Box */}
-          <div className="relative min-w-[260px] flex-1">
+          <div className="relative w-full md:flex-1 min-w-0">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
             <input
               type="text"
@@ -349,12 +374,12 @@ export function Projects() {
                 setFilters({ ...filters, search: e.target.value });
                 setPage(1);
               }}
-              className="w-full rounded-md border border-slate-700/80 bg-slate-950/80 py-1.5 pl-9 pr-3 text-xs text-slate-200 placeholder-slate-500 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
+              className="w-full rounded-md border border-slate-700/80 bg-slate-950/80 min-h-[44px] py-2 pl-9 pr-3 text-xs text-slate-200 placeholder-slate-500 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
             />
           </div>
 
           {/* Filter Controls */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
             <CustomSelect
               value={filters.status}
               onChange={(e) => {
@@ -390,7 +415,10 @@ export function Projects() {
 
             <CustomSelect
               value={filters.sort}
-              onChange={(e) => setFilters({ ...filters, sort: e.target.value })}
+              onChange={(e) => {
+                setFilters({ ...filters, sort: e.target.value });
+                setPage(1);
+              }}
               className="w-44"
               options={[
                 { value: 'updated', label: 'Sort: Last Updated' },
@@ -403,7 +431,7 @@ export function Projects() {
             <button
               onClick={() => setShowCreateModal(true)}
               title="Create a new security audit project container"
-              className="flex items-center gap-1.5 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-3.5 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12] hover:border-white/20"
+              className="flex min-h-[44px] w-full sm:w-auto items-center justify-center gap-1.5 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12] hover:border-white/20 active:scale-[0.98]"
             >
               <Plus className="h-4 w-4" />
               <span>Create New Project</span>
@@ -430,7 +458,7 @@ export function Projects() {
               >
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   {/* Column 1: Identity & Header */}
-                  <div className="flex items-start gap-3 flex-1 min-w-[220px]">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
                     {p.image || p.avatarUrl ? (
                       <img
                         src={p.image || p.avatarUrl}
@@ -443,12 +471,12 @@ export function Projects() {
                         {p.name.charAt(0).toUpperCase()}
                       </div>
                     )}
-                    <div>
-                      <div className="flex items-center gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
                         <Link
                           to={`/projects/${p._id}`}
                           title={`Open ${p.name} security workspace`}
-                          className="font-bold text-white text-sm hover:text-cyan-300 transition"
+                          className="font-bold text-white text-sm hover:text-cyan-300 transition truncate"
                         >
                           {p.name}
                         </Link>
@@ -458,7 +486,7 @@ export function Projects() {
                         {p.description || `Security assessment scope for ${p.name}`}
                       </p>
                       {/* Tags Pill */}
-                      <div className="flex items-center gap-1.5 mt-2">
+                      <div className="flex flex-wrap items-center gap-1.5 mt-2">
                         {(p.tags && p.tags.length ? p.tags : [p.category || 'Web Application']).map((t, idx) => (
                           <span
                             key={idx}
@@ -472,87 +500,81 @@ export function Projects() {
                     </div>
                   </div>
 
-                  {/* Column 2: Target Stats */}
-                  <div className="min-w-[140px] text-xs" title={`Target URL scope for ${p.name}`}>
-                    <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
-                      <Globe className="h-3.5 w-3.5 text-cyan-400" />
-                      <span>TARGETS</span>
+                  {/* Columns 2-5: Responsive Metrics (2x2 on mobile, flex on desktop) */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 lg:contents">
+                    {/* Column 2: Target Stats */}
+                    <div className="rounded-lg bg-slate-950/40 p-2 lg:bg-transparent lg:p-0 min-w-0" title={`Target URL scope for ${p.name}`}>
+                      <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
+                        <Globe className="h-3.5 w-3.5 text-cyan-400 shrink-0" />
+                        <span>TARGETS</span>
+                      </div>
+                      <div className="mt-1 font-mono font-bold text-white text-sm">
+                        {p.targetCount || 1}
+                      </div>
+                      <div className="text-[10px] text-slate-500 font-mono truncate max-w-full">
+                        {p.targetUrl || 'world-monitor.app'}
+                      </div>
                     </div>
-                    <div className="mt-1 font-mono font-bold text-white text-sm">
-                      {p.targetCount || 1}
-                    </div>
-                    <div className="text-[10px] text-slate-500 font-mono truncate max-w-[140px]">
-                      {p.targetUrl || 'world-monitor.app'}
-                    </div>
-                  </div>
 
-                  {/* Column 3: Assessments Count */}
-                  <div className="min-w-[130px] text-xs" title={`Assessment runs for ${p.name}`}>
-                    <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
-                      <Activity className="h-3.5 w-3.5 text-blue-400" />
-                      <span>ASSESSMENTS</span>
+                    {/* Column 3: Assessments Count */}
+                    <div className="rounded-lg bg-slate-950/40 p-2 lg:bg-transparent lg:p-0 min-w-0" title={`Assessment runs for ${p.name}`}>
+                      <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
+                        <Activity className="h-3.5 w-3.5 text-blue-400 shrink-0" />
+                        <span>ASSESSMENTS</span>
+                      </div>
+                      <div className="mt-1 font-mono font-bold text-white text-sm">
+                        {p.assessmentCount || 2}
+                      </div>
+                      <div className="text-[10px] text-slate-500 font-mono truncate">
+                        {p.completedAssessments || 1} done
+                      </div>
                     </div>
-                    <div className="mt-1 font-mono font-bold text-white text-sm">
-                      {p.assessmentCount || 2}
-                    </div>
-                    <div className="text-[10px] text-slate-500 font-mono">
-                      {p.completedAssessments || 1} completed
-                    </div>
-                  </div>
 
-                  {/* Column 4: Findings Breakdown */}
-                  <div className="min-w-[140px] text-xs" title={`Security findings breakdown for ${p.name}`}>
-                    <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
-                      <ShieldCheck className="h-3.5 w-3.5 text-amber-400" />
-                      <span>FINDINGS</span>
+                    {/* Column 4: Findings Breakdown */}
+                    <div className="rounded-lg bg-slate-950/40 p-2 lg:bg-transparent lg:p-0 min-w-0" title={`Security findings breakdown for ${p.name}`}>
+                      <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
+                        <ShieldCheck className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                        <span>FINDINGS</span>
+                      </div>
+                      <div className="mt-1 font-mono font-bold text-white text-sm">
+                        {p.findingCount || 5}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-1.5 mt-0.5 text-[10px] font-mono">
+                        <span className="flex items-center gap-0.5 text-red-400 font-bold" title="Critical Findings">
+                          <span className="h-1.5 w-1.5 rounded-full bg-red-500" /> {p.findings?.critical || 0}
+                        </span>
+                        <span className="flex items-center gap-0.5 text-orange-400 font-bold" title="High Findings">
+                          <span className="h-1.5 w-1.5 rounded-full bg-orange-500" /> {p.findings?.high || 2}
+                        </span>
+                        <span className="flex items-center gap-0.5 text-amber-400 font-bold" title="Medium Findings">
+                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" /> {p.findings?.medium || 2}
+                        </span>
+                        <span className="flex items-center gap-0.5 text-emerald-400 font-bold" title="Low Findings">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> {p.findings?.low || 1}
+                        </span>
+                      </div>
                     </div>
-                    <div className="mt-1 font-mono font-bold text-white text-sm">
-                      {p.findingCount || 5}
-                    </div>
-                    <div className="flex items-center gap-2 mt-0.5 text-[10px] font-mono">
-                      <span className="flex items-center gap-0.5 text-red-400 font-bold" title="Critical Findings">
-                        <span className="h-1.5 w-1.5 rounded-full bg-red-500" /> {p.findings?.critical || 0}
-                      </span>
-                      <span className="flex items-center gap-0.5 text-orange-400 font-bold" title="High Findings">
-                        <span className="h-1.5 w-1.5 rounded-full bg-orange-500" /> {p.findings?.high || 2}
-                      </span>
-                      <span className="flex items-center gap-0.5 text-amber-400 font-bold" title="Medium Findings">
-                        <span className="h-1.5 w-1.5 rounded-full bg-amber-500" /> {p.findings?.medium || 2}
-                      </span>
-                      <span className="flex items-center gap-0.5 text-emerald-400 font-bold" title="Low Findings">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> {p.findings?.low || 1}
-                      </span>
-                    </div>
-                  </div>
 
-                  {/* Column 5: Timestamps */}
-                  <div className="min-w-[120px] text-xs text-slate-400 font-mono">
-                    <div className="text-[10px] text-slate-500">Created</div>
-                    <div className="text-[11px] text-slate-300">
-                      {new Date(p.createdAt || Date.now()).toLocaleDateString('en-GB', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric',
-                      })}
-                    </div>
-                    <div className="text-[10px] text-slate-500 mt-1">Last Updated</div>
-                    <div className="text-[11px] text-slate-300">
-                      {new Date(p.updatedAt || Date.now()).toLocaleDateString('en-GB', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric',
-                      })}
+                    {/* Column 5: Timestamps */}
+                    <div className="rounded-lg bg-slate-950/40 p-2 lg:bg-transparent lg:p-0 min-w-0 text-xs text-slate-400 font-mono">
+                      <div className="text-[10px] text-slate-500">Updated</div>
+                      <div className="text-[11px] text-slate-300 truncate">
+                        {new Date(p.updatedAt || p.createdAt || Date.now()).toLocaleDateString('en-GB', {
+                          day: '2-digit',
+                          month: 'short',
+                        })}
+                      </div>
                     </div>
                   </div>
 
                   {/* Column 6: Actions */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-800/80 lg:border-t-0 lg:pt-0">
                     <Link
                       to={`/projects/${p._id}`}
                       title={`Open project workspace for ${p.name}`}
-                      className="flex items-center gap-1 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-white transition hover:bg-white/[0.12] hover:border-white/20"
+                      className="flex-1 sm:flex-initial flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-white transition hover:bg-white/[0.12] hover:border-white/20 active:scale-[0.98]"
                     >
-                      Open Project <ArrowRight className="h-3.5 w-3.5" />
+                      <span>Open</span> <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                     <div className="relative">
                       <button
@@ -560,7 +582,7 @@ export function Projects() {
                           e.stopPropagation();
                           setActiveMenuProjectId((prev) => (prev === p._id ? null : p._id));
                         }}
-                        className="rounded p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition"
+                        className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl border border-slate-800 bg-slate-950/60 p-2 text-slate-400 hover:bg-slate-800 hover:text-white transition"
                         title={`Manage options for ${p.name}`}
                       >
                         <MoreVertical className="h-4 w-4" />
@@ -582,7 +604,7 @@ export function Projects() {
                                 category: p.category || 'Web Application',
                               });
                             }}
-                            className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition"
+                            className="flex min-h-[44px] w-full items-center gap-2 rounded-md px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition"
                           >
                             <Pencil className="h-3.5 w-3.5 text-cyan-400" />
                             <span>Edit Project</span>
@@ -592,7 +614,7 @@ export function Projects() {
                               setActiveMenuProjectId(null);
                               setDeleteProject(p);
                             }}
-                            className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-semibold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition"
+                            className="flex min-h-[44px] w-full items-center gap-2 rounded-md px-3 py-2 text-xs font-semibold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition"
                           >
                             <Trash2 className="h-3.5 w-3.5 text-red-400" />
                             <span>Delete Project</span>
@@ -609,15 +631,16 @@ export function Projects() {
       )}
 
       {/* Pagination Footer */}
-      <div className="flex items-center justify-between border-t border-slate-800 pt-3 text-xs text-slate-400 font-mono">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-800 pt-3 text-xs text-slate-400 font-mono">
         <span>
           Showing {filteredProjects.length === 0 ? 0 : (page - 1) * pageSize + 1}-{Math.min(page * pageSize, filteredProjects.length)} of {filteredProjects.length} projects
         </span>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="rounded border border-slate-800 bg-slate-900 p-1 text-slate-400 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border border-slate-800 bg-slate-900 p-2 text-slate-400 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
+            aria-label="Previous Page"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -626,7 +649,7 @@ export function Projects() {
               key={pNum}
               onClick={() => setPage(pNum)}
               className={cn(
-                'h-7 w-7 rounded-lg border font-mono text-[11px] font-bold transition backdrop-blur-xl',
+                'flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border font-mono text-xs font-bold transition backdrop-blur-xl',
                 page === pNum
                   ? 'bg-white/[0.08] border-white/[0.14] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
                   : 'border-slate-800 bg-slate-900 text-slate-400 hover:bg-white/[0.06] hover:text-white hover:border-white/10'
@@ -638,7 +661,8 @@ export function Projects() {
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page >= totalPages}
-            className="rounded border border-slate-800 bg-slate-900 p-1 text-slate-400 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border border-slate-800 bg-slate-900 p-2 text-slate-400 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
+            aria-label="Next Page"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -720,11 +744,19 @@ export function Projects() {
                         <span className="text-[9px] font-mono mt-0.5 font-semibold">Upload</span>
                         <input
                           type="file"
-                          accept="image/*"
+                          accept="image/png,image/jpeg,image/webp"
                           className="hidden"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
+                              if (file.size > 1024 * 1024) {
+                                alert('Image size must be 1MB or smaller.');
+                                return;
+                              }
+                              if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+                                alert('Only PNG, JPEG, and WebP images are supported.');
+                                return;
+                              }
                               const reader = new FileReader();
                               reader.onload = (evt) => setForm({ ...form, image: evt.target.result });
                               reader.readAsDataURL(file);
@@ -868,11 +900,19 @@ export function Projects() {
                         <span className="text-[9px] font-mono mt-0.5 font-semibold">Upload</span>
                         <input
                           type="file"
-                          accept="image/*"
+                          accept="image/png,image/jpeg,image/webp"
                           className="hidden"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
+                              if (file.size > 1024 * 1024) {
+                                alert('Image size must be 1MB or smaller.');
+                                return;
+                              }
+                              if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+                                alert('Only PNG, JPEG, and WebP images are supported.');
+                                return;
+                              }
                               const reader = new FileReader();
                               reader.onload = (evt) => setEditProject({ ...editProject, image: evt.target.result });
                               reader.readAsDataURL(file);

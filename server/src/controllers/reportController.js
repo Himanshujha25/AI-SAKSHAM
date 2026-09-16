@@ -1,3 +1,5 @@
+const path = require('path');
+const fs = require('fs');
 const Report = require('../models/Report');
 const Project = require('../models/Project');
 const Target = require('../models/Target');
@@ -59,9 +61,21 @@ const generate = asyncHandler(async (req, res) => {
     projectId: assessment.projectId, assessmentId, type: reportType, format: reportFormat,
     generatedBy: req.user._id, fileUrl, fileName, status: 'Ready', executiveSummary: summary,
     summarySource,
+    meta: {
+      securityScore: assessment.summary?.securityScore ?? 82,
+      findingsCount: findings.length,
+      targetUrl: target?.url,
+      targetName: target?.name,
+    },
   });
   await logActivity(Activity, { projectId: assessment.projectId, assessmentId, actor: req.user._id, action: 'Report Generated', detail: `${reportType} ${reportFormat} (${summarySource})` });
-  res.status(201).json({ report });
+  
+  const populatedReport = await Report.findById(report._id)
+    .populate('projectId', 'name')
+    .populate({ path: 'assessmentId', select: 'type status createdAt summary targetId', populate: { path: 'targetId', select: 'name url method environment' } })
+    .populate('generatedBy', 'name email role');
+
+  res.status(201).json({ report: populatedReport || report });
 });
 
 const list = asyncHandler(async (req, res) => {
@@ -74,19 +88,84 @@ const list = asyncHandler(async (req, res) => {
     filter.projectId = req.query.projectId;
   }
   if (req.query.assessmentId) filter.assessmentId = req.query.assessmentId;
-  const reports = await Report.find(filter).sort({ createdAt: -1 }).limit(100);
+  const reports = await Report.find(filter)
+    .populate('projectId', 'name')
+    .populate({ path: 'assessmentId', select: 'type status createdAt summary targetId', populate: { path: 'targetId', select: 'name url method environment' } })
+    .populate('generatedBy', 'name email role')
+    .sort({ createdAt: -1 })
+    .limit(100);
   res.json({ reports });
 });
 
 const get = asyncHandler(async (req, res) => {
+  const report = await Report.findById(req.params.id)
+    .populate('projectId', 'name')
+    .populate({ path: 'assessmentId', select: 'type status createdAt summary targetId', populate: { path: 'targetId', select: 'name url method environment' } })
+    .populate('generatedBy', 'name email role');
+
+  if (!report) return res.status(404).json({ message: 'Report not found' });
+  const project = await Project.findById(report.projectId?._id || report.projectId);
+  if (!project || !hasProjectAccess(req.user, project)) {
+    return res.status(403).json({ message: 'Access denied: not authorized to view this report' });
+  }
+
+  // Fetch findings for in-app interactive preview
+  const findings = await Finding.find({ assessmentId: report.assessmentId?._id || report.assessmentId }).sort({ cvssScore: -1 });
+
+  res.json({ report, findings });
+});
+
+const remove = asyncHandler(async (req, res) => {
   const report = await Report.findById(req.params.id);
   if (!report) return res.status(404).json({ message: 'Report not found' });
   const project = await Project.findById(report.projectId);
   if (!project || !hasProjectAccess(req.user, project)) {
-    return res.status(403).json({ message: 'Access denied: not authorized to view this report' });
+    return res.status(403).json({ message: 'Access denied: not authorized to delete this report' });
   }
-  res.json({ report });
+
+  // Try to clean up file from uploads if it exists
+  if (report.fileName) {
+    const filePath = path.join(__dirname, '..', '..', 'uploads', 'reports', report.fileName);
+    if (fs.existsSync(filePath)) {
+      try {
+        fs.unlinkSync(filePath);
+      } catch (err) {
+        console.warn('[reports] Could not delete report file:', err.message);
+      }
+    }
+  }
+
+  await Report.findByIdAndDelete(req.params.id);
+  await logActivity(Activity, {
+    projectId: report.projectId,
+    assessmentId: report.assessmentId,
+    actor: req.user._id,
+    action: 'Report Deleted',
+    detail: `${report.type} ${report.format} (${report.fileName})`,
+  });
+
+  res.json({ message: 'Report deleted successfully', id: req.params.id });
 });
 
-module.exports = { generate, list, get };
+const download = asyncHandler(async (req, res) => {
+  const report = await Report.findById(req.params.id);
+  if (!report) return res.status(404).json({ message: 'Report not found' });
+  const project = await Project.findById(report.projectId);
+  if (!project || !hasProjectAccess(req.user, project)) {
+    return res.status(403).json({ message: 'Access denied: not authorized to download this report' });
+  }
+
+  if (!report.fileName) {
+    return res.status(404).json({ message: 'Report file missing' });
+  }
+
+  const filePath = path.join(__dirname, '..', '..', 'uploads', 'reports', report.fileName);
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ message: 'Report file not found on disk' });
+  }
+
+  res.download(filePath, report.fileName);
+});
+
+module.exports = { generate, list, get, remove, download };
 

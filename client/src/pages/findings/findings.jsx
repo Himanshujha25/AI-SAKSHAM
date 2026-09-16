@@ -692,106 +692,164 @@ export function Findings() {
         {isError && <ErrorState message="Could not fetch findings records." onRetry={() => refetch()} />}
 
         {!isLoading && !isError && (
-          <div className="w-full overflow-hidden">
-            <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-800 bg-slate-950/60 font-mono text-[11px] uppercase tracking-wider text-slate-400">
-                <tr>
-                  <th className="w-8 px-2 py-3 text-center">
-                    <input
-                      type="checkbox"
-                      checked={isAllSelected}
-                      onChange={toggleSelectAll}
-                      title="Select all findings on this page"
-                      className="rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0 cursor-pointer"
-                    />
-                  </th>
-                  <th className="px-2 py-3">ID</th>
-                  <th className="px-3 py-3">TITLE</th>
-                  <th className="px-3 py-3">PROJECT</th>
-                  <th className="px-2 py-3">SEVERITY</th>
-                  <th className="px-2 py-3">CVSS</th>
-                  <th className="px-3 py-3">ASSET / ENDPOINT</th>
-                  <th className="px-2 py-3">STATUS</th>
-                  <th className="px-3 py-3">DETECTED</th>
-                  <th className="px-3 py-3">UPDATED</th>
-                  <th className="w-16 px-2 py-3 text-center">ACTIONS</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60">
-                {paginatedList.map((item) => (
-                  <tr
-                    key={item._id}
-                    onClick={() => setSelectedFinding(item)}
-                    title={`Click to inspect details for ${item.findingId}: ${item.title}`}
-                    className={cn(
-                      'group cursor-pointer transition duration-150 hover:bg-slate-800/60',
-                      selectedFinding?._id === item._id && 'bg-slate-800/80 border-l-2 border-cyan-400'
-                    )}
-                  >
-                    <td className="px-2 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full">
+            {/* Mobile View: Compact Vulnerability Cards (< 768px) */}
+            <div className="divide-y divide-slate-800/70 md:hidden">
+              {paginatedList.map((item) => (
+                <div
+                  key={item._id}
+                  onClick={() => setSelectedFinding(item)}
+                  className="p-3.5 space-y-2.5 transition active:bg-slate-800/40 cursor-pointer"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                       <input
                         type="checkbox"
                         checked={selectedIds.includes(item._id)}
                         onChange={() => toggleSelectOne(item._id)}
                         title={`Select ${item.findingId}`}
+                        className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0 cursor-pointer"
+                      />
+                      <span className="font-mono text-xs font-bold text-cyan-400">{item.findingId}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <SeverityBadge severity={item.severity} />
+                      <StatusBadge status={item.status} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-bold text-sm text-slate-100 line-clamp-1">{item.title}</h4>
+                    <p className="text-xs text-slate-400 line-clamp-2 mt-0.5">{item.description}</p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800/50 font-mono text-[11px]">
+                    <div className="flex items-center gap-1 text-slate-400 truncate max-w-[210px]">
+                      <span className="text-slate-500">Target:</span>
+                      <span className="text-cyan-300 truncate">{item.affectedAssets?.[0] || '/api'}</span>
+                    </div>
+                    <div className="flex items-center gap-2.5">
+                      <span className="rounded bg-slate-800 px-1.5 py-0.5 font-bold text-white">
+                        CVSS {item.cvssScore}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedFinding(item);
+                        }}
+                        className="inline-flex min-h-[36px] items-center gap-1 rounded-lg border border-cyan-500/40 bg-cyan-950/40 px-2.5 py-1 font-bold text-cyan-300"
+                      >
+                        Inspect <ChevronRight size={12} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop View: High-Density Data Table (>= 768px) */}
+            <div className="hidden md:block w-full overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="border-b border-slate-800 bg-slate-950/60 font-mono text-[11px] uppercase tracking-wider text-slate-400">
+                  <tr>
+                    <th className="w-8 px-2 py-3 text-center">
+                      <input
+                        type="checkbox"
+                        checked={isAllSelected}
+                        onChange={toggleSelectAll}
+                        title="Select all findings on this page"
                         className="rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0 cursor-pointer"
                       />
-                    </td>
-                    <td className="px-2 py-3.5 font-mono font-medium text-slate-400 group-hover:text-cyan-400 whitespace-nowrap">{item.findingId}</td>
-                    <td className="px-3 py-3.5">
-                      <div className="font-semibold text-slate-100 group-hover:text-cyan-300 truncate max-w-[200px]">{item.title}</div>
-                      <div className="truncate max-w-[200px] text-[11px] text-slate-400">{item.description}</div>
-                    </td>
-                    <td className="px-3 py-3.5 whitespace-nowrap">
-                      <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-700/80 bg-slate-800/80 px-2 py-0.5 font-mono text-[11px] font-medium text-slate-200 shadow-sm">
-                        <Folder className="h-3 w-3 text-cyan-400 shrink-0" />
-                        <span className="truncate max-w-[100px]" title={item.projectId?.name || projectMap[String(item.projectId)] || 'Project'}>
-                          {item.projectId?.name || projectMap[String(item.projectId)] || 'Project'}
-                        </span>
-                      </span>
-                    </td>
-                    <td className="px-2 py-3.5">
-                      <SeverityBadge severity={item.severity} />
-                    </td>
-                    <td className="px-2 py-3.5 font-mono font-semibold text-slate-200">{item.cvssScore}</td>
-                    <td className="px-3 py-3.5">
-                      <div className="flex items-center gap-1 font-mono text-[11px]">
-                        <span className="truncate max-w-[170px] text-cyan-400" title={`Endpoint asset path: ${item.affectedAssets?.[0]}`}>{item.affectedAssets?.[0] || 'N/A'}</span>
-                        {item.httpMethod && (
-                          <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[9px] font-bold uppercase text-slate-300" title={`HTTP Method: ${item.httpMethod}`}>
-                            {item.httpMethod}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-2 py-3.5">
-                      <StatusBadge status={item.status} />
-                    </td>
-                    <td className="px-3 py-3.5 text-slate-400 font-mono text-[11px] whitespace-nowrap">
-                      {formatDateTime(item.detectedDate || item.createdAt).date}
-                      <span className="block text-[10px] text-slate-500 font-semibold mt-0.5">
-                        {formatDateTime(item.detectedDate || item.createdAt).time}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3.5 text-slate-400 font-mono text-[11px] whitespace-nowrap">
-                      {formatDateTime(item.updatedDate || item.updatedAt).date}
-                      <span className="block text-[10px] text-slate-500 font-semibold mt-0.5">
-                        {formatDateTime(item.updatedDate || item.updatedAt).time}
-                      </span>
-                    </td>
-                    <td className="px-2 py-3.5 text-center text-slate-500 hover:text-slate-200" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        onClick={() => setSelectedFinding(item)}
-                        className="inline-flex items-center gap-1 rounded border border-slate-700 bg-slate-800/80 px-2 py-1 font-mono text-[10px] font-bold text-cyan-300 hover:bg-slate-700 hover:border-cyan-500/40 transition"
-                        title={`Inspect finding ${item.findingId}`}
-                      >
-                        Inspect <ChevronRight size={11} />
-                      </button>
-                    </td>
+                    </th>
+                    <th className="px-2 py-3">ID</th>
+                    <th className="px-3 py-3">TITLE</th>
+                    <th className="px-3 py-3">PROJECT</th>
+                    <th className="px-2 py-3">SEVERITY</th>
+                    <th className="px-2 py-3">CVSS</th>
+                    <th className="px-3 py-3">ASSET / ENDPOINT</th>
+                    <th className="px-2 py-3">STATUS</th>
+                    <th className="px-3 py-3">DETECTED</th>
+                    <th className="px-3 py-3">UPDATED</th>
+                    <th className="w-16 px-2 py-3 text-center">ACTIONS</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60">
+                  {paginatedList.map((item) => (
+                    <tr
+                      key={item._id}
+                      onClick={() => setSelectedFinding(item)}
+                      title={`Click to inspect details for ${item.findingId}: ${item.title}`}
+                      className={cn(
+                        'group cursor-pointer transition duration-150 hover:bg-slate-800/60',
+                        selectedFinding?._id === item._id && 'bg-slate-800/80 border-l-2 border-cyan-400'
+                      )}
+                    >
+                      <td className="px-2 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(item._id)}
+                          onChange={() => toggleSelectOne(item._id)}
+                          title={`Select ${item.findingId}`}
+                          className="rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0 cursor-pointer"
+                        />
+                      </td>
+                      <td className="px-2 py-3.5 font-mono font-medium text-slate-400 group-hover:text-cyan-400 whitespace-nowrap">{item.findingId}</td>
+                      <td className="px-3 py-3.5">
+                        <div className="font-semibold text-slate-100 group-hover:text-cyan-300 truncate max-w-[200px]">{item.title}</div>
+                        <div className="truncate max-w-[200px] text-[11px] text-slate-400">{item.description}</div>
+                      </td>
+                      <td className="px-3 py-3.5 whitespace-nowrap">
+                        <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-700/80 bg-slate-800/80 px-2 py-0.5 font-mono text-[11px] font-medium text-slate-200 shadow-sm">
+                          <Folder className="h-3 w-3 text-cyan-400 shrink-0" />
+                          <span className="truncate max-w-[100px]" title={item.projectId?.name || projectMap[String(item.projectId)] || 'Project'}>
+                            {item.projectId?.name || projectMap[String(item.projectId)] || 'Project'}
+                          </span>
+                        </span>
+                      </td>
+                      <td className="px-2 py-3.5">
+                        <SeverityBadge severity={item.severity} />
+                      </td>
+                      <td className="px-2 py-3.5 font-mono font-semibold text-slate-200">{item.cvssScore}</td>
+                      <td className="px-3 py-3.5">
+                        <div className="flex items-center gap-1 font-mono text-[11px]">
+                          <span className="truncate max-w-[170px] text-cyan-400" title={`Endpoint asset path: ${item.affectedAssets?.[0]}`}>{item.affectedAssets?.[0] || 'N/A'}</span>
+                          {item.httpMethod && (
+                            <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[9px] font-bold uppercase text-slate-300" title={`HTTP Method: ${item.httpMethod}`}>
+                              {item.httpMethod}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-2 py-3.5">
+                        <StatusBadge status={item.status} />
+                      </td>
+                      <td className="px-3 py-3.5 text-slate-400 font-mono text-[11px] whitespace-nowrap">
+                        {formatDateTime(item.detectedDate || item.createdAt).date}
+                        <span className="block text-[10px] text-slate-500 font-semibold mt-0.5">
+                          {formatDateTime(item.detectedDate || item.createdAt).time}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3.5 text-slate-400 font-mono text-[11px] whitespace-nowrap">
+                        {formatDateTime(item.updatedDate || item.updatedAt).date}
+                        <span className="block text-[10px] text-slate-500 font-semibold mt-0.5">
+                          {formatDateTime(item.updatedDate || item.updatedAt).time}
+                        </span>
+                      </td>
+                      <td className="px-2 py-3.5 text-center text-slate-500 hover:text-slate-200" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => setSelectedFinding(item)}
+                          className="inline-flex items-center gap-1 rounded border border-slate-700 bg-slate-800/80 px-2 py-1 font-mono text-[10px] font-bold text-cyan-300 hover:bg-slate-700 hover:border-cyan-500/40 transition"
+                          title={`Inspect finding ${item.findingId}`}
+                        >
+                          Inspect <ChevronRight size={11} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
@@ -860,37 +918,40 @@ export function Findings() {
               className="fixed right-0 top-0 z-50 flex h-full w-full max-w-xl flex-col border-l border-slate-800 bg-slate-950 p-0 shadow-2xl"
             >
               {/* Header */}
-              <div className="border-b border-slate-800 bg-slate-900/90 p-5">
+              <div className="border-b border-slate-800 bg-slate-900/90 p-4 sm:p-5">
                 <div className="flex items-center justify-between pb-2">
                   <div className="flex items-center gap-2 font-mono text-xs text-slate-400">
-                    <span className="rounded bg-slate-800 px-2 py-0.5 text-cyan-300 font-bold">{selectedFinding.findingId}</span>
+                    <span className="rounded bg-slate-800 px-2.5 py-1 text-cyan-300 font-bold">{selectedFinding.findingId}</span>
                     <StatusBadge status={selectedFinding.status} />
                   </div>
                   <button
+                    type="button"
                     onClick={() => setSelectedFinding(null)}
-                    className="rounded-lg p-1 text-slate-400 transition hover:bg-slate-800 hover:text-white"
+                    className="flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-xl p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white"
+                    aria-label="Close Finding Details"
                   >
                     <X className="h-5 w-5" />
                   </button>
                 </div>
-                <h2 className="text-xl font-bold tracking-tight text-white">{selectedFinding.title}</h2>
-                <p className="mt-1 text-xs text-slate-400">{selectedFinding.description}</p>
+                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white">{selectedFinding.title}</h2>
+                <p className="mt-1 text-xs text-slate-400 line-clamp-2">{selectedFinding.description}</p>
 
-                {/* Drawer Nav Tabs */}
-                <div className="mt-5 flex border-b border-slate-800 gap-5 text-xs font-medium">
+                {/* Drawer Nav Tabs (Scrollable on mobile without wrapping) */}
+                <div className="mt-4 flex overflow-x-auto border-b border-slate-800 gap-4 text-xs font-medium" style={{ scrollbarWidth: 'none' }}>
                   {['details', 'suggestions', 'evidence', 'remediation', 'timeline'].map((tab) => (
                     <button
                       key={tab}
+                      type="button"
                       onClick={() => setDrawerTab(tab)}
                       className={cn(
-                        'pb-2.5 capitalize transition border-b-2 flex items-center gap-1.5',
+                        'pb-3 pt-1 capitalize transition border-b-2 flex items-center gap-1.5 shrink-0 min-h-[44px]',
                         drawerTab === tab
                           ? 'border-cyan-400 font-semibold text-cyan-300'
                           : 'border-transparent text-slate-400 hover:text-slate-200'
                       )}
                     >
                       {tab === 'suggestions' && <Code2 className="h-3.5 w-3.5 text-cyan-400" />}
-                      {tab === 'suggestions' ? 'Remediation Code' : tab}
+                      <span>{tab === 'suggestions' ? 'Remediation Code' : tab}</span>
                     </button>
                   ))}
                 </div>

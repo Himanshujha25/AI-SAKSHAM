@@ -28,17 +28,24 @@ const get = asyncHandler(async (req, res) => {
   if (!hasProjectAccess(req.user, project)) {
     return res.status(403).json({ message: 'Access denied: not a member of this project' });
   }
-  const [assessments, findings] = await Promise.all([
+  const [assessments, recentActivity, aggregation] = await Promise.all([
     Assessment.find({ projectId: project._id }).sort({ createdAt: -1 }).limit(20),
-    Finding.find({ projectId: project._id }).sort({ cvssScore: -1 }).limit(50),
+    Activity.find({ projectId: project._id }).sort({ createdAt: -1 }).limit(10),
+    Finding.aggregate([
+      { $match: { projectId: project._id } },
+      { $group: {
+          _id: null,
+          critical: { $sum: { $cond: [{ $eq: ["$severity", "Critical"] }, 1, 0] } },
+          high: { $sum: { $cond: [{ $eq: ["$severity", "High"] }, 1, 0] } },
+          medium: { $sum: { $cond: [{ $eq: ["$severity", "Medium"] }, 1, 0] } },
+          low: { $sum: { $cond: [{ $eq: ["$severity", "Low"] }, 1, 0] } },
+          informational: { $sum: { $cond: [{ $eq: ["$severity", "Informational"] }, 1, 0] } },
+          verified: { $sum: { $cond: [{ $eq: ["$status", "Verified"] }, 1, 0] } }
+      }}
+    ])
   ]);
-  const counts = { critical: 0, high: 0, medium: 0, low: 0, informational: 0, verified: 0 };
-  findings.forEach((f) => {
-    const k = (f.severity || 'informational').toLowerCase();
-    if (counts[k] !== undefined) counts[k] += 1;
-    if (f.status === 'Verified') counts.verified += 1;
-  });
-  const recentActivity = await Activity.find({ projectId: project._id }).sort({ createdAt: -1 }).limit(10);
+  const counts = aggregation[0] || { critical: 0, high: 0, medium: 0, low: 0, informational: 0, verified: 0 };
+  delete counts._id;
   res.json({ project, assessments, overview: { totalAssessments: assessments.length, ...counts, securityScore: assessments[0]?.summary?.securityScore ?? null }, recentActivity });
 });
 

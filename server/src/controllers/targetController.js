@@ -2,6 +2,7 @@ const Target = require('../models/Target');
 const Project = require('../models/Project');
 const { asyncHandler } = require('../middleware/errors');
 const { hasProjectAccess } = require('../middleware/auth');
+const { validateSafeUrl } = require('../utils/ssrfGuard');
 
 const listByProject = asyncHandler(async (req, res) => {
   const project = await Project.findById(req.params.projectId);
@@ -21,6 +22,12 @@ const create = asyncHandler(async (req, res) => {
   }
   const { name, url, method, requestBody, environment, authorizationConfirmed, description, metadata, customHeaders } = req.body;
   if (!name || !url) return res.status(400).json({ message: 'name, url required' });
+
+  try {
+    await validateSafeUrl(url, { allowLocalhost: process.env.NODE_ENV !== 'production' });
+  } catch (err) {
+    return res.status(400).json({ message: `Invalid or restricted target URL: ${err.message}` });
+  }
 
   const headersString = Array.isArray(customHeaders) ? customHeaders.join('\n') : (typeof customHeaders === 'string' ? customHeaders : String(customHeaders || ''));
 
@@ -59,7 +66,14 @@ const update = asyncHandler(async (req, res) => {
   const { name, url, method, requestBody, environment, authorizationConfirmed, description, metadata, customHeaders } = req.body;
   const updateData = {};
   if (name !== undefined) updateData.name = name;
-  if (url !== undefined) updateData.url = url;
+  if (url !== undefined) {
+    try {
+      await validateSafeUrl(url, { allowLocalhost: process.env.NODE_ENV !== 'production' });
+    } catch (err) {
+      return res.status(400).json({ message: `Invalid or restricted target URL: ${err.message}` });
+    }
+    updateData.url = url;
+  }
   if (method !== undefined) updateData.method = method;
   if (requestBody !== undefined) updateData.requestBody = requestBody;
   if (environment !== undefined) updateData.environment = environment;

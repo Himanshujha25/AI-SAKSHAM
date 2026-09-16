@@ -68,22 +68,22 @@ export function playCyberSound(type = 'toast') {
       osc.start(now);
       osc.stop(now + 0.15);
     } else if (type === 'click') {
-      // Ultra-subtle mechanical tick
+      // Crisp, satisfying mechanical tactical click
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(1200, now);
-      osc.frequency.exponentialRampToValueAtTime(600, now + 0.02);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1400, now);
+      osc.frequency.exponentialRampToValueAtTime(700, now + 0.04);
 
-      gain.gain.setValueAtTime(0.04, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
 
       osc.connect(gain);
       gain.connect(masterGain);
 
       osc.start(now);
-      osc.stop(now + 0.03);
+      osc.stop(now + 0.05);
     } else {
       // Default toast / info / success chirp
       const osc = ctx.createOscillator();
@@ -93,7 +93,7 @@ export function playCyberSound(type = 'toast') {
       osc.frequency.setValueAtTime(950, now);
       osc.frequency.exponentialRampToValueAtTime(1400, now + 0.08);
 
-      gain.gain.setValueAtTime(0.05, now);
+      gain.gain.setValueAtTime(0.08, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
 
       osc.connect(gain);
@@ -105,4 +105,29 @@ export function playCyberSound(type = 'toast') {
   } catch (err) {
     // Silent fail if AudioContext is blocked by browser policy
   }
+}
+
+// Automatically install global click sound handler for all buttons, links, tabs, and switches
+export function initGlobalClickSound() {
+  if (typeof window === 'undefined') return;
+  if (window.__cyberSoundAttached) return;
+  window.__cyberSoundAttached = true;
+
+  const handleGlobalClick = (e) => {
+    // Always unlock/resume AudioContext on user gesture
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume().catch(() => {});
+    }
+    const interactive = e.target.closest('button, a, input[type="checkbox"], input[type="radio"], select, [role="button"], [role="tab"], .btn, .clickable');
+    if (interactive) {
+      playCyberSound('click');
+    }
+  };
+
+  window.addEventListener('click', handleGlobalClick, { capture: true });
+}
+
+// Auto-run on import
+if (typeof window !== 'undefined') {
+  initGlobalClickSound();
 }

@@ -5,7 +5,8 @@ const Activity = require('../models/Activity');
 const { asyncHandler } = require('../middleware/errors');
 
 const overview = asyncHandler(async (req, res) => {
-  const projectFilter = { $or: [{ owner: req.user._id }, { members: req.user._id }] };
+  const isElevated = req.user.role === 'ADMIN' || req.user.role === 'VIEWER';
+  const projectFilter = isElevated ? {} : { $or: [{ owner: req.user._id }, { members: req.user._id }] };
   const projects = await Project.find(projectFilter).select('_id');
   const projectIds = projects.map((p) => p._id);
 

@@ -1,0 +1,53 @@
+{
+  "name": "Saksham AI Security Operations",
+  "short_name": "Saksham AI",
+  "description": "Enterprise Automated Security Assessment & Vulnerability Operations Platform",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#04060d",
+  "theme_color": "#090f1f",
+  "icons": [
+    {
+      "src": "/Logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/Logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": [
+    "security",
+    "utilities",
+    "developer tools"
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "url": "/dashboard",
+      "description": "View Security Command Center Posture"
+    },
+    {
+      "name": "Assessments",
+      "url": "/assessments",
+      "description": "Security Assessment Stream"
+    },
+    {
+      "name": "Findings",
+      "url": "/findings",
+      "description": "Vulnerability Findings & Evidence"
+    }
+  ]
+}

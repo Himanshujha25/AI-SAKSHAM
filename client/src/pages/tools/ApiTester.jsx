@@ -172,15 +172,15 @@ export function ApiTester() {
             <Input type="password" placeholder="Bearer token B" value={form.tokenB} onChange={(e) => setForm({ ...form, tokenB: e.target.value })} className="font-mono" />
           </div>
         </div>
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <Button disabled={!form.url || run.isPending} onClick={testSingle} className="bg-cyan-600 hover:bg-cyan-500 text-white font-semibold px-5 py-2">
+        <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-3">
+          <Button disabled={!form.url || run.isPending} onClick={testSingle} className="w-full sm:w-auto bg-cyan-600 hover:bg-cyan-500 text-white font-semibold px-5 py-2">
             <Play size={14} className="fill-current" /> {run.isPending ? 'Probing…' : 'Send Probe (Single)'}
           </Button>
-          <Button disabled={!form.url || run.isPending} variant="outline" onClick={compare} className="px-5 py-2">
+          <Button disabled={!form.url || run.isPending} variant="outline" onClick={compare} className="w-full sm:w-auto px-5 py-2">
             <Scale size={14} /> {run.isPending ? 'Probing…' : 'Compare Roles (A vs B)'}
           </Button>
           <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-slate-500">
-            <FlaskConical size={13} className="text-slate-500" /> Read-only style probe · 10s timeout · 50KB cap
+            <FlaskConical size={13} className="text-slate-500 shrink-0" /> Read-only probe · 10s timeout · 50KB cap
           </span>
         </div>
         {run.isError && <p className="mt-2 font-mono text-xs font-semibold text-red-400">{errMsg(run.error)}</p>}

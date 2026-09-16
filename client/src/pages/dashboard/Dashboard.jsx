@@ -15,6 +15,7 @@ import { getSocket } from '../../lib/socket';
 import { parseCurlCommand } from '../../lib/utils';
 import { PageHeader, LoadingState, ErrorState, EmptyState, StatusBadge, SeverityBadge, MicroLabel, PremiumIcon } from '../../components/shared/shared';
 import { CustomSelect } from '../../components/ui/CustomSelect';
+import { useAuth } from '../../store/auth';
 
 const SEVERITY_COLORS = ['#ef4444', '#f97316', '#f59e0b', '#10b981', '#64748b'];
 
@@ -254,21 +255,26 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-2 sm:p-4 backdrop-blur-md overflow-y-auto">
       <motion.div
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.96 }}
-        className="relative my-auto w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden rounded-2xl border border-slate-800 bg-[#091024] p-6 shadow-2xl"
+        className="relative my-auto w-full max-w-xl max-h-[92vh] flex flex-col overflow-hidden rounded-2xl border border-slate-800 bg-[#091024] p-4 sm:p-6 shadow-2xl"
       >
         {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3.5 shrink-0">
-          <div className="flex items-center gap-2.5 text-slate-100 font-bold text-base">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-3 shrink-0">
+          <div className="flex items-center gap-2 text-slate-100 font-bold text-sm sm:text-base">
             <Zap className="text-cyan-400" size={18} />
             <span>Start Security Assessment</span>
           </div>
-          <button onClick={onClose} className="rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white">
-            <X size={16} />
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-xl p-2 text-slate-400 hover:bg-slate-800 hover:text-white transition"
+            aria-label="Close Assessment Modal"
+          >
+            <X size={18} />
           </button>
         </div>
 
@@ -635,6 +641,9 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
 }
 
 export function Dashboard() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
+  const isViewer = user?.role === 'VIEWER';
   const qc = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeAssessmentId, setActiveAssessmentId] = useState(null);
@@ -788,24 +797,65 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Header Bar — synced with Reports/Findings (icon + flat, no glow) */}
+      {/* Header Bar — synced with Reports/Findings with RBAC context */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
-          <PremiumIcon icon={LayoutDashboard} tone="cyan" size="lg" iconSize={22} />
+          <PremiumIcon icon={LayoutDashboard} tone={isAdmin ? "purple" : isViewer ? "emerald" : "cyan"} size="lg" iconSize={22} />
           <div className="min-w-0">
-            <h1 className="truncate text-2xl font-bold tracking-tight text-white">
-              Security Operations Center
-            </h1>
-            <p className="mt-0.5 text-xs leading-relaxed text-slate-400">Live attack surface posture & security audit pipeline</p>
+            <div className="flex items-center gap-2">
+              <h1 className="truncate text-xl sm:text-2xl font-bold tracking-tight text-white">
+                {isAdmin ? 'Security Command Center (Admin Console)' : isViewer ? 'Security Compliance Audit Center' : 'Security Operations Center'}
+              </h1>
+              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md font-mono text-[10px] font-bold uppercase tracking-wider ${
+                isAdmin 
+                  ? 'border border-purple-500/40 bg-purple-500/15 text-purple-300'
+                  : isViewer 
+                  ? 'border border-emerald-500/40 bg-emerald-500/15 text-emerald-300'
+                  : 'border border-cyan-500/40 bg-cyan-500/15 text-cyan-300'
+              }`}>
+                {isAdmin ? <Lock size={11} /> : isViewer ? <Eye size={11} /> : <ShieldCheck size={11} />}
+                <span>{isAdmin ? 'ADMIN' : isViewer ? 'AUDITOR' : 'ANALYST'}</span>
+              </span>
+            </div>
+            <p className="mt-0.5 text-xs leading-relaxed text-slate-400">
+              {isAdmin 
+                ? 'Administrative console · Authorized scope & assessments'
+                : isViewer 
+                ? 'Read-only compliance mode · Verified vulnerability posture'
+                : 'Live attack surface posture & security audit pipeline'}
+            </p>
           </div>
         </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12] hover:border-white/20"
-        >
-          <Zap size={14} className="fill-current text-white" />
-          <span>Start Assessment</span>
-        </button>
+
+        {isViewer ? (
+          <div
+            title="Viewer accounts have read-only compliance access."
+            className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-950/30 px-3.5 py-2 min-h-[44px] font-mono text-[11px] font-medium text-emerald-300 shadow-sm"
+          >
+            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+            <span>Read-Only Auditor Mode</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <span className="hidden lg:inline-flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-xl border border-purple-500/30 bg-purple-500/10 font-mono text-[11px] font-semibold text-purple-300">
+                <span className="h-1.5 w-1.5 rounded-full bg-purple-400 animate-pulse" /> Admin Privileges
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+              className={`flex items-center gap-2 rounded-xl min-h-[44px] px-4 py-2.5 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition ${
+                isAdmin
+                  ? 'bg-purple-600/30 hover:bg-purple-600/45 border border-purple-500/40'
+                  : 'bg-white/[0.08] hover:bg-white/[0.12] border border-white/[0.14]'
+              }`}
+            >
+              <Zap size={14} className="fill-current text-white" />
+              <span>Start Assessment</span>
+            </button>
+          </div>
+        )}
       </div>
 
       <StartScanModal
@@ -886,8 +936,8 @@ export function Dashboard() {
         )}
 
         <div className="relative z-10 grid gap-8 lg:grid-cols-[1.2fr_1fr_1.2fr] lg:items-center">
-          {/* Left Column: Attack Surface Sources */}
-          <motion.div initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1, duration: 0.35 }} className="min-w-0">
+          {/* Left Column: Attack Surface Sources (Order 3 on mobile, Order 1 on desktop) */}
+          <motion.div initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1, duration: 0.35 }} className="order-3 lg:order-1 min-w-0">
             <div className="mb-3.5 text-xs font-mono font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
               <Radar size={13} className="text-cyan-400" /> SOURCES · ATTACK SURFACE
             </div>
@@ -912,12 +962,12 @@ export function Dashboard() {
             </ul>
           </motion.div>
 
-          {/* Center Column: Security Analysis Hub Node */}
+          {/* Center Column: Security Analysis Hub Node (Order 1 on mobile, Order 2 on desktop) */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.35, ease: 'easeOut', delay: 0.15 }}
-            className="min-w-0 text-center"
+            className="order-1 lg:order-2 min-w-0 text-center"
           >
             <SecurityAnalysisHub
               orbRef={orbRef}
@@ -928,8 +978,8 @@ export function Dashboard() {
             />
           </motion.div>
 
-          {/* Right Column: Active Cases & Resolved Signals */}
-          <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1, duration: 0.35 }} className="min-w-0 space-y-4">
+          {/* Right Column: Active Cases & Resolved Signals (Order 2 on mobile, Order 3 on desktop) */}
+          <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1, duration: 0.35 }} className="order-2 lg:order-3 min-w-0 space-y-4">
             <div>
               <div className="mb-3 text-xs font-mono font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-red-500" />

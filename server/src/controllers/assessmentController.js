@@ -25,6 +25,9 @@ const create = asyncHandler(async (req, res) => {
 
   const target = await Target.findById(targetId);
   if (!target) return res.status(404).json({ message: 'Target not found' });
+  if (String(target.projectId) !== String(projectId)) {
+    return res.status(403).json({ message: 'Target does not belong to the specified project' });
+  }
   // Persist confirmation + touch last assessment
   target.authorizationConfirmed = true;
   target.lastAssessment = new Date();

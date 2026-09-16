@@ -50,9 +50,17 @@ export function AuthProvider({ children }) {
     return res.data.user;
   };
 
-  const register = async (name, email, password) => {
+  const register = async (name, email, password, role = 'ANALYST') => {
     qc.clear();
-    const res = await api.post('/auth/register', { name, email, password });
+    const res = await api.post('/auth/register', { name, email, password, role });
+    localStorage.setItem('saksham_ai_token', res.data.token);
+    setUser(res.data.user);
+    return res.data.user;
+  };
+
+  const demoLogin = async (role = 'ANALYST') => {
+    qc.clear();
+    const res = await api.post('/auth/demo-login', { role });
     localStorage.setItem('saksham_ai_token', res.data.token);
     setUser(res.data.user);
     return res.data.user;
@@ -90,7 +98,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, googleLogin, updateProfile, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, demoLogin, register, googleLogin, updateProfile, logout }}>
       {children}
     </AuthContext.Provider>
   );

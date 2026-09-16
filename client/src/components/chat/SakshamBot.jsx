@@ -116,7 +116,7 @@ export function SakshamBot() {
   const chips = authed ? USER_CHIPS : GUEST_CHIPS;
 
   return (
-    <div className="fixed bottom-5 right-5 z-[90] flex flex-col items-end gap-3">
+    <div className="fixed bottom-20 md:bottom-6 right-3 sm:right-6 z-40 flex flex-col items-end gap-3">
       <AnimatePresence>
         {open && (
           <motion.div
@@ -124,10 +124,10 @@ export function SakshamBot() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.97 }}
             transition={{ duration: 0.2 }}
-            className="flex h-[480px] w-[330px] max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#070b16] dark:shadow-2xl dark:shadow-black/60"
+            className="flex h-[480px] w-[360px] max-w-[calc(100vw-1.5rem)] max-h-[calc(100vh-8rem)] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#070b16] shadow-2xl shadow-black/80"
           >
             {/* Header */}
-            <div className="flex items-center gap-2.5 border-b border-slate-200 bg-slate-50 px-4 py-3 dark:border-white/10 dark:bg-white/[0.04]">
+            <div className="flex items-center gap-2.5 border-b border-white/10 bg-white/[0.04] px-4 py-3">
               <SakshamIcon size={28} />
               <div className="min-w-0 flex-1">
                 <p className="flex items-center gap-1.5 text-sm font-semibold">Saksham Bot <Sparkles size={12} className="text-cyan-500" /></p>

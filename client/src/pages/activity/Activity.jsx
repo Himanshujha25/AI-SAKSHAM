@@ -149,9 +149,9 @@ export function Activity() {
         }
       />
 
-      {/* Top Executive Metric Summary Cards (4 Columns) */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card className="border-slate-800 bg-[#090f1f] p-5 shadow-md">
+      {/* Top Executive Metric Summary Cards (Responsive Grid) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+        <Card className="border-slate-800 bg-[#090f1f] p-4 md:p-5 shadow-md">
           <div className="flex items-center justify-between">
             <PremiumIcon icon={ScrollText} tone="cyan" size="md" />
             <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-300">All logs</span>
@@ -162,7 +162,7 @@ export function Activity() {
           </div>
         </Card>
 
-        <Card className="border-slate-800 bg-[#090f1f] p-5 shadow-md">
+        <Card className="border-slate-800 bg-[#090f1f] p-4 md:p-5 shadow-md">
           <div className="flex items-center justify-between">
             <PremiumIcon icon={Zap} tone="emerald" size="md" />
             <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-300">Audits</span>
@@ -173,7 +173,7 @@ export function Activity() {
           </div>
         </Card>
 
-        <Card className="border-slate-800 bg-[#090f1f] p-5 shadow-md">
+        <Card className="border-slate-800 bg-[#090f1f] p-4 md:p-5 shadow-md">
           <div className="flex items-center justify-between">
             <PremiumIcon icon={FileText} tone="purple" size="md" />
             <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-purple-300">Reports</span>
@@ -184,7 +184,7 @@ export function Activity() {
           </div>
         </Card>
 
-        <Card className="border-slate-800 bg-[#090f1f] p-5 shadow-md">
+        <Card className="border-slate-800 bg-[#090f1f] p-4 md:p-5 shadow-md">
           <div className="flex items-center justify-between">
             <PremiumIcon icon={FolderKanban} tone="blue" size="md" />
             <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-blue-300">Workspaces</span>
@@ -197,22 +197,23 @@ export function Activity() {
       </div>
 
       {/* Filter & Search Bar Card */}
-      <Card className="relative z-20 border-slate-800 bg-[#090f1f] p-4 shadow-md">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+      <Card className="relative z-20 border-slate-800 bg-[#090f1f] p-3 md:p-4 shadow-md">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           {/* Search Box */}
-          <div className="relative min-w-[260px] flex-1">
+          <div className="relative w-full md:flex-1 min-w-0">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
             <input
               type="text"
               placeholder="Search audit trail by action, detail, user, or project..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-md border border-slate-700/80 bg-slate-950/80 py-1.5 pl-9 pr-3 text-xs text-slate-200 placeholder-slate-500 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
+              className="w-full rounded-md border border-slate-700/80 bg-slate-950/80 min-h-[44px] py-2 pl-9 pr-8 text-xs text-slate-200 placeholder-slate-500 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1"
+                aria-label="Clear Search"
               >
                 <X size={14} />
               </button>
@@ -220,11 +221,11 @@ export function Activity() {
           </div>
 
           {/* Filter Dropdowns */}
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
             <CustomSelect
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-44"
+              className="w-full sm:w-44"
               options={[
                 { value: '', label: 'All Event Types' },
                 { value: 'Assessment', label: 'Security Audits' },
@@ -237,7 +238,7 @@ export function Activity() {
             <CustomSelect
               value={projectId}
               onChange={(e) => setProjectId(e.target.value)}
-              className="w-48"
+              className="w-full sm:w-48"
               options={[
                 { value: '', label: 'All Projects' },
                 ...projectsList.map((p) => ({ value: p._id, label: p.name })),
