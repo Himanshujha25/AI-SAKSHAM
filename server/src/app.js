@@ -24,7 +24,16 @@ const app = express();
 app.set('io', null);
 
 app.use(helmet());
-app.use(cors({ origin: env.clientUrl, credentials: true }));
+app.use(cors({
+  origin: (origin, cb) => {
+    // Allow same-origin / curl / mobile (no Origin header) + whitelisted web origins.
+    // CLIENT_URL can be comma-separated: "http://localhost:5173,https://ai-saksham-mocha.vercel.app"
+    if (!origin) return cb(null, true);
+    if (env.clientUrls.includes(origin)) return cb(null, true);
+    return cb(new Error(`CORS blocked for origin ${origin}`));
+  },
+  credentials: true,
+}));
 app.use(express.json({ limit: '1mb' }));
 app.use(mongoSanitize());
 app.use(xss());

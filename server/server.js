@@ -22,7 +22,7 @@ async function main() {
     console.warn('[server] recovery skipped:', e.message);
   }
   const server = http.createServer(app);
-  const io = new Server(server, { cors: { origin: env.clientUrl, methods: ['GET', 'POST', 'PATCH'] } });
+  const io = new Server(server, { cors: { origin: env.clientUrls, methods: ['GET', 'POST', 'PATCH'] } });
   app.set('io', io);
 
   io.on('connection', (socket) => {
