@@ -1,9 +1,20 @@
 require('dotenv').config();
 
-const clientUrls = (process.env.CLIENT_URL || 'http://localhost:5173')
+const defaultOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:5000',
+  'http://127.0.0.1:5173',
+  'https://ai-saksham-mocha.vercel.app',
+  'https://ai-saksham.vercel.app',
+];
+
+const envUrls = (process.env.CLIENT_URL || '')
   .split(',')
   .map((s) => s.trim().replace(/\/$/, ''))
   .filter(Boolean);
+
+const clientUrls = Array.from(new Set([...defaultOrigins, ...envUrls]));
 
 const env = {
   port: parseInt(process.env.PORT || '5000', 10),
