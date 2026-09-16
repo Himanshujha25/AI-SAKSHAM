@@ -82,11 +82,11 @@ function DynamicSparklineCard({ title, count, badge, color = 'cyan', dataPoints 
   const areaD = `${pathD} L ${pts[pts.length - 1].x},${height} L ${pts[0].x},${height} Z`;
 
   const colorConfig = {
-    cyan: { border: 'border-cyan-500/30', bg: 'bg-cyan-500/10', text: 'text-cyan-400', stroke: '#38bdf8', fill: 'url(#grad-cyan)' },
-    emerald: { border: 'border-emerald-500/30', bg: 'bg-emerald-500/10', text: 'text-emerald-400', stroke: '#10b981', fill: 'url(#grad-emerald)' },
-    blue: { border: 'border-blue-500/30', bg: 'bg-blue-500/10', text: 'text-blue-400', stroke: '#3b82f6', fill: 'url(#grad-blue)' },
-    amber: { border: 'border-amber-500/30', bg: 'bg-amber-500/10', text: 'text-amber-400', stroke: '#f59e0b', fill: 'url(#grad-amber)' },
-  }[color] || { border: 'border-cyan-500/30', bg: 'bg-cyan-500/10', text: 'text-cyan-400', stroke: '#38bdf8', fill: 'url(#grad-cyan)' };
+    cyan: { border: 'border-blue-200 dark:border-cyan-500/30', bg: 'bg-cyan-500/10', text: 'text-blue-600 dark:text-cyan-400', stroke: '#38bdf8', fill: 'url(#grad-cyan)' },
+    emerald: { border: 'border-emerald-500/30', bg: 'bg-emerald-500/10', text: 'text-emerald-600 dark:text-emerald-400', stroke: '#10b981', fill: 'url(#grad-emerald)' },
+    blue: { border: 'border-blue-500/30', bg: 'bg-blue-500/10', text: 'text-blue-600 dark:text-blue-400', stroke: '#3b82f6', fill: 'url(#grad-blue)' },
+    amber: { border: 'border-amber-500/30', bg: 'bg-amber-500/10', text: 'text-amber-600 dark:text-amber-400', stroke: '#f59e0b', fill: 'url(#grad-amber)' },
+  }[color] || { border: 'border-blue-200 dark:border-cyan-500/30', bg: 'bg-cyan-500/10', text: 'text-blue-600 dark:text-cyan-400', stroke: '#38bdf8', fill: 'url(#grad-cyan)' };
 
   const handleMouseMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -99,7 +99,7 @@ function DynamicSparklineCard({ title, count, badge, color = 'cyan', dataPoints 
   const activePt = hoverIdx !== null ? pts[hoverIdx] : null;
 
   return (
-    <Card className="relative overflow-hidden border-slate-800 bg-slate-900/90 p-4 shadow-md backdrop-blur transition duration-300 hover:border-slate-700 hover:shadow-cyan-500/5 group">
+    <Card className="relative overflow-hidden border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-4 shadow-md backdrop-blur transition duration-300 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-cyan-500/5 group">
       <div className="flex items-center justify-between">
         <div className={`flex h-8 w-8 items-center justify-center rounded-lg border ${colorConfig.border} ${colorConfig.bg} ${colorConfig.text}`}>
           <Icon className="h-4 w-4" />
@@ -108,8 +108,8 @@ function DynamicSparklineCard({ title, count, badge, color = 'cyan', dataPoints 
       </div>
 
       <div className="mt-3">
-        <span className="text-3xl font-extrabold text-white font-mono">{count}</span>
-        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-0.5">{title}</p>
+        <span className="text-3xl font-extrabold text-[#0f1f3d] dark:text-white font-mono">{count}</span>
+        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5">{title}</p>
       </div>
 
       <div
@@ -151,11 +151,11 @@ function DynamicSparklineCard({ title, count, badge, color = 'cyan', dataPoints 
 
         {activePt && (
           <div
-            className="absolute z-20 pointer-events-none -translate-x-1/2 -translate-y-full rounded-md border border-slate-700 bg-slate-950/95 px-2 py-1 shadow-xl text-center"
+            className="absolute z-20 pointer-events-none -translate-x-1/2 -translate-y-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950/95 px-2 py-1 shadow-xl text-center"
             style={{ left: `${(activePt.x / width) * 100}%`, top: '-4px' }}
           >
-            <div className="text-[10px] font-mono font-bold text-white whitespace-nowrap">{activePt.value} {title}</div>
-            <div className="text-[9px] font-mono text-slate-400 whitespace-nowrap">{activePt.label}</div>
+            <div className="text-[10px] font-mono font-bold text-[#0f1f3d] dark:text-white whitespace-nowrap">{activePt.value} {title}</div>
+            <div className="text-[9px] font-mono text-slate-500 dark:text-slate-400 whitespace-nowrap">{activePt.label}</div>
           </div>
         )}
       </div>
@@ -228,7 +228,7 @@ export function Projects() {
           ? data.projects.map((p, idx) => ({
               ...p,
               tags: p.category ? [p.category] : ['Web Application'],
-              avatarBg: idx % 3 === 0 ? 'bg-cyan-600' : idx % 3 === 1 ? 'bg-purple-600' : 'bg-emerald-600',
+              avatarBg: idx % 3 === 0 ? 'bg-blue-600 dark:bg-cyan-600' : idx % 3 === 1 ? 'bg-purple-600' : 'bg-emerald-600',
               avatarChar: (p.name || 'P').charAt(0).toUpperCase(),
               targets: p.targets || { count: 1, sample: p.name ? `${p.name.toLowerCase()}.com` : 'target.com' },
               assessments: p.assessments || { total: 2, completed: 1 },
@@ -361,7 +361,7 @@ export function Projects() {
       </div>
 
       {/* Filter Toolbar & Actions Bar */}
-      <Card className="relative z-30 border-slate-800 bg-slate-900/90 p-3 shadow-md backdrop-blur">
+      <Card className="relative z-30 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-3 shadow-md backdrop-blur">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           {/* Search Box */}
           <div className="relative w-full md:flex-1 min-w-0">
@@ -374,7 +374,7 @@ export function Projects() {
                 setFilters({ ...filters, search: e.target.value });
                 setPage(1);
               }}
-              className="w-full rounded-md border border-slate-700/80 bg-slate-950/80 min-h-[44px] py-2 pl-9 pr-3 text-xs text-slate-200 placeholder-slate-500 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
+              className="w-full rounded-md border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-950/80 min-h-[44px] py-2 pl-9 pr-3 text-xs text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
             />
           </div>
 
@@ -431,7 +431,7 @@ export function Projects() {
             <button
               onClick={() => setShowCreateModal(true)}
               title="Create a new security audit project container"
-              className="flex min-h-[44px] w-full sm:w-auto items-center justify-center gap-1.5 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12] hover:border-white/20 active:scale-[0.98]"
+              className="flex min-h-[44px] w-full sm:w-auto items-center justify-center gap-1.5 rounded-xl bg-white/60 backdrop-blur-xl dark:bg-white/[0.08] backdrop-blur-xl border border-slate-200 dark:border-white/[0.14] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-[#0f1f3d] dark:text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/85 dark:hover:bg-white/[0.12] hover:border-slate-300 dark:hover:border-white/20 active:scale-[0.98]"
             >
               <Plus className="h-4 w-4" />
               <span>Create New Project</span>
@@ -454,7 +454,7 @@ export function Projects() {
                 key={p._id}
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="group relative rounded-xl border border-slate-800 bg-slate-900/90 p-4 transition duration-200 hover:border-slate-700 hover:bg-slate-800/80 shadow-md"
+                className="group relative rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-4 transition duration-200 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800/80 shadow-md"
               >
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   {/* Column 1: Identity & Header */}
@@ -464,10 +464,10 @@ export function Projects() {
                         src={p.image || p.avatarUrl}
                         alt={p.name}
                         title={`Project icon for ${p.name}`}
-                        className="h-11 w-11 shrink-0 rounded-xl object-cover border border-cyan-500/40 shadow-sm ring-1 ring-cyan-500/20"
+                        className="h-11 w-11 shrink-0 rounded-xl object-cover border border-blue-200 dark:border-cyan-500/40 shadow-sm ring-1 ring-cyan-500/20"
                       />
                     ) : (
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-950 to-slate-900 border border-cyan-500/30 text-cyan-400 font-extrabold text-base shadow-sm" title={`Project avatar for ${p.name}`}>
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-100 dark:from-cyan-950 to-white dark:to-slate-900 border border-blue-200 dark:border-cyan-500/30 text-blue-600 dark:text-cyan-400 font-extrabold text-base shadow-sm" title={`Project avatar for ${p.name}`}>
                         {p.name.charAt(0).toUpperCase()}
                       </div>
                     )}
@@ -476,13 +476,13 @@ export function Projects() {
                         <Link
                           to={`/projects/${p._id}`}
                           title={`Open ${p.name} security workspace`}
-                          className="font-bold text-white text-sm hover:text-cyan-300 transition truncate"
+                          className="font-bold text-[#0f1f3d] dark:text-white text-sm hover:text-blue-600 dark:hover:text-cyan-300 transition truncate"
                         >
                           {p.name}
                         </Link>
                         <StatusBadge status={p.status || 'Active'} />
                       </div>
-                      <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">
                         {p.description || `Security assessment scope for ${p.name}`}
                       </p>
                       {/* Tags Pill */}
@@ -491,7 +491,7 @@ export function Projects() {
                           <span
                             key={idx}
                             title={`Project Tag: ${t}`}
-                            className="rounded border border-slate-800 bg-slate-950/80 px-2 py-0.5 font-mono text-[10px] text-slate-400"
+                            className="rounded border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/80 px-2 py-0.5 font-mono text-[10px] text-slate-500 dark:text-slate-400"
                           >
                             {t}
                           </span>
@@ -503,12 +503,12 @@ export function Projects() {
                   {/* Columns 2-5: Responsive Metrics (2x2 on mobile, flex on desktop) */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 lg:contents">
                     {/* Column 2: Target Stats */}
-                    <div className="rounded-lg bg-slate-950/40 p-2 lg:bg-transparent lg:p-0 min-w-0" title={`Target URL scope for ${p.name}`}>
-                      <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
-                        <Globe className="h-3.5 w-3.5 text-cyan-400 shrink-0" />
+                    <div className="rounded-lg bg-slate-50 dark:bg-slate-950/40 p-2 lg:bg-transparent lg:p-0 min-w-0" title={`Target URL scope for ${p.name}`}>
+                      <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-mono">
+                        <Globe className="h-3.5 w-3.5 text-blue-600 dark:text-cyan-400 shrink-0" />
                         <span>TARGETS</span>
                       </div>
-                      <div className="mt-1 font-mono font-bold text-white text-sm">
+                      <div className="mt-1 font-mono font-bold text-[#0f1f3d] dark:text-white text-sm">
                         {p.targetCount || 1}
                       </div>
                       <div className="text-[10px] text-slate-500 font-mono truncate max-w-full">
@@ -517,12 +517,12 @@ export function Projects() {
                     </div>
 
                     {/* Column 3: Assessments Count */}
-                    <div className="rounded-lg bg-slate-950/40 p-2 lg:bg-transparent lg:p-0 min-w-0" title={`Assessment runs for ${p.name}`}>
-                      <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
-                        <Activity className="h-3.5 w-3.5 text-blue-400 shrink-0" />
+                    <div className="rounded-lg bg-slate-50 dark:bg-slate-950/40 p-2 lg:bg-transparent lg:p-0 min-w-0" title={`Assessment runs for ${p.name}`}>
+                      <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-mono">
+                        <Activity className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
                         <span>ASSESSMENTS</span>
                       </div>
-                      <div className="mt-1 font-mono font-bold text-white text-sm">
+                      <div className="mt-1 font-mono font-bold text-[#0f1f3d] dark:text-white text-sm">
                         {p.assessmentCount || 2}
                       </div>
                       <div className="text-[10px] text-slate-500 font-mono truncate">
@@ -531,34 +531,34 @@ export function Projects() {
                     </div>
 
                     {/* Column 4: Findings Breakdown */}
-                    <div className="rounded-lg bg-slate-950/40 p-2 lg:bg-transparent lg:p-0 min-w-0" title={`Security findings breakdown for ${p.name}`}>
-                      <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
-                        <ShieldCheck className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                    <div className="rounded-lg bg-slate-50 dark:bg-slate-950/40 p-2 lg:bg-transparent lg:p-0 min-w-0" title={`Security findings breakdown for ${p.name}`}>
+                      <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-mono">
+                        <ShieldCheck className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
                         <span>FINDINGS</span>
                       </div>
-                      <div className="mt-1 font-mono font-bold text-white text-sm">
+                      <div className="mt-1 font-mono font-bold text-[#0f1f3d] dark:text-white text-sm">
                         {p.findingCount || 5}
                       </div>
                       <div className="flex flex-wrap items-center gap-1.5 mt-0.5 text-[10px] font-mono">
-                        <span className="flex items-center gap-0.5 text-red-400 font-bold" title="Critical Findings">
+                        <span className="flex items-center gap-0.5 text-red-600 dark:text-red-400 font-bold" title="Critical Findings">
                           <span className="h-1.5 w-1.5 rounded-full bg-red-500" /> {p.findings?.critical || 0}
                         </span>
-                        <span className="flex items-center gap-0.5 text-orange-400 font-bold" title="High Findings">
+                        <span className="flex items-center gap-0.5 text-orange-600 dark:text-orange-400 font-bold" title="High Findings">
                           <span className="h-1.5 w-1.5 rounded-full bg-orange-500" /> {p.findings?.high || 2}
                         </span>
-                        <span className="flex items-center gap-0.5 text-amber-400 font-bold" title="Medium Findings">
+                        <span className="flex items-center gap-0.5 text-amber-600 dark:text-amber-400 font-bold" title="Medium Findings">
                           <span className="h-1.5 w-1.5 rounded-full bg-amber-500" /> {p.findings?.medium || 2}
                         </span>
-                        <span className="flex items-center gap-0.5 text-emerald-400 font-bold" title="Low Findings">
+                        <span className="flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400 font-bold" title="Low Findings">
                           <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> {p.findings?.low || 1}
                         </span>
                       </div>
                     </div>
 
                     {/* Column 5: Timestamps */}
-                    <div className="rounded-lg bg-slate-950/40 p-2 lg:bg-transparent lg:p-0 min-w-0 text-xs text-slate-400 font-mono">
+                    <div className="rounded-lg bg-slate-50 dark:bg-slate-950/40 p-2 lg:bg-transparent lg:p-0 min-w-0 text-xs text-slate-500 dark:text-slate-400 font-mono">
                       <div className="text-[10px] text-slate-500">Updated</div>
-                      <div className="text-[11px] text-slate-300 truncate">
+                      <div className="text-[11px] text-slate-600 dark:text-slate-300 truncate">
                         {new Date(p.updatedAt || p.createdAt || Date.now()).toLocaleDateString('en-GB', {
                           day: '2-digit',
                           month: 'short',
@@ -568,11 +568,11 @@ export function Projects() {
                   </div>
 
                   {/* Column 6: Actions */}
-                  <div className="flex items-center gap-2 pt-2 border-t border-slate-800/80 lg:border-t-0 lg:pt-0">
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-200 dark:border-slate-800/80 lg:border-t-0 lg:pt-0">
                     <Link
                       to={`/projects/${p._id}`}
                       title={`Open project workspace for ${p.name}`}
-                      className="flex-1 sm:flex-initial flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-white transition hover:bg-white/[0.12] hover:border-white/20 active:scale-[0.98]"
+                      className="flex-1 sm:flex-initial flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl bg-white/60 backdrop-blur-xl dark:bg-white/[0.08] backdrop-blur-xl border border-slate-200 dark:border-white/[0.14] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-[#0f1f3d] dark:text-white transition hover:bg-white/85 dark:hover:bg-white/[0.12] hover:border-slate-300 dark:hover:border-white/20 active:scale-[0.98]"
                     >
                       <span>Open</span> <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
@@ -582,7 +582,7 @@ export function Projects() {
                           e.stopPropagation();
                           setActiveMenuProjectId((prev) => (prev === p._id ? null : p._id));
                         }}
-                        className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl border border-slate-800 bg-slate-950/60 p-2 text-slate-400 hover:bg-slate-800 hover:text-white transition"
+                        className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0f1f3d] dark:hover:text-white transition"
                         title={`Manage options for ${p.name}`}
                       >
                         <MoreVertical className="h-4 w-4" />
@@ -591,7 +591,7 @@ export function Projects() {
                       {activeMenuProjectId === p._id && (
                         <div
                           onClick={(e) => e.stopPropagation()}
-                          className="absolute right-0 top-full z-30 mt-1 w-44 rounded-lg border border-slate-800 bg-[#090f1f] p-1 shadow-2xl backdrop-blur-md"
+                          className="absolute right-0 top-full z-30 mt-1 w-44 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] p-1 shadow-2xl backdrop-blur-md"
                         >
                           <button
                             onClick={() => {
@@ -604,9 +604,9 @@ export function Projects() {
                                 category: p.category || 'Web Application',
                               });
                             }}
-                            className="flex min-h-[44px] w-full items-center gap-2 rounded-md px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition"
+                            className="flex min-h-[44px] w-full items-center gap-2 rounded-md px-3 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0f1f3d] dark:hover:text-white transition"
                           >
-                            <Pencil className="h-3.5 w-3.5 text-cyan-400" />
+                            <Pencil className="h-3.5 w-3.5 text-blue-600 dark:text-cyan-400" />
                             <span>Edit Project</span>
                           </button>
                           <button
@@ -614,9 +614,9 @@ export function Projects() {
                               setActiveMenuProjectId(null);
                               setDeleteProject(p);
                             }}
-                            className="flex min-h-[44px] w-full items-center gap-2 rounded-md px-3 py-2 text-xs font-semibold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition"
+                            className="flex min-h-[44px] w-full items-center gap-2 rounded-md px-3 py-2 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-500/10 hover:text-red-700 dark:hover:text-red-300 transition"
                           >
-                            <Trash2 className="h-3.5 w-3.5 text-red-400" />
+                            <Trash2 className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
                             <span>Delete Project</span>
                           </button>
                         </div>
@@ -631,7 +631,7 @@ export function Projects() {
       )}
 
       {/* Pagination Footer */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-800 pt-3 text-xs text-slate-400 font-mono">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200 dark:border-slate-800 pt-3 text-xs text-slate-500 dark:text-slate-400 font-mono">
         <span>
           Showing {filteredProjects.length === 0 ? 0 : (page - 1) * pageSize + 1}-{Math.min(page * pageSize, filteredProjects.length)} of {filteredProjects.length} projects
         </span>
@@ -639,7 +639,7 @@ export function Projects() {
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border border-slate-800 bg-slate-900 p-2 text-slate-400 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label="Previous Page"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -651,8 +651,8 @@ export function Projects() {
               className={cn(
                 'flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border font-mono text-xs font-bold transition backdrop-blur-xl',
                 page === pNum
-                  ? 'bg-white/[0.08] border-white/[0.14] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
-                  : 'border-slate-800 bg-slate-900 text-slate-400 hover:bg-white/[0.06] hover:text-white hover:border-white/10'
+                  ? 'bg-white/60 backdrop-blur-xl dark:bg-white/[0.08] border-slate-200 dark:border-white/[0.14] text-[#0f1f3d] dark:text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+                  : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-white/85 dark:hover:bg-white/[0.06] hover:text-[#0f1f3d] dark:hover:text-white hover:border-slate-300 dark:hover:border-white/10'
               )}
             >
               {pNum}
@@ -661,7 +661,7 @@ export function Projects() {
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page >= totalPages}
-            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border border-slate-800 bg-slate-900 p-2 text-slate-400 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label="Next Page"
           >
             <ChevronRight className="h-4 w-4" />
@@ -687,16 +687,16 @@ export function Projects() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="relative w-full max-w-lg rounded-xl border border-slate-800 bg-slate-950 p-6 shadow-2xl z-10 space-y-4"
+              className="relative w-full max-w-lg rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-6 shadow-2xl z-10 space-y-4"
             >
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                 <div className="flex items-center gap-2">
-                  <FolderPlus className="h-5 w-5 text-cyan-400" />
-                  <h3 className="text-base font-bold text-white">Create New Security Project</h3>
+                  <FolderPlus className="h-5 w-5 text-blue-600 dark:text-cyan-400" />
+                  <h3 className="text-base font-bold text-[#0f1f3d] dark:text-white">Create New Security Project</h3>
                 </div>
                 <button
                   onClick={() => setShowCreateModal(false)}
-                  className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-white"
+                  className="rounded p-1 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0f1f3d] dark:hover:text-white"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -704,7 +704,7 @@ export function Projects() {
 
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs font-semibold text-slate-400 block mb-1">Project Name *</label>
+                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 block mb-1">Project Name *</label>
                   <Input
                     placeholder="e.g. World Monitor Project or Saksham Gateway"
                     value={form.name}
@@ -713,7 +713,7 @@ export function Projects() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-slate-400 block mb-1">Description / Scope</label>
+                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 block mb-1">Description / Scope</label>
                   <Input
                     placeholder="Security assessment scope and target container info"
                     value={form.description}
@@ -723,15 +723,15 @@ export function Projects() {
 
                 {/* Project Logo / Image Uploader */}
                 <div>
-                  <label className="text-xs font-semibold text-slate-400 block mb-1">Project Logo / Image</label>
+                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 block mb-1">Project Logo / Image</label>
                   <div className="flex items-center gap-3">
                     {form.image ? (
-                      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-cyan-500/40 bg-slate-900 group shadow-md">
+                      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-blue-200 dark:border-cyan-500/40 bg-slate-50 dark:bg-slate-900 group shadow-md">
                         <img src={form.image} alt="Project Logo" className="h-full w-full object-cover" />
                         <button
                           type="button"
                           onClick={() => setForm({ ...form, image: '' })}
-                          className="absolute inset-0 flex flex-col items-center justify-center bg-black/75 opacity-0 group-hover:opacity-100 transition text-red-400 font-semibold text-[10px]"
+                          className="absolute inset-0 flex flex-col items-center justify-center bg-black/75 opacity-0 group-hover:opacity-100 transition text-red-600 dark:text-red-400 font-semibold text-[10px]"
                           title="Remove image"
                         >
                           <Trash2 className="h-4 w-4 mb-0.5" />
@@ -739,7 +739,7 @@ export function Projects() {
                         </button>
                       </div>
                     ) : (
-                      <label className="flex h-14 w-14 shrink-0 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-900/60 hover:border-cyan-500/50 hover:bg-slate-900 transition text-slate-400 hover:text-cyan-400">
+                      <label className="flex h-14 w-14 shrink-0 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60 hover:border-cyan-500/50 hover:bg-slate-50 dark:hover:bg-slate-900 transition text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-cyan-400">
                         <Camera className="h-5 w-5" />
                         <span className="text-[9px] font-mono mt-0.5 font-semibold">Upload</span>
                         <input
@@ -780,7 +780,7 @@ export function Projects() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-semibold text-slate-400 block mb-1">Initial Status</label>
+                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 block mb-1">Initial Status</label>
                     <CustomSelect
                       value={form.status}
                       onChange={(e) => setForm({ ...form, status: e.target.value })}
@@ -793,7 +793,7 @@ export function Projects() {
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-slate-400 block mb-1">Project Category</label>
+                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 block mb-1">Project Category</label>
                     <CustomSelect
                       value={form.category}
                       onChange={(e) => setForm({ ...form, category: e.target.value })}
@@ -809,10 +809,10 @@ export function Projects() {
               </div>
 
               {createMutation.isError && (
-                <p className="text-xs font-semibold text-red-400">{errMsg(createMutation.error)}</p>
+                <p className="text-xs font-semibold text-red-600 dark:text-red-400">{errMsg(createMutation.error)}</p>
               )}
 
-              <div className="flex items-center justify-end gap-2 border-t border-slate-800 pt-3">
+              <div className="flex items-center justify-end gap-2 border-t border-slate-200 dark:border-slate-800 pt-3">
                 <Button variant="outline" onClick={() => setShowCreateModal(false)}>
                   Cancel
                 </Button>
@@ -843,16 +843,16 @@ export function Projects() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="relative w-full max-w-lg rounded-xl border border-slate-800 bg-slate-950 p-6 shadow-2xl z-10 space-y-4"
+              className="relative w-full max-w-lg rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-6 shadow-2xl z-10 space-y-4"
             >
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                 <div className="flex items-center gap-2">
-                  <Pencil className="h-5 w-5 text-cyan-400" />
-                  <h3 className="text-base font-bold text-white">Edit Security Project</h3>
+                  <Pencil className="h-5 w-5 text-blue-600 dark:text-cyan-400" />
+                  <h3 className="text-base font-bold text-[#0f1f3d] dark:text-white">Edit Security Project</h3>
                 </div>
                 <button
                   onClick={() => setEditProject(null)}
-                  className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-white"
+                  className="rounded p-1 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0f1f3d] dark:hover:text-white"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -860,7 +860,7 @@ export function Projects() {
 
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs font-semibold text-slate-400 block mb-1">Project Name *</label>
+                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 block mb-1">Project Name *</label>
                   <Input
                     placeholder="e.g. World Monitor Project"
                     value={editProject.name}
@@ -869,7 +869,7 @@ export function Projects() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-slate-400 block mb-1">Description / Scope</label>
+                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 block mb-1">Description / Scope</label>
                   <Input
                     placeholder="Security assessment scope and target container info"
                     value={editProject.description}
@@ -879,15 +879,15 @@ export function Projects() {
 
                 {/* Project Logo / Image Uploader */}
                 <div>
-                  <label className="text-xs font-semibold text-slate-400 block mb-1">Project Logo / Image</label>
+                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 block mb-1">Project Logo / Image</label>
                   <div className="flex items-center gap-3">
                     {editProject.image ? (
-                      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-cyan-500/40 bg-slate-900 group shadow-md">
+                      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-blue-200 dark:border-cyan-500/40 bg-slate-50 dark:bg-slate-900 group shadow-md">
                         <img src={editProject.image} alt="Project Logo" className="h-full w-full object-cover" />
                         <button
                           type="button"
                           onClick={() => setEditProject({ ...editProject, image: '' })}
-                          className="absolute inset-0 flex flex-col items-center justify-center bg-black/75 opacity-0 group-hover:opacity-100 transition text-red-400 font-semibold text-[10px]"
+                          className="absolute inset-0 flex flex-col items-center justify-center bg-black/75 opacity-0 group-hover:opacity-100 transition text-red-600 dark:text-red-400 font-semibold text-[10px]"
                           title="Remove image"
                         >
                           <Trash2 className="h-4 w-4 mb-0.5" />
@@ -895,7 +895,7 @@ export function Projects() {
                         </button>
                       </div>
                     ) : (
-                      <label className="flex h-14 w-14 shrink-0 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-900/60 hover:border-cyan-500/50 hover:bg-slate-900 transition text-slate-400 hover:text-cyan-400">
+                      <label className="flex h-14 w-14 shrink-0 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60 hover:border-cyan-500/50 hover:bg-slate-50 dark:hover:bg-slate-900 transition text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-cyan-400">
                         <Camera className="h-5 w-5" />
                         <span className="text-[9px] font-mono mt-0.5 font-semibold">Upload</span>
                         <input
@@ -936,7 +936,7 @@ export function Projects() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-semibold text-slate-400 block mb-1">Status</label>
+                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 block mb-1">Status</label>
                     <CustomSelect
                       value={editProject.status}
                       onChange={(e) => setEditProject({ ...editProject, status: e.target.value })}
@@ -950,7 +950,7 @@ export function Projects() {
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-slate-400 block mb-1">Category</label>
+                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 block mb-1">Category</label>
                     <CustomSelect
                       value={editProject.category}
                       onChange={(e) => setEditProject({ ...editProject, category: e.target.value })}
@@ -966,10 +966,10 @@ export function Projects() {
               </div>
 
               {updateMutation.isError && (
-                <p className="text-xs font-semibold text-red-400">{errMsg(updateMutation.error)}</p>
+                <p className="text-xs font-semibold text-red-600 dark:text-red-400">{errMsg(updateMutation.error)}</p>
               )}
 
-              <div className="flex items-center justify-end gap-2 border-t border-slate-800 pt-3">
+              <div className="flex items-center justify-end gap-2 border-t border-slate-200 dark:border-slate-800 pt-3">
                 <Button variant="outline" onClick={() => setEditProject(null)}>
                   Cancel
                 </Button>
@@ -1011,32 +1011,32 @@ export function Projects() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="relative w-full max-w-md rounded-xl border border-red-500/30 bg-slate-950 p-6 shadow-2xl z-10 space-y-4"
+              className="relative w-full max-w-md rounded-xl border border-red-500/30 bg-white dark:bg-slate-950 p-6 shadow-2xl z-10 space-y-4"
             >
-              <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-500/10 border border-red-500/30 text-red-400">
+              <div className="flex items-center gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400">
                   <AlertTriangle className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-white">Delete Security Project?</h3>
-                  <p className="text-xs text-slate-400">This action is permanent and cannot be undone.</p>
+                  <h3 className="text-base font-bold text-[#0f1f3d] dark:text-white">Delete Security Project?</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">This action is permanent and cannot be undone.</p>
                 </div>
               </div>
 
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Are you sure you want to delete <strong className="text-white font-semibold">{deleteProject.name}</strong>?
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                Are you sure you want to delete <strong className="text-[#0f1f3d] dark:text-white font-semibold">{deleteProject.name}</strong>?
                 All associated target scopes, vulnerability findings, and assessment logs for this project will be permanently removed.
               </p>
 
               {deleteMutation.isError && (
-                <p className="text-xs font-semibold text-red-400">{errMsg(deleteMutation.error)}</p>
+                <p className="text-xs font-semibold text-red-600 dark:text-red-400">{errMsg(deleteMutation.error)}</p>
               )}
 
-              <div className="flex items-center justify-end gap-2 border-t border-slate-800 pt-3">
+              <div className="flex items-center justify-end gap-2 border-t border-slate-200 dark:border-slate-800 pt-3">
                 <button
                   type="button"
                   onClick={() => setDeleteProject(null)}
-                  className="rounded-lg border border-slate-800 bg-slate-900 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition"
+                  className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0f1f3d] dark:hover:text-white transition"
                 >
                   Cancel
                 </button>
@@ -1044,7 +1044,7 @@ export function Projects() {
                   type="button"
                   disabled={deleteMutation.isPending}
                   onClick={() => deleteMutation.mutate(deleteProject._id)}
-                  className="flex items-center gap-2 rounded-lg bg-red-600 hover:bg-red-500 px-4 py-2 text-xs font-bold text-white shadow-md transition disabled:opacity-50"
+                  className="flex items-center gap-2 rounded-lg bg-red-500/80 backdrop-blur-xl border border-white/40 hover:bg-red-500/90 px-4 py-2 text-xs font-bold text-white shadow-[0_8px_24px_rgba(239,68,68,0.35),inset_0_1px_0_rgba(255,255,255,0.35)] transition disabled:opacity-50 dark:bg-red-500/25 dark:border-red-300/30 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] dark:hover:bg-red-500/35"
                 >
                   {deleteMutation.isPending ? (
                     <>
@@ -1104,33 +1104,33 @@ export function ProjectDetail() {
               navigate('/projects');
             }
           }}
-          className="group inline-flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-900/90 px-3.5 py-2 text-xs font-bold text-slate-300 transition duration-200 hover:border-cyan-500/40 hover:bg-slate-800 hover:text-white shadow-sm"
+          className="group inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 px-3.5 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 transition duration-200 hover:border-blue-300 dark:hover:border-cyan-500/40 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0f1f3d] dark:hover:text-white shadow-sm"
         >
-          <ArrowLeft className="h-4 w-4 text-cyan-400 transition-transform duration-200 group-hover:-translate-x-1" />
+          <ArrowLeft className="h-4 w-4 text-blue-600 dark:text-cyan-400 transition-transform duration-200 group-hover:-translate-x-1" />
           <span>Back</span>
         </button>
       </div>
 
       {/* Header Bar */}
-      <div className="rounded-xl border border-slate-800 bg-[#090f1f] p-5 shadow-md">
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] p-5 shadow-md">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="rounded bg-slate-800 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-300 border border-slate-700">
+              <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                 {project.status || 'Active'} WORKSPACE
               </span>
               {overview.securityScore !== null && overview.securityScore !== undefined && (
-                <span className="rounded border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-xs font-bold text-emerald-400">
+                <span className="rounded border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400">
                   SCORE {overview.securityScore}/100
                 </span>
               )}
             </div>
 
-            <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2 mt-1">
-              <FolderKanban className="text-cyan-400" size={20} />
+            <h1 className="text-xl font-bold text-[#0f1f3d] dark:text-white tracking-tight flex items-center gap-2 mt-1">
+              <FolderKanban className="text-blue-600 dark:text-cyan-400" size={20} />
               {project.name}
             </h1>
-            <p className="text-xs text-slate-400 mt-1 max-w-2xl">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
               {project.description || 'Authorized security testing environment and attack surface posture.'}
             </p>
           </div>
@@ -1138,7 +1138,7 @@ export function ProjectDetail() {
           <div className="flex items-center gap-2">
             <Link
               to="/assessments"
-              className="flex items-center gap-1.5 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12] hover:border-white/20"
+              className="flex items-center gap-1.5 rounded-xl bg-white/60 backdrop-blur-xl dark:bg-white/[0.08] backdrop-blur-xl border border-slate-200 dark:border-white/[0.14] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-[#0f1f3d] dark:text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/85 dark:hover:bg-white/[0.12] hover:border-slate-300 dark:hover:border-white/20"
             >
               <Play size={13} className="fill-current" />
               <span>Launch Assessment</span>
@@ -1150,13 +1150,13 @@ export function ProjectDetail() {
       {/* Overview Stat Cards Grid */}
       <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-4">
         {[
-          { key: 'totalAssessments', label: 'TOTAL AUDITS', val: overview.totalAssessments || 0, color: 'text-white' },
-          { key: 'critical', label: 'CRITICAL SEVERITY', val: overview.critical || 0, color: 'text-red-400' },
-          { key: 'high', label: 'HIGH SEVERITY', val: overview.high || 0, color: 'text-orange-400' },
-          { key: 'verified', label: 'VERIFIED FINDINGS', val: overview.verified || 0, color: 'text-cyan-400' },
+          { key: 'totalAssessments', label: 'TOTAL AUDITS', val: overview.totalAssessments || 0, color: 'text-[#0f1f3d] dark:text-white' },
+          { key: 'critical', label: 'CRITICAL SEVERITY', val: overview.critical || 0, color: 'text-red-600 dark:text-red-400' },
+          { key: 'high', label: 'HIGH SEVERITY', val: overview.high || 0, color: 'text-orange-600 dark:text-orange-400' },
+          { key: 'verified', label: 'VERIFIED FINDINGS', val: overview.verified || 0, color: 'text-blue-600 dark:text-cyan-400' },
         ].map((item) => (
-          <div key={item.key} className="rounded-xl border border-slate-800 bg-[#090f1f] p-4 shadow-sm">
-            <span className="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
+          <div key={item.key} className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] p-4 shadow-sm">
+            <span className="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               {item.label}
             </span>
             <span className={`mt-2 block text-2xl font-extrabold tracking-tight ${item.color}`}>
@@ -1168,8 +1168,8 @@ export function ProjectDetail() {
 
       {/* Target Asset Registration Card */}
       <Card>
-        <div className="flex items-center gap-2 mb-3 text-xs font-mono font-bold uppercase tracking-wider text-slate-300">
-          <Globe size={15} className="text-cyan-400" />
+        <div className="flex items-center gap-2 mb-3 text-xs font-mono font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+          <Globe size={15} className="text-blue-600 dark:text-cyan-400" />
           <span>Register Authorized Target Environment</span>
         </div>
 
@@ -1197,7 +1197,7 @@ export function ProjectDetail() {
           <button
             onClick={() => addTarget.mutate()}
             disabled={!target.name || !target.url || addTarget.isPending}
-            className="flex items-center justify-center gap-2 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12] hover:border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-center gap-2 rounded-xl bg-white/60 backdrop-blur-xl dark:bg-white/[0.08] backdrop-blur-xl border border-slate-200 dark:border-white/[0.14] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-[#0f1f3d] dark:text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/85 dark:hover:bg-white/[0.12] hover:border-slate-300 dark:hover:border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {addTarget.isPending ? 'Adding...' : 'Add Target'}
           </button>
@@ -1210,7 +1210,7 @@ export function ProjectDetail() {
               placeholder='JSON Payload (Optional): { "key": "value" }'
               value={target.requestBody}
               onChange={(e) => setTarget({ ...target, requestBody: e.target.value })}
-              className="w-full rounded-lg border border-slate-800 bg-slate-900/90 p-3 font-mono text-xs text-amber-300 focus:border-amber-500 focus:outline-none"
+              className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-3 font-mono text-xs text-amber-700 dark:text-amber-300 focus:border-amber-500 focus:outline-none"
             />
           </div>
         )}
@@ -1223,26 +1223,26 @@ export function ProjectDetail() {
           />
         </div>
 
-        <label className="mt-3 flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+        <label className="mt-3 flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300 cursor-pointer">
           <input
             type="checkbox"
             checked={target.authorizationConfirmed}
             onChange={(e) => setTarget({ ...target, authorizationConfirmed: e.target.checked })}
-            className="h-3.5 w-3.5 rounded border-slate-700 bg-slate-950 text-cyan-500 focus:ring-cyan-500"
+            className="h-3.5 w-3.5 rounded border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-cyan-500 focus:ring-cyan-500"
           />
           <span>I confirm explicit authorization to audit and probe this target asset.</span>
         </label>
-        {addTarget.isError && <p className="mt-2 text-xs font-semibold text-red-400">{errMsg(addTarget.error)}</p>}
+        {addTarget.isError && <p className="mt-2 text-xs font-semibold text-red-600 dark:text-red-400">{errMsg(addTarget.error)}</p>}
       </Card>
 
       {/* Recent Security Assessments List */}
-      <div className="rounded-xl border border-slate-800 bg-[#090f1f] p-5 shadow-md">
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] p-5 shadow-md">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-            <Activity size={15} className="text-cyan-400" />
+          <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-2">
+            <Activity size={15} className="text-blue-600 dark:text-cyan-400" />
             Recent Security Assessments ({assessments.length})
           </h2>
-          <Link to="/assessments" className="text-xs font-bold text-cyan-400 hover:underline">
+          <Link to="/assessments" className="text-xs font-bold text-blue-600 dark:text-cyan-400 hover:underline">
             View All Assessments →
           </Link>
         </div>
@@ -1259,22 +1259,22 @@ export function ProjectDetail() {
               return (
                 <div
                   key={a._id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-800/80 bg-[#060a14] p-3.5 transition duration-150 hover:border-slate-700 hover:bg-slate-900/60"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#060a14] p-3.5 transition duration-150 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900/60"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border ${
-                      isDone ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' :
-                      isFail ? 'bg-red-500/10 border-red-500/30 text-red-400' :
-                      'bg-cyan-500/10 border-cyan-500/30 text-cyan-400'
+                      isDone ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400' :
+                      isFail ? 'bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400' :
+                      'bg-cyan-500/10 border-blue-200 dark:border-cyan-500/30 text-blue-600 dark:text-cyan-400'
                     }`}>
                       {isDone ? <ShieldCheck size={16} /> : isFail ? <AlertTriangle size={16} /> : <Activity size={16} className="animate-pulse" />}
                     </span>
 
                     <div className="min-w-0">
-                      <h4 className="font-bold text-white text-xs truncate">
+                      <h4 className="font-bold text-[#0f1f3d] dark:text-white text-xs truncate">
                         {a.type} Assessment
                       </h4>
-                      <p className="text-[11px] text-slate-400 mt-0.5 font-mono">
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 font-mono">
                         {new Date(a.createdAt).toLocaleString()}
                       </p>
                     </div>
@@ -1283,7 +1283,7 @@ export function ProjectDetail() {
                   <div className="flex items-center gap-3 shrink-0">
                     {score !== null && score !== undefined && (
                       <span className={`font-mono text-xs font-bold ${
-                        score >= 80 ? 'text-emerald-400' : score >= 60 ? 'text-amber-400' : 'text-red-400'
+                        score >= 80 ? 'text-emerald-600 dark:text-emerald-400' : score >= 60 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'
                       }`}>
                         Score {score}/100
                       </span>
@@ -1291,7 +1291,7 @@ export function ProjectDetail() {
                     <StatusBadge status={a.status} />
                     <Link
                       to={`/assessments/${a._id}`}
-                      className="flex items-center gap-1 text-xs font-semibold text-slate-300 hover:text-cyan-300 transition"
+                      className="flex items-center gap-1 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-cyan-300 transition"
                     >
                       Inspect <ChevronRight size={13} />
                     </Link>

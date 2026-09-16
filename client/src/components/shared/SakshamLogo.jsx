@@ -161,7 +161,7 @@ export function SakshamLogo({
           <div className="flex items-center">
             <span
               className={cn(
-                'font-extrabold tracking-tight text-white font-sans flex items-center',
+                'font-extrabold tracking-tight text-[#0f1f3d] dark:text-white font-sans flex items-center',
                 actualSize <= 26
                   ? 'text-sm'
                   : actualSize <= 36
@@ -176,7 +176,7 @@ export function SakshamLogo({
             </span>
           </div>
           {subtitle && (
-            <span className="mt-0.5 font-mono text-[9px] font-bold uppercase tracking-[0.22em] text-slate-400 group-hover:text-cyan-300 transition-colors">
+            <span className="mt-0.5 font-mono text-[9px] font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400 group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition-colors">
               Enterprise SOC Platform
             </span>
           )}

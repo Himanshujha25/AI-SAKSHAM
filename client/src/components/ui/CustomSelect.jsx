@@ -82,9 +82,9 @@ export function CustomSelect({
           }
         }}
         className={cn(
-          'flex h-9 w-full items-center justify-between gap-2 rounded-lg border border-slate-800 bg-[#090f1f] px-3 py-1.5 text-xs font-semibold text-slate-200 shadow-sm transition duration-150',
-          'hover:border-slate-700 hover:bg-slate-900/80 focus:outline-none focus:ring-1 focus:ring-cyan-500/40',
-          isOpen && 'border-slate-700 bg-slate-900 ring-1 ring-cyan-500/30',
+          'flex h-9 w-full items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-sm transition duration-150',
+          'hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900/80 focus:outline-none focus:ring-1 focus:ring-cyan-500/40',
+          isOpen && 'border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 ring-1 ring-cyan-500/30',
           disabled && 'cursor-not-allowed opacity-50'
         )}
       >
@@ -93,7 +93,7 @@ export function CustomSelect({
         </span>
         <ChevronDown
           size={14}
-          className={cn('shrink-0 text-slate-400 transition-transform duration-200', isOpen && 'rotate-180 text-cyan-400')}
+          className={cn('shrink-0 text-slate-500 dark:text-slate-400 transition-transform duration-200', isOpen && 'rotate-180 text-blue-600 dark:text-cyan-400')}
         />
       </button>
 
@@ -105,7 +105,7 @@ export function CustomSelect({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.98 }}
             transition={{ duration: 0.12 }}
-            className="absolute left-0 top-full z-[9999] mt-1.5 max-h-60 w-full min-w-[140px] overflow-y-auto rounded-lg border border-slate-800 bg-[#090f1f] p-1 shadow-2xl backdrop-blur-lg"
+            className="absolute left-0 top-full z-[9999] mt-1.5 max-h-60 w-full min-w-[140px] overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] p-1 shadow-sm dark:shadow-2xl backdrop-blur-lg"
           >
             {normalizedOptions.length === 0 ? (
               <div className="px-3 py-2 text-center text-xs text-slate-500">No options</div>
@@ -121,13 +121,13 @@ export function CustomSelect({
                     className={cn(
                       'flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-xs font-medium transition duration-150 text-left',
                       isSelected
-                        ? 'bg-slate-800 text-white font-semibold'
-                        : 'text-slate-300 hover:bg-slate-800/70 hover:text-white',
+                        ? 'bg-slate-100 dark:bg-slate-800 text-[#0f1f3d] dark:text-white font-semibold'
+                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white',
                       opt.disabled && 'cursor-not-allowed opacity-40 hover:bg-transparent'
                     )}
                   >
                     <span className="truncate">{opt.label}</span>
-                    {isSelected && <Check size={13} className="shrink-0 text-cyan-400 ml-1.5" />}
+                    {isSelected && <Check size={13} className="shrink-0 text-blue-600 dark:text-cyan-400 ml-1.5" />}
                   </button>
                 );
               })

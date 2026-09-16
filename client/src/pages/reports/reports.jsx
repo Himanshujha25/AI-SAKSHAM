@@ -42,9 +42,12 @@ import {
   Wrench,
   Sparkles,
   X,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import api from '../../lib/api';
 import { useAuth } from '../../store/auth';
+import { useTheme } from '../../store/theme';
 import { errMsg, cn } from '../../lib/utils';
 import CustomSelect from '../../components/ui/CustomSelect';
 import { PageHeader, LoadingState, ErrorState, EmptyState, StatusBadge, PremiumIcon } from '../../components/shared/shared';
@@ -278,37 +281,37 @@ export function Reports() {
       {/* Top Header with Defense Intelligence Branding */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-3.5">
-          <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-[#0c1a38] to-[#040814] shadow-[0_0_20px_rgba(56,189,248,0.15)]">
+          <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-blue-200 dark:border-cyan-500/30 bg-white dark:bg-gradient-to-br dark:from-[#0c1a38] dark:to-[#040814] shadow-[0_0_20px_rgba(56,189,248,0.15)]">
             <CyberShieldLogo className="h-7 w-7" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-extrabold tracking-tight text-white">Security & Audit Reports</h1>
-              <span className="rounded-md border border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 font-mono text-[10px] font-bold text-cyan-400">
+              <h1 className="text-2xl font-extrabold tracking-tight text-[#0f1f3d] dark:text-white">Security & Audit Reports</h1>
+              <span className="rounded-md border border-blue-200 dark:border-cyan-500/30 bg-blue-50 dark:bg-cyan-500/10 px-2 py-0.5 font-mono text-[10px] font-bold text-blue-600 dark:text-cyan-400">
                 NTRO PS-26163
               </span>
             </div>
-            <p className="mt-0.5 text-xs leading-relaxed text-slate-400">
+            <p className="mt-0.5 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
               Generate, certify, and export defense-grade technical and executive dossiers compliant with OWASP Top 10, CERT-In, and ISO 27001.
             </p>
           </div>
         </div>
 
         {/* Feature / Role Banner Card */}
-        <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-gradient-to-r from-white/[0.05] to-white/[0.02] p-3.5 shadow-xl backdrop-blur-xl shrink-0 max-w-md">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+        <div className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-gradient-to-r dark:from-white/[0.05] dark:to-white/[0.02] p-3.5 shadow-xl backdrop-blur-xl shrink-0 max-w-md">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
             <ShieldCheck size={20} />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <h4 className="text-xs font-bold tracking-tight text-white">
+              <h4 className="text-xs font-bold tracking-tight text-[#0f1f3d] dark:text-white">
                 {isViewer ? 'Auditor Compliance Archive' : 'Certified Vulnerability Evidence'}
               </h4>
-              <span className="rounded border border-emerald-500/40 bg-emerald-500/10 px-1.5 py-0.2 font-mono text-[9px] font-bold text-emerald-300">
+              <span className="rounded border border-emerald-500/40 bg-emerald-500/10 px-1.5 py-0.2 font-mono text-[9px] font-bold text-emerald-700 dark:text-emerald-300">
                 VERIFIED
               </span>
             </div>
-            <p className="mt-0.5 text-[11px] leading-relaxed text-slate-400">
+            <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
               {isViewer
                 ? 'Read-only access to all verified reports, threat evidence, and proof-of-concepts.'
                 : 'One-click automated synthesis with AI executive narrative and safe PoC payloads.'}
@@ -320,18 +323,18 @@ export function Reports() {
       {/* Top Executive Metric Summary Cards (4 Columns) */}
       <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-4">
         {/* Card 1: Total Reports */}
-        <Card className="border-slate-800 bg-gradient-to-b from-[#0c152e] to-[#080d1e] p-4 shadow-lg relative overflow-hidden group hover:border-cyan-500/40 transition">
+        <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-gradient-to-b dark:from-[#0c152e] dark:to-[#080d1e] p-4 shadow-lg relative overflow-hidden group hover:border-blue-200 dark:border-cyan-500/40 transition">
           <div className="flex items-center justify-between">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-blue-200 dark:border-cyan-500/30 bg-blue-50 dark:bg-cyan-500/10 text-blue-600 dark:text-cyan-400">
               <FileText size={18} />
             </div>
-            <span className="font-mono text-[10px] font-bold text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 rounded-full">
+            <span className="font-mono text-[10px] font-bold text-blue-600 dark:text-cyan-300 bg-blue-50 dark:bg-cyan-500/10 border border-blue-200 dark:border-cyan-500/30 px-2 py-0.5 rounded-full">
               +4 this month
             </span>
           </div>
           <div className="mt-3">
-            <span className="font-mono text-2xl font-extrabold tracking-tight text-white">{totalCount}</span>
-            <p className="mt-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Total Audit Dossiers</p>
+            <span className="font-mono text-2xl font-extrabold tracking-tight text-[#0f1f3d] dark:text-white">{totalCount}</span>
+            <p className="mt-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Total Audit Dossiers</p>
           </div>
           {/* Cyan Mini Sparkline */}
           <div className="mt-2 h-5 w-full opacity-60">
@@ -342,18 +345,18 @@ export function Reports() {
         </Card>
 
         {/* Card 2: Generated (Completed) */}
-        <Card className="border-slate-800 bg-gradient-to-b from-[#0c152e] to-[#080d1e] p-4 shadow-lg relative overflow-hidden group hover:border-emerald-500/40 transition">
+        <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-gradient-to-b dark:from-[#0c152e] dark:to-[#080d1e] p-4 shadow-lg relative overflow-hidden group hover:border-emerald-500/40 transition">
           <div className="flex items-center justify-between">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
               <CheckCircle2 size={18} />
             </div>
-            <span className="font-mono text-[10px] font-bold text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+            <span className="font-mono text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full">
               {Math.round((completedCount / (totalCount || 1)) * 100)}% Ready
             </span>
           </div>
           <div className="mt-3">
-            <span className="font-mono text-2xl font-extrabold tracking-tight text-white">{completedCount}</span>
-            <p className="mt-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Certified & Ready</p>
+            <span className="font-mono text-2xl font-extrabold tracking-tight text-[#0f1f3d] dark:text-white">{completedCount}</span>
+            <p className="mt-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Certified & Ready</p>
           </div>
           {/* Emerald Mini Sparkline */}
           <div className="mt-2 h-5 w-full opacity-60">
@@ -364,18 +367,18 @@ export function Reports() {
         </Card>
 
         {/* Card 3: In Progress */}
-        <Card className="border-slate-800 bg-gradient-to-b from-[#0c152e] to-[#080d1e] p-4 shadow-lg relative overflow-hidden group hover:border-blue-500/40 transition">
+        <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-gradient-to-b dark:from-[#0c152e] dark:to-[#080d1e] p-4 shadow-lg relative overflow-hidden group hover:border-blue-500/40 transition">
           <div className="flex items-center justify-between">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-blue-500/30 bg-blue-500/10 text-blue-400">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400">
               <Clock size={18} />
             </div>
-            <span className="font-mono text-[10px] font-bold text-blue-300 bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 rounded-full">
+            <span className="font-mono text-[10px] font-bold text-blue-700 dark:text-blue-300 bg-blue-500/10 border border-blue-500/30 px-2 py-0.5 rounded-full">
               {inProgressCount > 0 ? 'Active Queue' : 'Queue Idle'}
             </span>
           </div>
           <div className="mt-3">
-            <span className="font-mono text-2xl font-extrabold tracking-tight text-white">{inProgressCount}</span>
-            <p className="mt-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Pipeline Generation</p>
+            <span className="font-mono text-2xl font-extrabold tracking-tight text-[#0f1f3d] dark:text-white">{inProgressCount}</span>
+            <p className="mt-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Pipeline Generation</p>
           </div>
           {/* Blue Mini Sparkline */}
           <div className="mt-2 h-5 w-full opacity-60">
@@ -386,18 +389,18 @@ export function Reports() {
         </Card>
 
         {/* Card 4: Security Posture Index */}
-        <Card className="border-slate-800 bg-gradient-to-b from-[#0c152e] to-[#080d1e] p-4 shadow-lg relative overflow-hidden group hover:border-amber-500/40 transition">
+        <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-gradient-to-b dark:from-[#0c152e] dark:to-[#080d1e] p-4 shadow-lg relative overflow-hidden group hover:border-amber-500/40 transition">
           <div className="flex items-center justify-between">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400">
               <Award size={18} />
             </div>
-            <span className="font-mono text-[10px] font-bold text-amber-300 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-full">
+            <span className="font-mono text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-full">
               Grade {avgScore >= 85 ? 'A+' : avgScore >= 75 ? 'A' : 'B'}
             </span>
           </div>
           <div className="mt-3">
-            <span className="font-mono text-2xl font-extrabold tracking-tight text-white">{avgScore}<span className="text-sm text-slate-400 font-normal">/100</span></span>
-            <p className="mt-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Avg Security Posture</p>
+            <span className="font-mono text-2xl font-extrabold tracking-tight text-[#0f1f3d] dark:text-white">{avgScore}<span className="text-sm text-slate-500 dark:text-slate-400 font-normal">/100</span></span>
+            <p className="mt-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Avg Security Posture</p>
           </div>
           {/* Amber Mini Sparkline */}
           <div className="mt-2 h-5 w-full opacity-60">
@@ -409,28 +412,28 @@ export function Reports() {
       </div>
 
       {/* Report Generation Studio */}
-      <Card className="relative z-30 border-slate-800 bg-gradient-to-b from-[#0b1328] to-[#070c1a] p-5 shadow-xl">
-        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-800/80 pb-3.5">
+      <Card className="relative z-30 border-slate-200 dark:border-slate-800 bg-white dark:bg-gradient-to-b dark:from-[#0b1328] dark:to-[#070c1a] p-5 shadow-xl">
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 dark:border-slate-800/80 pb-3.5">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-blue-200 dark:border-cyan-500/30 bg-blue-50 dark:bg-cyan-500/10 text-blue-600 dark:text-cyan-400">
               <Plus size={16} />
             </div>
             <div>
-              <h3 className="text-sm font-bold tracking-tight text-white flex items-center gap-2">
+              <h3 className="text-sm font-bold tracking-tight text-[#0f1f3d] dark:text-white flex items-center gap-2">
                 Report Generation Studio
-                <span className="rounded border border-cyan-500/30 bg-cyan-500/10 px-1.5 py-0.5 font-mono text-[9px] font-bold text-cyan-300">
+                <span className="rounded border border-blue-200 dark:border-cyan-500/30 bg-blue-50 dark:bg-cyan-500/10 px-1.5 py-0.5 font-mono text-[9px] font-bold text-blue-600 dark:text-cyan-300">
                   AI-POWERED
                 </span>
               </h3>
-              <p className="mt-0.5 text-[11px] leading-relaxed text-slate-400">
+              <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
                 Synthesize vulnerability evidence, CVSS risk scores, proof-of-concept payloads, and developer remediation plans.
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[10px] text-slate-400 bg-slate-900 border border-slate-800 px-2 py-1 rounded-md">
-              ROLE: <strong className="text-cyan-300">{user?.role || 'ANALYST'}</strong>
+            <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2 py-1 rounded-md">
+              ROLE: <strong className="text-blue-600 dark:text-cyan-300">{user?.role || 'ANALYST'}</strong>
             </span>
           </div>
         </div>
@@ -438,12 +441,12 @@ export function Reports() {
         {isViewer ? (
           /* Role Notice for Viewer / Auditor */
           <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-xs text-amber-200/90 flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+            <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
             <div>
-              <strong className="block font-semibold text-amber-300 mb-1">
+              <strong className="block font-semibold text-amber-700 dark:text-amber-300 mb-1">
                 Auditor Read-Only Archive Access Active
               </strong>
-              <p className="leading-relaxed text-slate-300 text-[11.5px]">
+              <p className="leading-relaxed text-slate-600 dark:text-slate-300 text-[11.5px]">
                 As an <strong>Auditor / Viewer</strong>, you have complete visibility to inspect, preview, and download all generated security dossiers across all projects below. Report generation and AI synthesis are restricted to Security Analysts and Administrators to govern server compute and LLM token usage.
               </p>
             </div>
@@ -454,7 +457,7 @@ export function Reports() {
             <div className="grid gap-4 lg:grid-cols-12">
               {/* Step 1: Select Assessment Target (4 cols) */}
               <div className="lg:col-span-4">
-                <label className="block text-[10px] font-mono uppercase text-slate-400 mb-1.5 font-bold tracking-wider">
+                <label className="block text-[10px] font-mono uppercase text-slate-500 dark:text-slate-400 mb-1.5 font-bold tracking-wider">
                   1. Select Assessment Scope *
                 </label>
                 <CustomSelect
@@ -477,18 +480,18 @@ export function Reports() {
 
                 {/* Selected Assessment Telemetry HUD */}
                 {selectedAssessmentData && (
-                  <div className="mt-2.5 rounded-lg border border-cyan-500/20 bg-[#050b18] p-2.5 font-mono text-[11px] space-y-1">
-                    <div className="flex justify-between text-slate-300">
-                      <span className="text-slate-400">Target:</span>
-                      <span className="text-cyan-300 font-bold truncate max-w-[180px]">{selectedAssessmentData.targetUrl}</span>
+                  <div className="mt-2.5 rounded-lg border border-blue-200 dark:border-cyan-500/20 bg-white dark:bg-[#050b18] p-2.5 font-mono text-[11px] space-y-1">
+                    <div className="flex justify-between text-slate-600 dark:text-slate-300">
+                      <span className="text-slate-500 dark:text-slate-400">Target:</span>
+                      <span className="text-blue-600 dark:text-cyan-300 font-bold truncate max-w-[180px]">{selectedAssessmentData.targetUrl}</span>
                     </div>
-                    <div className="flex justify-between text-slate-300">
-                      <span className="text-slate-400">Posture Score:</span>
-                      <span className="text-emerald-400 font-bold">{selectedAssessmentData.score} / 100</span>
+                    <div className="flex justify-between text-slate-600 dark:text-slate-300">
+                      <span className="text-slate-500 dark:text-slate-400">Posture Score:</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">{selectedAssessmentData.score} / 100</span>
                     </div>
-                    <div className="flex justify-between text-slate-300">
-                      <span className="text-slate-400">Findings Detected:</span>
-                      <span className="text-amber-400 font-bold">{selectedAssessmentData.findingsCount} Vulnerabilities</span>
+                    <div className="flex justify-between text-slate-600 dark:text-slate-300">
+                      <span className="text-slate-500 dark:text-slate-400">Findings Detected:</span>
+                      <span className="text-amber-600 dark:text-amber-400 font-bold">{selectedAssessmentData.findingsCount} Vulnerabilities</span>
                     </div>
                   </div>
                 )}
@@ -496,7 +499,7 @@ export function Reports() {
 
               {/* Step 2: Report Archetype (5 cols) */}
               <div className="lg:col-span-5">
-                <label className="block text-[10px] font-mono uppercase text-slate-400 mb-1.5 font-bold tracking-wider">
+                <label className="block text-[10px] font-mono uppercase text-slate-500 dark:text-slate-400 mb-1.5 font-bold tracking-wider">
                   2. Choose Report Archetype
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -516,12 +519,12 @@ export function Reports() {
                         className={cn(
                           'flex flex-col text-left p-2.5 rounded-xl border transition duration-150',
                           isSelected
-                            ? 'border-cyan-500/60 bg-cyan-500/10 shadow-[0_0_15px_rgba(56,189,248,0.15)] text-white'
-                            : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                            ? 'border-cyan-500/60 bg-blue-50 dark:bg-cyan-500/10 shadow-[0_0_15px_rgba(56,189,248,0.15)] text-[#0f1f3d] dark:text-white'
+                            : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 hover:border-slate-200 dark:border-slate-700 hover:text-slate-700 dark:hover:text-slate-200'
                         )}
                       >
                         <div className="flex items-center gap-2">
-                          <Icon size={14} className={isSelected ? 'text-cyan-400' : 'text-slate-400'} />
+                          <Icon size={14} className={isSelected ? 'text-blue-600 dark:text-cyan-400' : 'text-slate-500 dark:text-slate-400'} />
                           <span className="text-xs font-bold">{arch.label}</span>
                         </div>
                         <span className="text-[10px] text-slate-500 mt-1 line-clamp-1">{arch.desc}</span>
@@ -534,14 +537,14 @@ export function Reports() {
               {/* Step 3: Format & Action Button (3 cols) */}
               <div className="lg:col-span-3 flex flex-col justify-between">
                 <div>
-                  <label className="block text-[10px] font-mono uppercase text-slate-400 mb-1.5 font-bold tracking-wider">
+                  <label className="block text-[10px] font-mono uppercase text-slate-500 dark:text-slate-400 mb-1.5 font-bold tracking-wider">
                     3. Output Format
                   </label>
                   <div className="grid grid-cols-3 gap-1.5">
                     {[
-                      { id: 'PDF', label: 'PDF', icon: FileText, color: 'text-red-400' },
-                      { id: 'HTML', label: 'HTML', icon: Globe, color: 'text-cyan-400' },
-                      { id: 'JSON', label: 'JSON', icon: Code2, color: 'text-amber-400' },
+                      { id: 'PDF', label: 'PDF', icon: FileText, color: 'text-red-600 dark:text-red-400' },
+                      { id: 'HTML', label: 'HTML', icon: Globe, color: 'text-blue-600 dark:text-cyan-400' },
+                      { id: 'JSON', label: 'JSON', icon: Code2, color: 'text-amber-600 dark:text-amber-400' },
                     ].map((fmt) => {
                       const isSelected = form.format === fmt.id;
                       const Icon = fmt.icon;
@@ -553,8 +556,8 @@ export function Reports() {
                           className={cn(
                             'flex flex-col items-center justify-center py-2 px-1 rounded-lg border font-mono text-[11px] font-bold transition',
                             isSelected
-                              ? 'border-cyan-500/60 bg-cyan-500/15 text-white shadow-sm'
-                              : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                              ? 'border-cyan-500/60 bg-blue-50 dark:bg-cyan-500/15 text-[#0f1f3d] dark:text-white shadow-sm'
+                              : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 hover:border-slate-200 dark:border-slate-700 hover:text-slate-700 dark:hover:text-slate-200'
                           )}
                         >
                           <Icon size={14} className={fmt.color} />
@@ -570,16 +573,16 @@ export function Reports() {
                   <button
                     onClick={() => generateMutation.mutate()}
                     disabled={!form.assessmentId || generateMutation.isPending}
-                    className="flex h-[38px] w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 font-mono text-[11px] font-extrabold uppercase tracking-wider text-slate-950 shadow-[0_0_20px_rgba(56,189,248,0.3)] transition hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                    className="flex h-[38px] w-full items-center justify-center gap-2 rounded-xl bg-blue-600/80 backdrop-blur-xl border border-white/40 hover:bg-blue-600/90 text-white shadow-[0_8px_24px_rgba(37,99,235,0.35),inset_0_1px_0_rgba(255,255,255,0.35)] font-mono text-[11px] font-extrabold uppercase tracking-wider transition disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none dark:bg-blue-500/25 dark:border-blue-300/30 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] dark:hover:bg-blue-500/35"
                   >
                     {generateMutation.isPending ? (
                       <>
-                        <Loader2 className="h-4 w-4 animate-spin text-slate-950" />
+                        <Loader2 className="h-4 w-4 animate-spin text-white" />
                         <span>Synthesizing Dossier…</span>
                       </>
                     ) : (
                       <>
-                        <Sparkles className="h-3.5 w-3.5 text-slate-950" />
+                        <Sparkles className="h-3.5 w-3.5 text-white" />
                         <span>Generate Report</span>
                       </>
                     )}
@@ -589,7 +592,7 @@ export function Reports() {
             </div>
 
             {generateMutation.isError && (
-              <p className="rounded-md border border-red-500/30 bg-red-500/10 p-2 text-xs font-semibold text-red-400">
+              <p className="rounded-md border border-red-500/30 bg-red-500/10 p-2 text-xs font-semibold text-red-600 dark:text-red-400">
                 {errMsg(generateMutation.error)}
               </p>
             )}
@@ -598,10 +601,10 @@ export function Reports() {
       </Card>
 
       {/* Filter Tabs & Search Bar */}
-      <Card className="relative z-20 border-slate-800 bg-slate-900/90 p-3 shadow-md backdrop-blur">
+      <Card className="relative z-20 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-3 shadow-md backdrop-blur">
         <div className="flex flex-wrap items-center justify-between gap-3">
           {/* Status Tabs */}
-          <div className="flex items-center gap-1.5 text-xs font-medium border-b border-slate-800 pb-1 sm:pb-0 sm:border-0">
+          <div className="flex items-center gap-1.5 text-xs font-medium border-b border-slate-200 dark:border-slate-800 pb-1 sm:pb-0 sm:border-0">
             {[
               { id: 'ALL', label: `All Reports`, count: totalCount },
               { id: 'Completed', label: `Ready`, count: completedCount },
@@ -617,12 +620,12 @@ export function Reports() {
                 className={cn(
                   'rounded-lg px-3 py-1.5 transition font-semibold text-xs flex items-center gap-1.5',
                   activeTab === tab.id
-                    ? 'bg-slate-800 text-cyan-300 border border-slate-700 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                    ? 'bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-cyan-300 border border-slate-200 dark:border-slate-700 shadow-sm'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800/40'
                 )}
               >
                 <span>{tab.label}</span>
-                <span className={cn('text-[10px] font-mono px-1.5 py-0.2 rounded-full', activeTab === tab.id ? 'bg-cyan-500/20 text-cyan-300' : 'bg-slate-800 text-slate-500')}>
+                <span className={cn('text-[10px] font-mono px-1.5 py-0.2 rounded-full', activeTab === tab.id ? 'bg-blue-50 dark:bg-cyan-500/20 text-blue-600 dark:text-cyan-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-500')}>
                   {tab.count}
                 </span>
               </button>
@@ -641,7 +644,7 @@ export function Reports() {
                   setSearch(e.target.value);
                   setPage(1);
                 }}
-                className="w-full rounded-lg border border-slate-700/80 bg-slate-950/80 py-1.5 pl-8 pr-3 text-xs text-slate-200 placeholder-slate-500 focus:border-cyan-500/50 focus:outline-none"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-900/90 py-1.5 pl-8 pr-3 text-xs text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:border-cyan-500/50 focus:outline-none"
               />
             </div>
 
@@ -662,9 +665,9 @@ export function Reports() {
             <button
               onClick={() => list.refetch()}
               title="Refresh reports database"
-              className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.04] backdrop-blur-xl px-2.5 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-200 transition hover:bg-white/[0.08] hover:text-white"
+              className="flex items-center gap-1 rounded-lg border border-slate-200 dark:border-white/10 bg-white/60 backdrop-blur-xl dark:bg-white/[0.04] px-2.5 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 transition hover:bg-white/85 dark:hover:bg-white/[0.08] hover:text-[#0f1f3d] dark:hover:text-white"
             >
-              <RotateCcw size={12} className={list.isFetching ? 'animate-spin text-cyan-400' : ''} />
+              <RotateCcw size={12} className={list.isFetching ? 'animate-spin text-blue-600 dark:text-cyan-400' : ''} />
               <span>Sync</span>
             </button>
           </div>
@@ -672,32 +675,32 @@ export function Reports() {
       </Card>
 
       {/* Main Reports Data Table */}
-      <Card className="relative z-10 overflow-hidden border-slate-800 bg-[#091122] shadow-2xl">
+      <Card className="relative z-10 overflow-hidden border-slate-200 dark:border-slate-800 bg-white dark:bg-[#091122] shadow-2xl">
         {list.isLoading && <LoadingState label="Loading verified security report archives..." />}
         {list.isError && <ErrorState message="Could not fetch reports database." onRetry={() => list.refetch()} />}
 
         {!list.isLoading && !list.isError && (
           <div className="w-full">
             {/* Mobile View: Compact Report Cards (< 768px) */}
-            <div className="divide-y divide-slate-800/70 md:hidden">
+            <div className="divide-y divide-slate-200 dark:divide-slate-800/70 md:hidden">
               {paginatedReports.length === 0 ? (
-                <div className="py-12 text-center text-slate-400">
+                <div className="py-12 text-center text-slate-500 dark:text-slate-400">
                   <FileText className="mx-auto h-8 w-8 text-slate-600 mb-2" />
-                  <p className="font-semibold text-sm text-slate-300">No security reports found</p>
+                  <p className="font-semibold text-sm text-slate-600 dark:text-slate-300">No security reports found</p>
                 </div>
               ) : (
                 paginatedReports.map((item) => (
                   <div
                     key={item._id}
                     onClick={() => handleOpenPreview(item)}
-                    className="p-3.5 space-y-2.5 transition active:bg-slate-800/40 cursor-pointer"
+                    className="p-3.5 space-y-2.5 transition active:bg-slate-100 dark:bg-slate-800/40 cursor-pointer"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <span className="rounded-md border border-cyan-500/30 bg-cyan-950/40 px-2 py-0.5 font-mono text-[10px] font-bold text-cyan-300">
+                        <span className="rounded-md border border-blue-200 dark:border-cyan-500/30 bg-blue-50 dark:bg-cyan-950/40 px-2 py-0.5 font-mono text-[10px] font-bold text-blue-600 dark:text-cyan-300">
                           {item.format}
                         </span>
-                        <span className="font-mono text-[10px] text-slate-400 font-semibold uppercase">
+                        <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase">
                           {item.type}
                         </span>
                       </div>
@@ -705,14 +708,14 @@ export function Reports() {
                     </div>
 
                     <div>
-                      <h4 className="font-bold text-sm text-white">{item.name}</h4>
-                      <p className="text-xs text-slate-400 line-clamp-1 mt-0.5">{item.projectName} · {item.targetUrl}</p>
+                      <h4 className="font-bold text-sm text-[#0f1f3d] dark:text-white">{item.name}</h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">{item.projectName} · {item.targetUrl}</p>
                     </div>
 
-                    <div className="flex items-center justify-between pt-1 border-t border-slate-800/50 font-mono text-[11px]">
-                      <div className="flex items-center gap-1.5 text-slate-300">
+                    <div className="flex items-center justify-between pt-1 border-t border-slate-200 dark:border-slate-800/50 font-mono text-[11px]">
+                      <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
                         <span className="text-slate-500">Score:</span>
-                        <span className="font-bold text-emerald-400">{item.securityScore}/100</span>
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400">{item.securityScore}/100</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <button
@@ -721,7 +724,7 @@ export function Reports() {
                             e.stopPropagation();
                             handleOpenPreview(item);
                           }}
-                          className="inline-flex min-h-[36px] items-center gap-1 rounded-lg border border-cyan-500/30 bg-cyan-950/40 px-2.5 py-1 font-bold text-cyan-300"
+                          className="inline-flex min-h-[36px] items-center gap-1 rounded-lg border border-blue-200 dark:border-cyan-500/30 bg-blue-50 dark:bg-cyan-950/40 px-2.5 py-1 font-bold text-blue-600 dark:text-cyan-300"
                         >
                           <Eye size={12} /> Preview
                         </button>
@@ -734,10 +737,10 @@ export function Reports() {
                               handleDownloadReport(item);
                             }}
                             title={`Download ${item.format} report`}
-                            className="inline-flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg border border-white/10 bg-white/[0.06] px-2.5 py-1 text-white hover:bg-white/10 transition disabled:opacity-50"
+                            className="inline-flex min-h-[36px] min-w-[36px] items-center justify-center rounded-lg border border-slate-200 dark:border-white/10 bg-white/60 backdrop-blur-xl dark:bg-white/[0.06] px-2.5 py-1 text-[#0f1f3d] dark:text-white hover:bg-white/85 dark:hover:bg-white/10 transition disabled:opacity-50"
                           >
                             {downloadingId === item._id ? (
-                              <Loader2 size={13} className="animate-spin text-cyan-400" />
+                              <Loader2 size={13} className="animate-spin text-blue-600 dark:text-cyan-400" />
                             ) : (
                               <Download size={13} />
                             )}
@@ -753,7 +756,7 @@ export function Reports() {
             {/* Desktop View: High-Density Table (>= 768px) */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="border-b border-slate-800 bg-[#060b18] font-mono text-[11px] uppercase tracking-wider text-slate-400">
+                <thead className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#060b18] font-mono text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   <tr>
                     <th className="w-10 px-3 py-3.5 text-center">#</th>
                     <th className="px-4 py-3.5">REPORT DOSSIER</th>
@@ -766,12 +769,12 @@ export function Reports() {
                     <th className="px-4 py-3.5 text-center">ACTIONS</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
                   {paginatedReports.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="py-12 text-center text-slate-400">
+                      <td colSpan={9} className="py-12 text-center text-slate-500 dark:text-slate-400">
                         <FileText className="mx-auto h-8 w-8 text-slate-600 mb-2" />
-                        <p className="font-semibold text-sm text-slate-300">No security reports matching your filters</p>
+                        <p className="font-semibold text-sm text-slate-600 dark:text-slate-300">No security reports matching your filters</p>
                         <p className="text-xs text-slate-500 mt-1">Try selecting another filter tab or generate a new report.</p>
                       </td>
                     </tr>
@@ -782,7 +785,7 @@ export function Reports() {
                       return (
                         <tr
                           key={item._id}
-                          className="group transition duration-150 hover:bg-slate-800/50 cursor-pointer"
+                          className="group transition duration-150 hover:bg-slate-200 dark:hover:bg-slate-800/50 cursor-pointer"
                           onClick={() => handleOpenPreview(item)}
                         >
                           {/* Row Index */}
@@ -791,27 +794,27 @@ export function Reports() {
                           {/* Report Dossier Name & Subtitle */}
                           <td className="px-4 py-4">
                             <div className="flex items-center gap-2.5">
-                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-800 bg-slate-900 group-hover:border-cyan-500/40 group-hover:bg-cyan-500/10 transition">
+                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 group-hover:border-blue-200 dark:border-cyan-500/40 group-hover:bg-blue-50 dark:bg-cyan-500/10 transition">
                                 {item.format === 'HTML' ? (
-                                  <Globe size={15} className="text-cyan-400" />
+                                  <Globe size={15} className="text-blue-600 dark:text-cyan-400" />
                                 ) : item.format === 'JSON' ? (
-                                  <Code2 size={15} className="text-amber-400" />
+                                  <Code2 size={15} className="text-amber-600 dark:text-amber-400" />
                                 ) : (
-                                  <FileText size={15} className="text-red-400" />
+                                  <FileText size={15} className="text-red-600 dark:text-red-400" />
                                 )}
                               </div>
                               <div>
-                                <div className="font-bold text-white group-hover:text-cyan-300 transition flex items-center gap-1.5">
+                                <div className="font-bold text-[#0f1f3d] dark:text-white group-hover:text-blue-600 dark:group-hover:text-cyan-300 transition flex items-center gap-1.5">
                                   {item.name}
                                 </div>
-                                <div className="text-[11px] text-slate-400 truncate max-w-xs">{item.subtitle}</div>
+                                <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-xs">{item.subtitle}</div>
                               </div>
                             </div>
                           </td>
 
                           {/* Project & Target Context */}
                           <td className="px-4 py-4">
-                            <div className="font-medium text-slate-200">{item.projectName}</div>
+                            <div className="font-medium text-slate-700 dark:text-slate-200">{item.projectName}</div>
                             <div className="font-mono text-[10px] text-cyan-400/90 truncate max-w-[200px]">{item.targetUrl}</div>
                           </td>
 
@@ -821,12 +824,12 @@ export function Reports() {
                               className={cn(
                                 'rounded-md border px-2 py-0.5 font-mono text-[10px] font-bold uppercase',
                                 item.type === 'Executive'
-                                  ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
+                                  ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                                   : item.type === 'Remediation'
-                                  ? 'border-orange-500/30 bg-orange-500/10 text-orange-400'
+                                  ? 'border-orange-500/30 bg-orange-500/10 text-orange-600 dark:text-orange-400'
                                   : item.type === 'Compliance'
-                                  ? 'border-purple-500/30 bg-purple-500/10 text-purple-400'
-                                  : 'border-blue-500/30 bg-blue-500/10 text-blue-400'
+                                  ? 'border-purple-500/30 bg-purple-500/10 text-purple-600 dark:text-purple-400'
+                                  : 'border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400'
                               )}
                             >
                               {item.type}
@@ -839,10 +842,10 @@ export function Reports() {
                               className={cn(
                                 'rounded-md border px-2 py-0.5 font-mono text-[10px] font-bold flex items-center gap-1 w-fit',
                                 item.format === 'HTML'
-                                  ? 'border-cyan-500/30 bg-cyan-500/10 text-cyan-400'
+                                  ? 'border-blue-200 dark:border-cyan-500/30 bg-blue-50 dark:bg-cyan-500/10 text-blue-600 dark:text-cyan-400'
                                   : item.format === 'JSON'
-                                  ? 'border-amber-500/30 bg-amber-500/10 text-amber-400'
-                                  : 'border-red-500/30 bg-red-500/10 text-red-400'
+                                  ? 'border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                                  : 'border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400'
                               )}
                             >
                               {item.format}
@@ -858,7 +861,7 @@ export function Reports() {
                                   item.securityScore >= 80 ? 'bg-emerald-400' : item.securityScore >= 65 ? 'bg-amber-400' : 'bg-red-400'
                                 )}
                               />
-                              <span className="font-bold text-white">{item.securityScore}/100</span>
+                              <span className="font-bold text-[#0f1f3d] dark:text-white">{item.securityScore}/100</span>
                               <span className="text-[10px] text-slate-500">({item.postureGrade})</span>
                             </div>
                           </td>
@@ -869,7 +872,7 @@ export function Reports() {
                           </td>
 
                           {/* Timestamp */}
-                          <td className="px-4 py-4 font-mono text-[11px] text-slate-400">
+                          <td className="px-4 py-4 font-mono text-[11px] text-slate-500 dark:text-slate-400">
                             {new Date(item.generatedOn).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                             <span className="block text-[10px] text-slate-500">
                               {new Date(item.generatedOn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -883,7 +886,7 @@ export function Reports() {
                               <button
                                 onClick={() => handleOpenPreview(item)}
                                 title="Interactive in-app preview"
-                                className="flex items-center gap-1 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-1 font-mono text-[10px] font-bold text-cyan-300 hover:bg-cyan-500/20 transition min-h-[32px]"
+                                className="flex items-center gap-1 rounded-lg border border-blue-200 dark:border-cyan-500/30 bg-blue-50 dark:bg-cyan-500/10 px-2.5 py-1 font-mono text-[10px] font-bold text-blue-600 dark:text-cyan-300 hover:bg-blue-50 dark:bg-cyan-500/20 transition min-h-[32px]"
                               >
                                 <Eye size={12} /> Preview
                               </button>
@@ -895,10 +898,10 @@ export function Reports() {
                                   disabled={downloadingId === item._id}
                                   onClick={() => handleDownloadReport(item)}
                                   title={`Download ${item.format} report`}
-                                  className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.06] px-2 py-1 font-mono text-[10px] font-bold text-white hover:bg-white/10 transition min-h-[32px] disabled:opacity-50"
+                                  className="flex items-center gap-1 rounded-lg border border-slate-200 dark:border-white/10 bg-white/60 backdrop-blur-xl dark:bg-white/[0.06] px-2 py-1 font-mono text-[10px] font-bold text-[#0f1f3d] dark:text-white hover:bg-white/85 dark:hover:bg-white/10 transition min-h-[32px] disabled:opacity-50"
                                 >
                                   {downloadingId === item._id ? (
-                                    <Loader2 size={12} className="animate-spin text-cyan-400" />
+                                    <Loader2 size={12} className="animate-spin text-blue-600 dark:text-cyan-400" />
                                   ) : (
                                     <Download size={12} />
                                   )}
@@ -914,7 +917,7 @@ export function Reports() {
                                     }
                                   }}
                                   disabled={deleteMutation.isPending}
-                                  className="rounded-lg p-1.5 text-slate-400 hover:bg-red-500/20 hover:text-red-400 transition min-h-[32px]"
+                                  className="rounded-lg p-1.5 text-slate-500 dark:text-slate-400 hover:bg-red-500/20 hover:text-red-600 dark:text-red-400 transition min-h-[32px]"
                                   title="Delete report"
                                 >
                                   <Trash2 size={13} />
@@ -933,7 +936,7 @@ export function Reports() {
         )}
 
         {/* Dynamic Table Pagination Footer */}
-        <div className="flex items-center justify-between border-t border-slate-800 bg-[#060b18] px-4 py-3 text-xs text-slate-400 font-mono">
+        <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#060b18] px-4 py-3 text-xs text-slate-500 dark:text-slate-400 font-mono">
           <span>
             Showing {filteredList.length === 0 ? 0 : (page - 1) * pageSize + 1}-{Math.min(page * pageSize, filteredList.length)} of {filteredList.length} reports
           </span>
@@ -941,7 +944,7 @@ export function Reports() {
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="rounded-lg border border-slate-800 bg-slate-900 p-1 text-slate-400 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-1 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -952,8 +955,8 @@ export function Reports() {
                 className={cn(
                   'h-7 w-7 rounded-lg border font-mono text-[11px] font-bold transition',
                   page === pNum
-                    ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300'
-                    : 'border-slate-800 bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-white'
+                    ? 'bg-blue-50 dark:bg-cyan-500/20 border-cyan-500/50 text-blue-600 dark:text-cyan-300'
+                    : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-[#0f1f3d] dark:hover:text-white'
                 )}
               >
                 {pNum}
@@ -962,7 +965,7 @@ export function Reports() {
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page >= totalPages}
-              className="rounded-lg border border-slate-800 bg-slate-900 p-1 text-slate-400 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-1 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -978,21 +981,21 @@ export function Reports() {
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.96 }}
-              className="relative w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl border border-cyan-500/30 bg-[#080e1e] shadow-2xl overflow-hidden"
+              className="relative w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl border border-blue-200 dark:border-cyan-500/30 bg-white dark:bg-[#080e1e] shadow-2xl overflow-hidden"
             >
               {/* Modal Top Control Bar */}
-              <div className="flex items-center justify-between border-b border-slate-800 bg-[#050a16] px-5 py-3.5">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#050a16] px-5 py-3.5">
                 <div className="flex items-center gap-3">
                   <CyberShieldLogo className="h-6 w-6" />
                   <div>
-                    <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                    <h2 className="text-sm font-bold text-[#0f1f3d] dark:text-white flex items-center gap-2">
                       {previewReport.name}
-                      <span className="rounded border border-cyan-500/40 bg-cyan-500/10 px-1.5 py-0.2 font-mono text-[9px] font-bold text-cyan-400">
+                      <span className="rounded border border-blue-200 dark:border-cyan-500/40 bg-blue-50 dark:bg-cyan-500/10 px-1.5 py-0.2 font-mono text-[9px] font-bold text-blue-600 dark:text-cyan-400">
                         {previewReport.format}
                       </span>
                     </h2>
-                    <p className="text-[10px] font-mono text-slate-400">
-                      Target: <span className="text-cyan-300">{previewReport.targetUrl}</span> · Score: <strong className="text-emerald-400">{previewReport.securityScore}/100</strong>
+                    <p className="text-[10px] font-mono text-slate-500 dark:text-slate-400">
+                      Target: <span className="text-blue-600 dark:text-cyan-300">{previewReport.targetUrl}</span> · Score: <strong className="text-emerald-600 dark:text-emerald-400">{previewReport.securityScore}/100</strong>
                     </p>
                   </div>
                 </div>
@@ -1004,7 +1007,7 @@ export function Reports() {
                       href={previewReport.fileUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex items-center gap-1.5 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-1 text-xs font-mono font-bold text-cyan-300 hover:bg-cyan-500/20 transition"
+                      className="flex items-center gap-1.5 rounded-lg border border-blue-200 dark:border-cyan-500/30 bg-blue-50 dark:bg-cyan-500/10 px-2.5 py-1 text-xs font-mono font-bold text-blue-600 dark:text-cyan-300 hover:bg-blue-50 dark:bg-cyan-500/20 transition"
                     >
                       <ExternalLink size={13} />
                       <span>Full View</span>
@@ -1015,7 +1018,7 @@ export function Reports() {
                     <a
                       href={previewReport.fileUrl}
                       download
-                      className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.08] px-2.5 py-1 text-xs font-mono font-bold text-white hover:bg-white/15 transition"
+                      className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white/60 backdrop-blur-xl dark:bg-white/[0.08] px-2.5 py-1 text-xs font-mono font-bold text-[#0f1f3d] dark:text-white hover:bg-white/85 dark:hover:bg-white/15 transition"
                     >
                       <Download size={13} />
                       <span>Download</span>
@@ -1024,7 +1027,7 @@ export function Reports() {
 
                   <button
                     onClick={() => setPreviewReport(null)}
-                    className="rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white transition"
+                    className="rounded-lg p-1 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-[#0f1f3d] dark:hover:text-white transition"
                   >
                     <X size={18} />
                   </button>
@@ -1032,18 +1035,18 @@ export function Reports() {
               </div>
 
               {/* Modal Content Scroll Area */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-6 text-slate-200">
+              <div className="flex-1 overflow-y-auto p-6 space-y-6 text-slate-700 dark:text-slate-200">
                 {loadingPreview ? (
                   <div className="py-20 text-center">
-                    <Loader2 className="mx-auto h-8 w-8 animate-spin text-cyan-400" />
-                    <p className="mt-3 text-xs font-mono text-slate-400">Loading audit report telemetry…</p>
+                    <Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-600 dark:text-cyan-400" />
+                    <p className="mt-3 text-xs font-mono text-slate-500 dark:text-slate-400">Loading audit report telemetry…</p>
                   </div>
                 ) : (
                   <>
                     {/* Classification Banner */}
-                    <div className="flex items-center justify-between rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 font-mono text-xs text-red-300">
+                    <div className="flex items-center justify-between rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 font-mono text-xs text-red-700 dark:text-red-300">
                       <div className="flex items-center gap-2">
-                        <AlertTriangle size={15} className="text-red-400" />
+                        <AlertTriangle size={15} className="text-red-600 dark:text-red-400" />
                         <span className="font-bold">CLASSIFICATION: RESTRICTED // SECURITY AUDIT DOSSIER</span>
                       </div>
                       <span className="text-[11px] text-red-400/80">NTRO PS-26163 // LAWFUL PENTEST ONLY</span>
@@ -1052,29 +1055,29 @@ export function Reports() {
                     {/* KPI Posture Score Row */}
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                       {/* Score Gauge */}
-                      <div className="rounded-xl border border-slate-800 bg-[#0c1630] p-4 text-center flex flex-col items-center justify-center">
-                        <div className="text-3xl font-extrabold font-mono text-white">
+                      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1630] p-4 text-center flex flex-col items-center justify-center">
+                        <div className="text-3xl font-extrabold font-mono text-[#0f1f3d] dark:text-white">
                           {previewReport.securityScore}
-                          <span className="text-sm text-slate-400 font-normal">/100</span>
+                          <span className="text-sm text-slate-500 dark:text-slate-400 font-normal">/100</span>
                         </div>
-                        <span className="mt-1 text-xs font-bold uppercase tracking-wider text-emerald-400">
+                        <span className="mt-1 text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
                           Posture Grade: {previewReport.postureGrade}
                         </span>
-                        <p className="text-[10px] text-slate-400 mt-1">Enterprise Hardening Index</p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">Enterprise Hardening Index</p>
                       </div>
 
                       {/* Scope Box */}
-                      <div className="rounded-xl border border-slate-800 bg-[#0c1630] p-4">
-                        <div className="text-[10px] font-mono uppercase text-slate-400 font-bold">Authorized Scope</div>
-                        <div className="text-sm font-bold text-white mt-1 truncate">{previewReport.projectName}</div>
-                        <div className="text-xs font-mono text-cyan-400 mt-1 truncate">{previewReport.targetUrl}</div>
-                        <div className="text-[10px] text-emerald-400 mt-2">✔ Validated Scope Confirmation</div>
+                      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1630] p-4">
+                        <div className="text-[10px] font-mono uppercase text-slate-500 dark:text-slate-400 font-bold">Authorized Scope</div>
+                        <div className="text-sm font-bold text-[#0f1f3d] dark:text-white mt-1 truncate">{previewReport.projectName}</div>
+                        <div className="text-xs font-mono text-blue-600 dark:text-cyan-400 mt-1 truncate">{previewReport.targetUrl}</div>
+                        <div className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-2">✔ Validated Scope Confirmation</div>
                       </div>
 
                       {/* Audit Archetype & Standard */}
-                      <div className="rounded-xl border border-slate-800 bg-[#0c1630] p-4">
-                        <div className="text-[10px] font-mono uppercase text-slate-400 font-bold">Standards Alignment</div>
-                        <div className="text-xs text-slate-300 mt-1.5 space-y-1 font-mono">
+                      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0c1630] p-4">
+                        <div className="text-[10px] font-mono uppercase text-slate-500 dark:text-slate-400 font-bold">Standards Alignment</div>
+                        <div className="text-xs text-slate-600 dark:text-slate-300 mt-1.5 space-y-1 font-mono">
                           <div>• OWASP Top 10:2021 (100% Tested)</div>
                           <div>• CERT-In Directives (Compliant)</div>
                           <div>• ISO/IEC 27001 (Audited)</div>
@@ -1083,12 +1086,12 @@ export function Reports() {
                     </div>
 
                     {/* Executive Summary Narrative */}
-                    <div className="rounded-xl border border-cyan-500/25 bg-gradient-to-b from-cyan-950/20 to-transparent p-4">
-                      <div className="flex items-center gap-2 mb-2 font-mono text-xs font-bold text-cyan-300">
+                    <div className="rounded-xl border border-blue-200 dark:border-cyan-500/25 bg-white dark:bg-gradient-to-b dark:from-cyan-950/20 dark:to-transparent p-4">
+                      <div className="flex items-center gap-2 mb-2 font-mono text-xs font-bold text-blue-600 dark:text-cyan-300">
                         <Sparkles size={14} />
                         <span>Executive Summary & Risk Synthesis</span>
                       </div>
-                      <p className="text-xs leading-relaxed text-slate-300">
+                      <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300">
                         {previewDetails?.report?.executiveSummary ||
                           previewReport.raw?.executiveSummary ||
                           'Security audit executed against authorized scope with non-destructive proof-of-concept testing. Controls were validated across authentication, broken access control, and endpoint authorization.'}
@@ -1097,7 +1100,7 @@ export function Reports() {
 
                     {/* Vulnerability Findings Breakdown */}
                     <div>
-                      <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400 mb-3 flex items-center gap-2">
+                      <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-blue-600 dark:text-cyan-400 mb-3 flex items-center gap-2">
                         <Shield size={14} />
                         <span>
                           Vulnerability Findings & Proof-of-Concept (
@@ -1106,7 +1109,7 @@ export function Reports() {
                       </h3>
 
                       {(!previewDetails?.findings || previewDetails.findings.length === 0) ? (
-                        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-6 text-center text-xs text-slate-400">
+                        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-6 text-center text-xs text-slate-500 dark:text-slate-400">
                           ✔ No critical vulnerabilities active on this assessment record. System is in resilient standing.
                         </div>
                       ) : (
@@ -1114,9 +1117,9 @@ export function Reports() {
                           {previewDetails.findings.map((f, i) => {
                             const sev = (f.severity || 'HIGH').toUpperCase();
                             return (
-                              <div key={f._id || i} className="rounded-xl border border-slate-800 bg-[#0a1224] p-4 space-y-2">
-                                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2">
-                                  <div className="font-bold text-white text-xs flex items-center gap-2">
+                              <div key={f._id || i} className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0a1224] p-4 space-y-2">
+                                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+                                  <div className="font-bold text-[#0f1f3d] dark:text-white text-xs flex items-center gap-2">
                                     <span>{i + 1}. {f.findingId || 'VUL'} — {f.title}</span>
                                   </div>
                                   <div className="flex items-center gap-1.5 font-mono text-[10px]">
@@ -1124,36 +1127,36 @@ export function Reports() {
                                       className={cn(
                                         'px-2 py-0.5 rounded font-bold uppercase border',
                                         sev === 'CRITICAL'
-                                          ? 'bg-red-500/15 text-red-400 border-red-500/40'
+                                          ? 'bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/40'
                                           : sev === 'HIGH'
-                                          ? 'bg-orange-500/15 text-orange-400 border-orange-500/40'
-                                          : 'bg-amber-500/15 text-amber-400 border-amber-500/40'
+                                          ? 'bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-500/40'
+                                          : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/40'
                                       )}
                                     >
                                       {sev}
                                     </span>
-                                    <span className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded font-bold">
+                                    <span className="bg-blue-50 dark:bg-cyan-500/10 text-blue-600 dark:text-cyan-400 border border-blue-200 dark:border-cyan-500/30 px-2 py-0.5 rounded font-bold">
                                       CVSS {f.cvssScore || '5.0'}
                                     </span>
                                   </div>
                                 </div>
 
-                                <p className="text-xs text-slate-300 leading-relaxed">{f.description}</p>
+                                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{f.description}</p>
 
                                 {f.evidence && (
                                   <div className="mt-2">
-                                    <span className="text-[10px] font-mono uppercase text-slate-400 font-bold block mb-1">
+                                    <span className="text-[10px] font-mono uppercase text-slate-500 dark:text-slate-400 font-bold block mb-1">
                                       Proof of Concept Evidence:
                                     </span>
-                                    <div className="rounded-lg border border-slate-800 bg-[#030610] p-2.5 font-mono text-[11px] text-cyan-300 overflow-x-auto whitespace-pre-wrap">
+                                    <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#030610] p-2.5 font-mono text-[11px] text-blue-600 dark:text-cyan-300 overflow-x-auto whitespace-pre-wrap">
                                       {f.evidence}
                                     </div>
                                   </div>
                                 )}
 
                                 {f.remediation && (
-                                  <div className="mt-2 text-xs text-emerald-300 bg-emerald-500/5 border border-emerald-500/20 rounded-lg p-2.5">
-                                    <strong className="block text-[10px] font-mono uppercase text-emerald-400 mb-1">
+                                  <div className="mt-2 text-xs text-emerald-700 dark:text-emerald-300 bg-emerald-500/5 border border-emerald-500/20 rounded-lg p-2.5">
+                                    <strong className="block text-[10px] font-mono uppercase text-emerald-600 dark:text-emerald-400 mb-1">
                                       Remediation Guidance:
                                     </strong>
                                     <span>{Array.isArray(f.remediation) ? f.remediation.join(' · ') : f.remediation}</span>
@@ -1178,6 +1181,7 @@ export function Reports() {
 
 export function Settings() {
   const { user, updateProfile } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [apiKey, setApiKey] = useState('sk_live_saksham_' + Math.random().toString(36).substring(2, 12));
   // Editable display name (email stays locked to the login account).
   const [name, setName] = useState(user?.name || '');
@@ -1229,26 +1233,51 @@ export function Settings() {
       <PageHeader title="Security & API Settings" subtitle="Configure system parameters, API authentication tokens, and user credentials." />
 
       <div className="grid gap-6 md:grid-cols-2">
+        {/* Appearance — the only place to switch light / dark mode */}
+        <div className="rounded-xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#090f1f] p-5 shadow-sm md:col-span-2">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h3 className="text-sm font-bold tracking-tight text-[#0f1f3d] dark:text-white">Appearance</h3>
+              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Switch between light and dark mode. Your choice is saved on this device.</p>
+            </div>
+            <div className="flex items-center gap-1 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.04] p-1">
+              <button
+                type="button"
+                onClick={() => setTheme('light')}
+                className={`flex min-h-[40px] items-center gap-1.5 rounded-lg px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wider transition ${theme !== 'dark' ? 'bg-blue-600/80 backdrop-blur-xl border border-white/40 text-white shadow-[0_8px_24px_rgba(37,99,235,0.35),inset_0_1px_0_rgba(255,255,255,0.35)]' : 'text-slate-500 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-white/[0.06]'}`}
+              >
+                <Sun size={14} /> Light
+              </button>
+              <button
+                type="button"
+                onClick={() => setTheme('dark')}
+                className={`flex min-h-[40px] items-center gap-1.5 rounded-lg px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wider transition ${theme === 'dark' ? 'bg-blue-600/80 backdrop-blur-xl border border-white/40 text-white shadow-[0_8px_24px_rgba(37,99,235,0.35),inset_0_1px_0_rgba(255,255,255,0.35)]' : 'text-slate-500 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-white/[0.06]'}`}
+              >
+                <Moon size={14} /> Dark
+              </button>
+            </div>
+          </div>
+        </div>
         {/* User Profile Card — live data from the logged-in account */}
-        <Card className="border-slate-800 bg-[#090f1f] p-5 space-y-4 shadow-md">
-          <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
+        <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] p-5 space-y-4 shadow-md">
+          <div className="flex items-center gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
             {user?.avatar ? (
-              <img src={user.avatar} alt={user.name} className="h-10 w-10 shrink-0 rounded-lg border border-slate-700 object-cover" />
+              <img src={user.avatar} alt={user.name} className="h-10 w-10 shrink-0 rounded-lg border border-slate-200 dark:border-slate-700 object-cover" />
             ) : (
               <PremiumIcon icon={User} tone="cyan" size="md" iconSize={18} />
             )}
             <div className="min-w-0">
-              <h3 className="truncate text-sm font-bold tracking-tight text-white">{user?.name || 'SOC Operator'}</h3>
-              <p className="truncate text-xs text-slate-400">{user?.email || 'Not signed in'}</p>
+              <h3 className="truncate text-sm font-bold tracking-tight text-[#0f1f3d] dark:text-white">{user?.name || 'SOC Operator'}</h3>
+              <p className="truncate text-xs text-slate-500 dark:text-slate-400">{user?.email || 'Not signed in'}</p>
             </div>
-            <span className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-emerald-300">
+            <span className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
               <span className="live-dot relative inline-block h-1.5 w-1.5 rounded-full bg-current" /> Active
             </span>
           </div>
 
           <div className="space-y-3 text-xs">
             <div>
-              <label className="mb-1 block font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Operator Name (editable)</label>
+              <label className="mb-1 block font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Operator Name (editable)</label>
               <div className="flex items-center gap-2">
                 <input
                   type="text"
@@ -1256,22 +1285,22 @@ export function Settings() {
                   maxLength={80}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Your display name"
-                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 font-medium text-white transition focus:border-cyan-500/60 focus:outline-none focus:ring-1 focus:ring-cyan-500/30"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-1.5 font-medium text-[#0f1f3d] dark:text-white transition focus:border-cyan-500/60 focus:outline-none focus:ring-1 focus:ring-cyan-500/30"
                 />
                 <Button
                   onClick={handleSaveName}
                   disabled={!nameDirty || !name.trim() || savingName}
                   className="shrink-0 px-3.5"
                 >
-                  {savingName ? <Loader2 size={13} className="animate-spin" /> : nameMsg?.ok ? <Check size={13} className="text-emerald-300" /> : <Save size={13} />}
+                  {savingName ? <Loader2 size={13} className="animate-spin" /> : nameMsg?.ok ? <Check size={13} className="text-emerald-700 dark:text-emerald-300" /> : <Save size={13} />}
                   {savingName ? 'Saving…' : nameMsg?.ok ? 'Saved' : 'Save'}
                 </Button>
               </div>
-              {nameMsg && !nameMsg.ok && <p className="mt-1.5 font-medium text-red-400">{nameMsg.text}</p>}
-              {nameMsg?.ok && <p className="mt-1.5 font-medium text-emerald-300">{nameMsg.text}</p>}
+              {nameMsg && !nameMsg.ok && <p className="mt-1.5 font-medium text-red-600 dark:text-red-400">{nameMsg.text}</p>}
+              {nameMsg?.ok && <p className="mt-1.5 font-medium text-emerald-700 dark:text-emerald-300">{nameMsg.text}</p>}
             </div>
             <div>
-              <label className="mb-1 flex items-center gap-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+              <label className="mb-1 flex items-center gap-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
                 Login Email <Lock size={11} className="text-slate-500" />
                 <span className="font-medium normal-case tracking-normal text-slate-500">locked to your login account</span>
               </label>
@@ -1281,76 +1310,76 @@ export function Settings() {
                 tabIndex={-1}
                 title="Email cannot be changed — it is your login identity"
                 value={user?.email || '—'}
-                className="w-full cursor-not-allowed select-all rounded-lg border border-slate-800/80 bg-slate-900/60 px-3 py-1.5 font-mono text-slate-400 focus:outline-none"
+                className="w-full cursor-not-allowed select-all rounded-lg border border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 font-mono text-slate-500 dark:text-slate-400 focus:outline-none"
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1 block font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Security Role</label>
-                <span className="inline-flex rounded-md border border-cyan-500/25 bg-cyan-500/[0.08] px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-cyan-300">
+                <label className="mb-1 block font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Security Role</label>
+                <span className="inline-flex rounded-md border border-blue-200 dark:border-cyan-500/25 bg-blue-50 dark:bg-cyan-500/[0.08] px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-cyan-300">
                   {user?.role || 'ANALYST'}
                 </span>
               </div>
               <div>
-                <label className="mb-1 block font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Login Method</label>
-                <span className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-slate-200">
+                <label className="mb-1 block font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Login Method</label>
+                <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 dark:border-white/10 bg-white/60 backdrop-blur-xl dark:bg-white/[0.04] px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
                   {(user?.provider || 'local') === 'google' ? 'Google' : 'Password'}
                 </span>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1 block font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Member Since</label>
+                <label className="mb-1 block font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Member Since</label>
                 <input
                   type="text"
                   readOnly
                   value={user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
-                  className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-1.5 font-mono text-slate-200"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 px-3 py-1.5 font-mono text-slate-900 dark:text-white"
                 />
               </div>
               <div>
-                <label className="mb-1 block font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Account ID</label>
-                <input type="text" readOnly value={user?.id ? String(user.id).slice(-8).toUpperCase() : '—'} className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-1.5 font-mono text-slate-200" />
+                <label className="mb-1 block font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Account ID</label>
+                <input type="text" readOnly value={user?.id ? String(user.id).slice(-8).toUpperCase() : '—'} className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 px-3 py-1.5 font-mono text-slate-900 dark:text-white" />
               </div>
             </div>
           </div>
         </Card>
 
         {/* API Key Management */}
-        <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-400">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400">
                 <Key className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-white">API Authentication Key</h3>
-                <p className="text-xs text-slate-400">Use this token for CLI tools & SDK integration</p>
+                <h3 className="text-sm font-bold text-[#0f1f3d] dark:text-white">API Authentication Key</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Use this token for CLI tools & SDK integration</p>
               </div>
             </div>
           </div>
 
           <div className="space-y-3">
-            <label className="block font-mono text-[10px] uppercase text-slate-400 font-semibold">Active Secret Key</label>
+            <label className="block font-mono text-[10px] uppercase text-slate-500 dark:text-slate-400 font-semibold">Active Secret Key</label>
             <div className="flex items-center gap-2">
               <input
                 type="password"
                 readOnly
                 value={apiKey}
-                className="flex-1 rounded border border-slate-800 bg-slate-950 px-3 py-1.5 font-mono text-xs text-amber-300"
+                className="flex-1 rounded border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 px-3 py-1.5 font-mono text-xs text-amber-700 dark:text-amber-300"
               />
               <button
                 onClick={handleCopyKey}
-                className="flex items-center gap-1 rounded border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 font-semibold"
+                className="flex items-center gap-1 rounded border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 font-semibold"
               >
-                {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                {copied ? <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
                 <span>{copied ? 'Copied!' : 'Copy'}</span>
               </button>
             </div>
 
             <button
               onClick={handleRegenerateKey}
-              className="text-xs font-semibold text-cyan-400 hover:underline flex items-center gap-1 mt-1"
+              className="text-xs font-semibold text-blue-600 dark:text-cyan-400 hover:underline flex items-center gap-1 mt-1"
             >
               <RotateCcw className="h-3 w-3" /> Regenerate API Secret Token
             </button>
@@ -1359,53 +1388,53 @@ export function Settings() {
       </div>
 
       {/* Saksham AI Backend Connection Settings */}
-      <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-4">
-        <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
+      <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-4">
+        <div className="flex items-center gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-blue-200 dark:border-cyan-500/30 bg-blue-50 dark:bg-cyan-500/10 text-blue-600 dark:text-cyan-400">
             <ShieldCheck className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white">Saksham AI Engine Configuration</h3>
-            <p className="text-xs text-slate-400">Configure target API endpoint and scanning parameters</p>
+            <h3 className="text-sm font-bold text-[#0f1f3d] dark:text-white">Saksham AI Engine Configuration</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Configure target API endpoint and scanning parameters</p>
           </div>
         </div>
 
         <form onSubmit={handleSaveSettings} className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="block font-mono text-[10px] uppercase text-slate-400 mb-1 font-semibold">
+              <label className="block font-mono text-[10px] uppercase text-slate-500 dark:text-slate-400 mb-1 font-semibold">
                 Backend REST API Target URL
               </label>
               <input
                 type="text"
                 value={serverUrl}
                 onChange={(e) => setServerUrl(e.target.value)}
-                className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-xs font-mono text-cyan-300 focus:border-cyan-500 focus:outline-none"
+                className="w-full rounded border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-xs font-mono text-blue-600 dark:text-cyan-300 focus:border-cyan-500 focus:outline-none"
               />
             </div>
             <div>
-              <label className="block font-mono text-[10px] uppercase text-slate-400 mb-1 font-semibold">
+              <label className="block font-mono text-[10px] uppercase text-slate-500 dark:text-slate-400 mb-1 font-semibold">
                 Scan Timeout Threshold (Seconds)
               </label>
               <input
                 type="number"
                 defaultValue={120}
-                className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2 text-xs font-mono text-slate-200 focus:border-cyan-500 focus:outline-none"
+                className="w-full rounded border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 px-3 py-2 text-xs font-mono text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none"
               />
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+          <div className="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-2">
               <span className="inline-block h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-xs font-mono text-slate-400">API Connection Active · 200 OK</span>
+              <span className="text-xs font-mono text-slate-500 dark:text-slate-400">API Connection Active · 200 OK</span>
             </div>
 
             <button
               type="submit"
-              className="flex items-center gap-1.5 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12] hover:border-white/20"
+              className="flex items-center gap-1.5 rounded-xl bg-white/60 backdrop-blur-xl dark:bg-white/[0.08] backdrop-blur-xl border border-slate-200 dark:border-white/[0.14] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-[#0f1f3d] dark:text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/85 dark:hover:bg-white/[0.12] hover:border-white/20"
             >
-              {saved ? <Check className="h-4 w-4 text-emerald-300" /> : <ShieldCheck className="h-4 w-4" />}
+              {saved ? <Check className="h-4 w-4 text-emerald-700 dark:text-emerald-300" /> : <ShieldCheck className="h-4 w-4" />}
               <span>{saved ? 'Settings Saved!' : 'Save System Settings'}</span>
             </button>
           </div>

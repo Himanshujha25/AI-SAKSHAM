@@ -162,12 +162,12 @@ export function GoogleAuth({ text = 'continue_with' }) {
         type="button"
         onClick={handleClick}
         disabled={busy}
-        className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-4 py-2.5 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12] hover:border-white/20 disabled:opacity-70 disabled:cursor-wait"
+        className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-white/60 backdrop-blur-xl border border-slate-200 px-4 py-2.5 font-mono text-[11px] font-bold uppercase tracking-wider text-slate-700 shadow-[0_8px_24px_rgba(15,31,61,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] transition hover:bg-white/90 hover:border-slate-300 disabled:opacity-70 disabled:cursor-wait dark:bg-white/[0.08] dark:border-white/[0.14] dark:text-white dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] dark:hover:bg-white/[0.12]"
       >
         {busy ? <Loader2 size={15} className="animate-spin" /> : <GoogleMark />}
         {busy ? 'Connecting to Google…' : text === 'signup_with' ? 'Sign up with Google' : 'Sign in with Google'}
       </button>
-      {error && <p className="mt-2 text-center text-xs font-medium text-amber-400">{error}</p>}
+      {error && <p className="mt-2 text-center text-xs font-medium text-red-600 dark:text-amber-400">{error}</p>}
     </div>
   );
 }

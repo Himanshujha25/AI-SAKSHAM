@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './store/auth';
+import { ThemeProvider } from './store/theme';
 import { AppLayout } from './components/layout/layout';
 import { PageSkeleton, AuthSkeleton } from './components/shared/shared';
 import { OfflineBanner } from './components/shared/OfflineBanner';
@@ -57,6 +58,7 @@ function PublicOnly() {
 export default function App() {
   return (
     <QueryClientProvider client={qc}>
+      <ThemeProvider>
       <ToastProvider>
         <OfflineBanner />
         <BrowserRouter>
@@ -90,6 +92,7 @@ export default function App() {
           </AuthProvider>
         </BrowserRouter>
       </ToastProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

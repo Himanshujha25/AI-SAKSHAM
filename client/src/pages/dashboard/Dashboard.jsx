@@ -31,10 +31,10 @@ const LEFT_ITEMS = [
 
 // Right items specification - Severity & Findings Results
 const RIGHT_ITEMS_SEV = [
-  { key: 'Critical', label: 'Critical', icon: AlertOctagon, color: '#ef4444', bg: 'bg-red-500/10 text-red-400 border-red-500/30' },
-  { key: 'High', label: 'High', icon: AlertTriangle, color: '#f97316', bg: 'bg-orange-500/10 text-orange-400 border-orange-500/30' },
-  { key: 'Medium', label: 'Medium', icon: BarChart2, color: '#f59e0b', bg: 'bg-amber-500/10 text-amber-400 border-amber-500/30' },
-  { key: 'Low', label: 'Low', icon: CheckCircle2, color: '#10b981', bg: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' },
+  { key: 'Critical', label: 'Critical', icon: AlertOctagon, color: '#ef4444', bg: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/30' },
+  { key: 'High', label: 'High', icon: AlertTriangle, color: '#f97316', bg: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/30' },
+  { key: 'Medium', label: 'Medium', icon: BarChart2, color: '#f59e0b', bg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30' },
+  { key: 'Low', label: 'Low', icon: CheckCircle2, color: '#10b981', bg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' },
 ];
 
 // Professional Security Analysis Pipeline Node
@@ -42,28 +42,28 @@ function SecurityAnalysisHub({ value, score, isScanning, activeStage, orbRef }) 
   return (
     <div ref={orbRef} className="relative mx-auto flex h-52 w-52 items-center justify-center md:h-60 md:w-60">
       {/* Structural Dual Rings */}
-      <div className="absolute inset-0 rounded-full border border-slate-700/60 bg-[#070d1a] shadow-inner" />
-      <div className="absolute inset-2 rounded-full border border-cyan-500/20 bg-[#091024] shadow-xl flex items-center justify-center">
-        <div className="absolute inset-3 rounded-full border border-slate-800/80" />
+      <div className="absolute inset-0 rounded-full border border-blue-100 bg-white shadow-inner dark:border-slate-700/60 dark:bg-[#070d1a]" />
+      <div className="absolute inset-2 rounded-full border border-cyan-500/20 bg-blue-50/60 shadow-xl flex items-center justify-center dark:bg-[#091024]">
+        <div className="absolute inset-3 rounded-full border border-blue-100 dark:border-slate-800/80" />
       </div>
 
       <div className="relative z-10 flex flex-col items-center text-center px-4">
-        <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-950 border border-cyan-500/30 text-cyan-400">
+        <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 border border-cyan-500/30 text-blue-600 dark:bg-cyan-950 dark:text-cyan-400">
           <ShieldCheck size={22} className={isScanning ? 'animate-pulse' : ''} />
         </div>
 
         {isScanning ? (
           <div className="space-y-1">
-            <span className="font-mono text-xs font-bold uppercase tracking-wider text-cyan-400 animate-pulse block">
+            <span className="font-mono text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-cyan-400 animate-pulse block">
               {activeStage || 'ANALYSIS IN PROGRESS'}
             </span>
-            <span className="text-[10px] text-slate-400 font-mono">Processing Pipeline...</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Processing Pipeline...</span>
           </div>
         ) : (
           <div>
-            <span className="text-3xl font-extrabold tracking-tight text-white block">{value}</span>
-            <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block">Tracked Findings</span>
-            <div className="mt-2 inline-flex items-center gap-1 rounded-md border border-cyan-500/30 bg-cyan-950/60 px-2 py-0.5 font-mono text-[10px] font-semibold text-cyan-300">
+            <span className="text-3xl font-extrabold tracking-tight text-[#0f1f3d] dark:text-white block">{value}</span>
+            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Tracked Findings</span>
+            <div className="mt-2 inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-blue-600 dark:border-cyan-500/30 dark:bg-cyan-950/60 dark:text-cyan-300">
               SCORE {score ?? '—'}/100
             </div>
           </div>
@@ -255,23 +255,23 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-2 sm:p-4 backdrop-blur-md overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-2 sm:p-4 backdrop-blur-md overflow-y-auto">
       <motion.div
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.96 }}
-        className="relative my-auto w-full max-w-xl max-h-[92vh] flex flex-col overflow-hidden rounded-2xl border border-slate-800 bg-[#091024] p-4 sm:p-6 shadow-2xl"
+        className="relative my-auto w-full max-w-xl max-h-[92vh] flex flex-col overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#091024] p-4 sm:p-6 shadow-2xl"
       >
         {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3 shrink-0">
-          <div className="flex items-center gap-2 text-slate-100 font-bold text-sm sm:text-base">
-            <Zap className="text-cyan-400" size={18} />
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 shrink-0">
+          <div className="flex items-center gap-2 text-[#0f1f3d] dark:text-slate-100 font-bold text-sm sm:text-base">
+            <Zap className="text-blue-600 dark:text-cyan-400" size={18} />
             <span>Start Security Assessment</span>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-xl p-2 text-slate-400 hover:bg-slate-800 hover:text-white transition"
+            className="flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-xl p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition"
             aria-label="Close Assessment Modal"
           >
             <X size={18} />
@@ -279,11 +279,11 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
         </div>
 
         {/* 3-Step Progress Indicator */}
-        <div className="mt-3 grid grid-cols-3 gap-2 shrink-0 border-b border-slate-800/80 pb-3">
+        <div className="mt-3 grid grid-cols-3 gap-2 shrink-0 border-b border-slate-200 dark:border-slate-800/80 pb-3">
           <div
             onClick={() => step > 1 && setStep(1)}
             className={`cursor-pointer rounded-lg p-2 transition flex flex-col gap-0.5 border ${
-              step === 1 ? 'border-cyan-500/40 bg-cyan-950/40 text-cyan-300' : 'border-slate-800/60 bg-slate-900/40 text-slate-400'
+              step === 1 ? 'border-blue-200 bg-blue-50 text-blue-600 dark:border-cyan-500/40 dark:bg-cyan-950/40 dark:text-cyan-300' : 'border-slate-200 bg-slate-50 text-slate-500 dark:border-slate-800/60 dark:bg-slate-900/40 dark:text-slate-400'
             }`}
           >
             <span className="font-mono text-[9px] font-bold uppercase tracking-wider">Step 1</span>
@@ -292,7 +292,7 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
           <div
             onClick={() => step > 2 && setStep(2)}
             className={`cursor-pointer rounded-lg p-2 transition flex flex-col gap-0.5 border ${
-              step === 2 ? 'border-cyan-500/40 bg-cyan-950/40 text-cyan-300' : 'border-slate-800/60 bg-slate-900/40 text-slate-400'
+              step === 2 ? 'border-blue-200 bg-blue-50 text-blue-600 dark:border-cyan-500/40 dark:bg-cyan-950/40 dark:text-cyan-300' : 'border-slate-200 bg-slate-50 text-slate-500 dark:border-slate-800/60 dark:bg-slate-900/40 dark:text-slate-400'
             }`}
           >
             <span className="font-mono text-[9px] font-bold uppercase tracking-wider">Step 2</span>
@@ -300,7 +300,7 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
           </div>
           <div
             className={`rounded-lg p-2 transition flex flex-col gap-0.5 border ${
-              step === 3 ? 'border-cyan-500/40 bg-cyan-950/40 text-cyan-300' : 'border-slate-800/60 bg-slate-900/40 text-slate-400'
+              step === 3 ? 'border-blue-200 bg-blue-50 text-blue-600 dark:border-cyan-500/40 dark:bg-cyan-950/40 dark:text-cyan-300' : 'border-slate-200 bg-slate-50 text-slate-500 dark:border-slate-800/60 dark:bg-slate-900/40 dark:text-slate-400'
             }`}
           >
             <span className="font-mono text-[9px] font-bold uppercase tracking-wider">Step 3</span>
@@ -330,16 +330,16 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
           {step === 1 && (
             <form onSubmit={handleNextStep1} className="space-y-4">
               {/* Rapid cURL Auto-Importer */}
-              <div className="rounded-xl border border-cyan-500/30 bg-gradient-to-r from-cyan-950/30 to-slate-900/80 p-3.5 space-y-2">
+              <div className="rounded-xl border border-blue-200 bg-blue-50 dark:border-cyan-500/30 dark:bg-gradient-to-r dark:from-cyan-950/30 dark:to-slate-900/80 p-3.5 space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-1.5 text-xs font-bold text-cyan-400">
+                  <label className="flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-cyan-400">
                     <Terminal size={14} /> Fast cURL CLI Auto-Importer
                   </label>
                   {curlInput && (
                     <button
                       type="button"
                       onClick={handleParseCurl}
-                      className="rounded-md bg-cyan-500/20 border border-cyan-500/40 px-2.5 py-1 font-mono text-[10px] font-bold text-cyan-300 hover:bg-cyan-500/30 transition"
+                      className="rounded-md bg-cyan-500/20 border border-cyan-500/40 px-2.5 py-1 font-mono text-[10px] font-bold text-blue-600 dark:text-cyan-300 hover:bg-cyan-500/30 transition"
                     >
                       ⚡ Auto-Parse cURL
                     </button>
@@ -350,10 +350,10 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
                   placeholder='curl -X POST "http://localhost:3001/api/ask" -H "Authorization: Bearer <token>" -d "{\"query\": \"test\"}"'
                   value={curlInput}
                   onChange={(e) => setCurlInput(e.target.value)}
-                  className="w-full rounded-lg border border-slate-800 bg-slate-900/90 p-2.5 font-mono text-[11px] text-slate-300 placeholder-slate-600 focus:border-cyan-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-2.5 font-mono text-[11px] text-slate-900 dark:text-slate-300 placeholder-slate-400 dark:placeholder-slate-600 focus:border-cyan-500 focus:outline-none"
                 />
                 {curlInput && (
-                  <p className="text-[10px] text-cyan-400/80 font-mono">
+                  <p className="text-[10px] text-blue-600 dark:text-cyan-400/80 font-mono">
                     Auto-parses URL, Method, Bearer Token, API Key & Body across all 3 steps!
                   </p>
                 )}
@@ -361,7 +361,7 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
 
               {/* Project Selection / Creation */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                   Workspace / Project Selection
                 </label>
                 <div className="grid gap-2 sm:grid-cols-2">
@@ -379,7 +379,7 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
                       placeholder="Enter New Project Name"
                       value={projectName}
                       onChange={(e) => setProjectName(e.target.value)}
-                      className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3.5 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none"
+                      className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none"
                       required
                     />
                   )}
@@ -388,33 +388,33 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
 
               {/* Target Endpoint & Method */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                   Target Method & URL Endpoint
                 </label>
                 <div className="flex gap-2">
                   <select
                     value={method}
                     onChange={(e) => setMethod(e.target.value)}
-                    className={`rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-bold font-mono focus:border-cyan-500 focus:outline-none ${
-                      method === 'GET' ? 'text-emerald-400' :
-                      method === 'POST' ? 'text-amber-400' :
-                      method === 'PUT' ? 'text-cyan-400' :
-                      method === 'DELETE' ? 'text-red-400' : 'text-purple-400'
+                    className={`rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-bold font-mono focus:border-cyan-500 focus:outline-none ${
+                      method === 'GET' ? 'text-emerald-600 dark:text-emerald-400' :
+                      method === 'POST' ? 'text-amber-600 dark:text-amber-400' :
+                      method === 'PUT' ? 'text-blue-600 dark:text-cyan-400' :
+                      method === 'DELETE' ? 'text-red-600 dark:text-red-400' : 'text-purple-600 dark:text-purple-400'
                     }`}
                   >
-                    <option value="GET" className="bg-slate-900 text-emerald-400 font-bold">GET</option>
-                    <option value="POST" className="bg-slate-900 text-amber-400 font-bold">POST</option>
-                    <option value="PUT" className="bg-slate-900 text-cyan-400 font-bold">PUT</option>
-                    <option value="PATCH" className="bg-slate-900 text-purple-400 font-bold">PATCH</option>
-                    <option value="DELETE" className="bg-slate-900 text-red-400 font-bold">DELETE</option>
+                    <option value="GET" className="bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 font-bold">GET</option>
+                    <option value="POST" className="bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 font-bold">POST</option>
+                    <option value="PUT" className="bg-white dark:bg-slate-900 text-blue-600 dark:text-cyan-400 font-bold">PUT</option>
+                    <option value="PATCH" className="bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 font-bold">PATCH</option>
+                    <option value="DELETE" className="bg-white dark:bg-slate-900 text-red-600 dark:text-red-400 font-bold">DELETE</option>
                   </select>
                   <div className="relative flex-1">
-                    <Globe size={14} className="absolute left-3 top-3 text-cyan-400" />
+                    <Globe size={14} className="absolute left-3 top-3 text-blue-600 dark:text-cyan-400" />
                     <input
                       type="text"
                       value={targetUrl}
                       onChange={(e) => setTargetUrl(e.target.value)}
-                      className="w-full rounded-lg border border-slate-800 bg-slate-900/90 pl-9 pr-3.5 py-2 font-mono text-xs text-cyan-300 focus:border-cyan-500 focus:outline-none"
+                      className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 pl-9 pr-3.5 py-2 font-mono text-xs text-blue-600 dark:text-cyan-300 focus:border-cyan-500 focus:outline-none"
                       required
                     />
                   </div>
@@ -423,12 +423,12 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
 
               {/* Target Name */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Target Name</label>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Target Name</label>
                 <input
                   type="text"
                   value={targetName}
                   onChange={(e) => setTargetName(e.target.value)}
-                  className="w-full rounded-lg border border-slate-800 bg-slate-900/90 px-3.5 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none"
                   required
                 />
               </div>
@@ -436,7 +436,7 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
               <div className="flex justify-end pt-2">
                 <button
                   type="submit"
-                  className="flex items-center gap-1.5 rounded-xl bg-cyan-600/30 border border-cyan-500/50 px-5 py-2 font-mono text-xs font-bold uppercase text-cyan-300 hover:bg-cyan-600/50 transition"
+                  className="flex items-center gap-1.5 rounded-xl bg-blue-50 border border-blue-200 px-5 py-2 font-mono text-xs font-bold uppercase text-blue-600 hover:bg-blue-100 transition dark:bg-cyan-600/30 dark:border-cyan-500/50 dark:text-cyan-300 dark:hover:bg-cyan-600/50"
                 >
                   <span>Next: Auth & Headers</span>
                   <ChevronRight size={14} />
@@ -448,21 +448,21 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
           {/* STEP 2: Authentication & Custom Headers */}
           {step === 2 && (
             <form onSubmit={handleNextStep2} className="space-y-4">
-              <div className="rounded-lg border border-cyan-500/20 bg-cyan-950/20 p-3 text-xs text-cyan-300 flex items-center gap-2">
-                <Key size={16} className="text-cyan-400 shrink-0" />
+              <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-cyan-500/20 dark:bg-cyan-950/20 p-3 text-xs text-blue-600 dark:text-cyan-300 flex items-center gap-2">
+                <Key size={16} className="text-blue-600 dark:text-cyan-400 shrink-0" />
                 <span>Configure dedicated Bearer JWT session tokens, API keys, and request payload below.</span>
               </div>
 
               {/* Dedicated Bearer JWT Input Box */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     Bearer JWT Token
                   </label>
                   <button
                     type="button"
                     onClick={() => setBearerToken('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyXzJ0ZXN0MTIzNDU2Nzg5Iiwib3JnX3Rlc3QxMjMiLCJyb2xlIjoicHJvIn0.xyz')}
-                    className="rounded bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 font-mono text-[10px] text-cyan-300 hover:bg-cyan-500/20"
+                    className="rounded bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 font-mono text-[10px] text-blue-600 dark:text-cyan-300 hover:bg-cyan-500/20"
                   >
                     + Sample JWT
                   </button>
@@ -472,20 +472,20 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
                   placeholder="Paste raw JWT or Bearer eyJhbG..."
                   value={bearerToken}
                   onChange={(e) => setBearerToken(e.target.value)}
-                  className="w-full rounded-lg border border-slate-800 bg-slate-900/90 px-3.5 py-2 font-mono text-xs text-cyan-300 focus:border-cyan-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 px-3.5 py-2 font-mono text-xs text-blue-600 dark:text-cyan-300 focus:border-cyan-500 focus:outline-none"
                 />
               </div>
 
               {/* Dedicated X-API-Key Input Box */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     Developer API Key (X-API-Key)
                   </label>
                   <button
                     type="button"
                     onClick={() => setApiKey('wm_31dcd74f349ac77b44f9e91c951af9b5151cc4a3')}
-                    className="rounded bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 font-mono text-[10px] text-amber-300 hover:bg-amber-500/20"
+                    className="rounded bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 font-mono text-[10px] text-amber-700 dark:text-amber-300 hover:bg-amber-500/20"
                   >
                     + Sample Key
                   </button>
@@ -495,13 +495,13 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
                   placeholder="Paste API Key e.g. wm_31dcd74f349ac77b44f9e91c951af9b5151cc4a3"
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
-                  className="w-full rounded-lg border border-slate-800 bg-slate-900/90 px-3.5 py-2 font-mono text-xs text-amber-300 focus:border-amber-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 px-3.5 py-2 font-mono text-xs text-amber-700 dark:text-amber-300 focus:border-amber-500 focus:outline-none"
                 />
               </div>
 
               {/* Additional Headers / Cookies Box */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                   Additional HTTP Headers / Cookies (Optional)
                 </label>
                 <textarea
@@ -509,22 +509,22 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
                   placeholder="Cookie: session=xyz123&#10;X-Custom-Header: value"
                   value={additionalHeaders}
                   onChange={(e) => setAdditionalHeaders(e.target.value)}
-                  className="w-full rounded-lg border border-slate-800 bg-slate-900/90 p-3 font-mono text-xs leading-relaxed text-slate-300 placeholder-slate-600 focus:border-cyan-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-3 font-mono text-xs leading-relaxed text-slate-600 dark:text-slate-300 placeholder-slate-400 dark:placeholder-slate-600 focus:border-cyan-500 focus:outline-none"
                 />
               </div>
 
               {/* JSON Request Body Payload */}
               {method !== 'GET' && (
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
-                    JSON Request Body Payload
-                  </label>
-                  <textarea
-                    rows={3}
-                    placeholder='{ "query": "What are active vectors?", "variant": "full" }'
-                    value={requestBody}
-                    onChange={(e) => setRequestBody(e.target.value)}
-                    className="w-full rounded-lg border border-slate-800 bg-slate-900/90 p-3 font-mono text-xs leading-relaxed text-amber-300 placeholder-slate-600 focus:border-amber-500 focus:outline-none"
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                      JSON Request Body Payload
+                    </label>
+                    <textarea
+                      rows={3}
+                      placeholder='{ "query": "What are active vectors?", "variant": "full" }'
+                      value={requestBody}
+                      onChange={(e) => setRequestBody(e.target.value)}
+                      className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-3 font-mono text-xs leading-relaxed text-amber-700 dark:text-amber-300 placeholder-slate-400 dark:placeholder-slate-600 focus:border-amber-500 focus:outline-none"
                   />
                 </div>
               )}
@@ -533,13 +533,13 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="rounded-lg bg-slate-800/60 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white"
+                  className="rounded-lg bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
                 >
                   ← Back
                 </button>
                 <button
                   type="submit"
-                  className="flex items-center gap-1.5 rounded-xl bg-cyan-600/30 border border-cyan-500/50 px-5 py-2 font-mono text-xs font-bold uppercase text-cyan-300 hover:bg-cyan-600/50 transition"
+                  className="flex items-center gap-1.5 rounded-xl bg-blue-50 border border-blue-200 px-5 py-2 font-mono text-xs font-bold uppercase text-blue-600 hover:bg-blue-100 transition dark:bg-cyan-600/30 dark:border-cyan-500/50 dark:text-cyan-300 dark:hover:bg-cyan-600/50"
                 >
                   <span>Next: Scope & Profile</span>
                   <ChevronRight size={14} />
@@ -553,7 +553,7 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Environment</label>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Environment</label>
                   <CustomSelect
                     value={environment}
                     onChange={(e) => setEnvironment(e.target.value)}
@@ -561,7 +561,7 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Audit Profile</label>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Audit Profile</label>
                   <CustomSelect
                     value={scanType}
                     onChange={(e) => setScanType(e.target.value)}
@@ -575,41 +575,41 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
               </div>
 
               {/* Configuration Summary Card */}
-              <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-3.5 space-y-2">
-                <div className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <ShieldCheck size={14} className="text-cyan-400" /> Target Assessment Summary
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/70 p-3.5 space-y-2">
+                <div className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <ShieldCheck size={14} className="text-blue-600 dark:text-cyan-400" /> Target Assessment Summary
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-                  <div className="bg-slate-950/60 p-2 rounded border border-slate-800/80">
+                  <div className="bg-white dark:bg-slate-950/60 p-2 rounded border border-slate-200 dark:border-slate-800/80">
                     <span className="text-slate-500 block text-[10px]">Project</span>
-                    <span className="text-white font-semibold truncate block">{projectName}</span>
+                    <span className="text-[#0f1f3d] dark:text-white font-semibold truncate block">{projectName}</span>
                   </div>
-                  <div className="bg-slate-950/60 p-2 rounded border border-slate-800/80">
+                  <div className="bg-white dark:bg-slate-950/60 p-2 rounded border border-slate-200 dark:border-slate-800/80">
                     <span className="text-slate-500 block text-[10px]">Endpoint</span>
-                    <span className="text-cyan-300 font-semibold truncate block">{method} {targetUrl}</span>
+                    <span className="text-blue-600 dark:text-cyan-300 font-semibold truncate block">{method} {targetUrl}</span>
                   </div>
-                  <div className="bg-slate-950/60 p-2 rounded border border-slate-800/80">
+                  <div className="bg-white dark:bg-slate-950/60 p-2 rounded border border-slate-200 dark:border-slate-800/80">
                     <span className="text-slate-500 block text-[10px]">Auth Credentials</span>
-                    <span className="text-emerald-400 font-semibold block">
+                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold block">
                       {bearerToken ? 'Bearer JWT' : ''} {apiKey ? 'X-API-Key' : ''} {!bearerToken && !apiKey ? 'Public/None' : ''}
                     </span>
                   </div>
-                  <div className="bg-slate-950/60 p-2 rounded border border-slate-800/80">
+                  <div className="bg-white dark:bg-slate-950/60 p-2 rounded border border-slate-200 dark:border-slate-800/80">
                     <span className="text-slate-500 block text-[10px]">Scope</span>
-                    <span className="text-amber-300 font-semibold block">{scanType} ({environment})</span>
+                    <span className="text-amber-700 dark:text-amber-300 font-semibold block">{scanType} ({environment})</span>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-3">
+              <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-3">
                 <label className="flex items-start gap-2.5 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={authorizationConfirmed}
                     onChange={(e) => setAuthorizationConfirmed(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 rounded border-slate-700 bg-slate-950 text-cyan-500 focus:ring-cyan-500"
+                    className="mt-0.5 h-4 w-4 rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-cyan-500 focus:ring-cyan-500"
                   />
-                  <span className="text-xs text-slate-300 leading-normal">
+                  <span className="text-xs text-slate-600 dark:text-slate-300 leading-normal">
                     I explicitly confirm authorization to assess this target URL.
                   </span>
                 </label>
@@ -619,14 +619,14 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
                 <button
                   type="button"
                   onClick={() => setStep(2)}
-                  className="rounded-lg bg-slate-800/60 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white"
+                  className="rounded-lg bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
                 >
                   ← Back
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex items-center gap-1.5 rounded-xl bg-cyan-600 border border-cyan-400 px-6 py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-white shadow-lg transition hover:bg-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-1.5 rounded-xl bg-blue-600/80 backdrop-blur-xl border border-white/40 px-6 py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-white shadow-[0_8px_24px_rgba(37,99,235,0.35),inset_0_1px_0_rgba(255,255,255,0.35)] transition hover:bg-blue-600/90 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-500/25 dark:border-blue-300/30 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] dark:hover:bg-blue-500/35"
                 >
                   {isSubmitting ? <Cpu size={14} className="animate-spin text-white" /> : <Play size={14} className="fill-current" />}
                   {isSubmitting ? 'Starting...' : '🚀 Launch Assessment'}
@@ -803,21 +803,21 @@ export function Dashboard() {
           <PremiumIcon icon={LayoutDashboard} tone={isAdmin ? "purple" : isViewer ? "emerald" : "cyan"} size="lg" iconSize={22} />
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h1 className="truncate text-xl sm:text-2xl font-bold tracking-tight text-white">
+              <h1 className="truncate text-xl sm:text-2xl font-bold tracking-tight text-[#0f1f3d] dark:text-white">
                 {isAdmin ? 'Security Command Center (Admin Console)' : isViewer ? 'Security Compliance Audit Center' : 'Security Operations Center'}
               </h1>
               <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md font-mono text-[10px] font-bold uppercase tracking-wider ${
                 isAdmin 
-                  ? 'border border-purple-500/40 bg-purple-500/15 text-purple-300'
+                  ? 'border border-purple-500/40 bg-purple-500/15 text-purple-700 dark:text-purple-300'
                   : isViewer 
-                  ? 'border border-emerald-500/40 bg-emerald-500/15 text-emerald-300'
-                  : 'border border-cyan-500/40 bg-cyan-500/15 text-cyan-300'
+                  ? 'border border-emerald-500/40 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
+                  : 'border border-cyan-500/40 bg-cyan-500/15 text-blue-600 dark:text-cyan-300'
               }`}>
                 {isAdmin ? <Lock size={11} /> : isViewer ? <Eye size={11} /> : <ShieldCheck size={11} />}
                 <span>{isAdmin ? 'ADMIN' : isViewer ? 'AUDITOR' : 'ANALYST'}</span>
               </span>
             </div>
-            <p className="mt-0.5 text-xs leading-relaxed text-slate-400">
+            <p className="mt-0.5 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
               {isAdmin 
                 ? 'Administrative console · Authorized scope & assessments'
                 : isViewer 
@@ -830,7 +830,7 @@ export function Dashboard() {
         {isViewer ? (
           <div
             title="Viewer accounts have read-only compliance access."
-            className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-950/30 px-3.5 py-2 min-h-[44px] font-mono text-[11px] font-medium text-emerald-300 shadow-sm"
+            className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 dark:border-emerald-500/30 dark:bg-emerald-950/30 px-3.5 py-2 min-h-[44px] font-mono text-[11px] font-medium text-emerald-700 dark:text-emerald-300 shadow-sm"
           >
             <span className="h-2 w-2 rounded-full bg-emerald-400" />
             <span>Read-Only Auditor Mode</span>
@@ -838,18 +838,14 @@ export function Dashboard() {
         ) : (
           <div className="flex items-center gap-2">
             {isAdmin && (
-              <span className="hidden lg:inline-flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-xl border border-purple-500/30 bg-purple-500/10 font-mono text-[11px] font-semibold text-purple-300">
+              <span className="hidden lg:inline-flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-xl border border-purple-500/30 bg-purple-500/10 font-mono text-[11px] font-semibold text-purple-700 dark:text-purple-300">
                 <span className="h-1.5 w-1.5 rounded-full bg-purple-400 animate-pulse" /> Admin Privileges
               </span>
             )}
             <button
               type="button"
               onClick={() => setIsModalOpen(true)}
-              className={`flex items-center gap-2 rounded-xl min-h-[44px] px-4 py-2.5 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition ${
-                isAdmin
-                  ? 'bg-purple-600/30 hover:bg-purple-600/45 border border-purple-500/40'
-                  : 'bg-white/[0.08] hover:bg-white/[0.12] border border-white/[0.14]'
-              }`}
+              className="flex items-center gap-2 rounded-xl min-h-[44px] px-4 py-2.5 font-mono text-[11px] font-bold uppercase tracking-wider bg-blue-600/80 backdrop-blur-xl border border-white/40 hover:bg-blue-600/90 text-white shadow-[0_8px_24px_rgba(37,99,235,0.35),inset_0_1px_0_rgba(255,255,255,0.35)] transition dark:bg-blue-500/25 dark:border-blue-300/30 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] dark:hover:bg-blue-500/35"
             >
               <Zap size={14} className="fill-current text-white" />
               <span>Start Assessment</span>
@@ -869,19 +865,19 @@ export function Dashboard() {
 
       {/* Active Scan Progress Banner */}
       {isScanning && (
-        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between rounded-xl border border-cyan-500/30 bg-cyan-950/30 p-3.5">
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50 dark:border-cyan-500/30 dark:bg-cyan-950/30 p-3.5">
           <div className="flex items-center gap-3">
             <span className="h-2.5 w-2.5 rounded-full bg-cyan-400 animate-ping" />
             <div>
-              <p className="text-xs font-bold text-white flex items-center gap-2">
+              <p className="text-xs font-bold text-[#0f1f3d] dark:text-white flex items-center gap-2">
                 Active Assessment Pipeline Executing...
               </p>
-              <p className="text-[11px] font-mono text-cyan-300 mt-0.5">
+              <p className="text-[11px] font-mono text-blue-600 dark:text-cyan-300 mt-0.5">
                 Stage: {activeStage || 'RECONNAISSANCE & PROBING'}
               </p>
             </div>
           </div>
-          <Link to={`/assessments/${latestId}`} className="rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-3 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-white/[0.12]">
+          <Link to={`/assessments/${latestId}`} className="rounded-xl bg-white/60 backdrop-blur-xl border border-slate-200 px-3 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-slate-700 shadow-sm transition hover:bg-white/90 dark:bg-white/[0.08] dark:border-white/[0.14] dark:text-white dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] dark:hover:bg-white/[0.12]">
             View Stream →
           </Link>
         </motion.div>
@@ -893,7 +889,7 @@ export function Dashboard() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
-        className="relative overflow-hidden rounded-xl border border-slate-800/80 bg-[#090f1f] p-6 shadow-xl"
+        className="relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#090f1f] p-6 shadow-xl"
       >
         {/* Subtle Restrained Pipeline Connectors SVG */}
         {wireData.width > 0 && (
@@ -914,7 +910,7 @@ export function Dashboard() {
             {/* Left Source Paths */}
             {wireData.leftPaths.map((path) => (
               <g key={path.id}>
-                <path d={path.d} fill="none" stroke="#1e293b" strokeWidth="2.5" strokeLinecap="round" />
+                <path d={path.d} fill="none" stroke="#cbd5e1" strokeWidth="2.5" strokeLinecap="round" />
                 <path d={path.d} fill="none" stroke="#0ea5e9" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
                 <path d={path.d} fill="none" stroke="#38bdf8" strokeWidth="1.5" strokeLinecap="round" className="pipeline-stream" opacity="0.8" />
                 <circle cx={path.startX} cy={path.startY} r="3" fill="#0ea5e9" />
@@ -925,7 +921,7 @@ export function Dashboard() {
             {/* Right Result Paths */}
             {wireData.rightPaths.map((path) => (
               <g key={path.id}>
-                <path d={path.d} fill="none" stroke="#1e293b" strokeWidth="2.5" strokeLinecap="round" />
+                <path d={path.d} fill="none" stroke="#cbd5e1" strokeWidth="2.5" strokeLinecap="round" />
                 <path d={path.d} fill="none" stroke={path.color} strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
                 <path d={path.d} fill="none" stroke="#ffffff" strokeWidth="1.2" strokeLinecap="round" className="pipeline-stream" opacity="0.7" />
                 <circle cx={path.startX} cy={path.startY} r="3" fill={path.color} />
@@ -938,23 +934,23 @@ export function Dashboard() {
         <div className="relative z-10 grid gap-8 lg:grid-cols-[1.2fr_1fr_1.2fr] lg:items-center">
           {/* Left Column: Attack Surface Sources (Order 3 on mobile, Order 1 on desktop) */}
           <motion.div initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1, duration: 0.35 }} className="order-3 lg:order-1 min-w-0">
-            <div className="mb-3.5 text-xs font-mono font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-              <Radar size={13} className="text-cyan-400" /> SOURCES · ATTACK SURFACE
+            <div className="mb-3.5 text-xs font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
+              <Radar size={13} className="text-blue-600 dark:text-cyan-400" /> SOURCES · ATTACK SURFACE
             </div>
             <ul className="flex flex-col gap-2">
               {LEFT_ITEMS.map((item, idx) => (
                 <li
                   key={item.key}
                   ref={(el) => (leftRefs.current[idx] = el)}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-slate-800 bg-[#070c18] px-3.5 py-2.5 text-xs font-semibold transition hover:border-slate-700 hover:bg-[#0a1224]"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#070c18] px-3.5 py-2.5 text-xs font-semibold transition hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#0a1224]"
                 >
                   <span className="flex items-center gap-2.5 min-w-0">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-slate-900 border border-slate-800 text-cyan-400">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-blue-50 border border-blue-100 text-blue-600 dark:bg-slate-900 dark:border-slate-800 dark:text-cyan-400">
                       <item.icon size={13} />
                     </span>
-                    <span className="truncate text-slate-200">{item.label}</span>
+                    <span className="truncate text-slate-700 dark:text-slate-200">{item.label}</span>
                   </span>
-                  <span className="font-mono text-xs font-bold text-slate-300 rounded bg-slate-800/80 px-2 py-0.5">
+                  <span className="font-mono text-xs font-bold text-slate-600 dark:text-slate-300 rounded bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5">
                     {assetsQuery.isLoading ? '…' : (counts[item.key] || 0)}
                   </span>
                 </li>
@@ -981,7 +977,7 @@ export function Dashboard() {
           {/* Right Column: Active Cases & Resolved Signals (Order 2 on mobile, Order 3 on desktop) */}
           <motion.div initial={{ opacity: 0, x: 15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1, duration: 0.35 }} className="order-2 lg:order-3 min-w-0 space-y-4">
             <div>
-              <div className="mb-3 text-xs font-mono font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+              <div className="mb-3 text-xs font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-red-500" />
                 ACTIVE CASES ({activeTotal})
               </div>
@@ -991,14 +987,14 @@ export function Dashboard() {
                     key={item.key}
                     ref={(el) => (rightRefs.current[i] = el)}
                   >
-                    <Link to="/findings" className="flex items-center justify-between rounded-lg border border-slate-800 bg-[#070c18] px-3.5 py-2.5 text-xs font-semibold transition hover:border-slate-700 hover:bg-[#0a1224]">
+                    <Link to="/findings" className="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#070c18] px-3.5 py-2.5 text-xs font-semibold transition hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#0a1224]">
                       <span className="flex items-center gap-2.5">
                         <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded border ${item.bg}`}>
                           <item.icon size={13} />
                         </span>
-                        <span className="text-slate-200">{item.label}</span>
+                        <span className="text-slate-700 dark:text-slate-200">{item.label}</span>
                       </span>
-                      <span className="font-mono text-sm font-bold text-white">{sev[item.key] || 0}</span>
+                      <span className="font-mono text-sm font-bold text-[#0f1f3d] dark:text-white">{sev[item.key] || 0}</span>
                     </Link>
                   </div>
                 ))}
@@ -1006,20 +1002,20 @@ export function Dashboard() {
             </div>
 
             <div>
-              <div className="mb-2 text-xs font-mono font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                <BadgeCheck size={13} className="text-emerald-400" /> RESOLVED SIGNAL
+              <div className="mb-2 text-xs font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                <BadgeCheck size={13} className="text-emerald-600 dark:text-emerald-400" /> RESOLVED SIGNAL
               </div>
               <div
                 ref={(el) => (rightRefs.current[4] = el)}
-                className="flex items-center justify-between rounded-lg border border-slate-800 bg-[#070c18] px-3.5 py-2.5 text-xs font-semibold transition hover:border-emerald-500/40 hover:bg-[#0a1224]"
+                className="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#070c18] px-3.5 py-2.5 text-xs font-semibold transition hover:border-emerald-300 dark:hover:border-emerald-500/40 hover:bg-slate-50 dark:hover:bg-[#0a1224]"
               >
                 <span className="flex items-center gap-2.5">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-cyan-500/30 bg-cyan-950/60 text-cyan-400">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-blue-200 bg-blue-50 text-blue-600 dark:border-cyan-500/30 dark:bg-cyan-950/60 dark:text-cyan-400">
                     <ShieldCheck size={13} />
                   </span>
-                  <span className="text-slate-200">Verified Findings</span>
+                  <span className="text-slate-700 dark:text-slate-200">Verified Findings</span>
                 </span>
-                <span className="font-mono text-sm font-bold text-cyan-400">{data.verifiedFindings}</span>
+                <span className="font-mono text-sm font-bold text-blue-600 dark:text-cyan-400">{data.verifiedFindings}</span>
               </div>
             </div>
           </motion.div>
@@ -1053,11 +1049,11 @@ export function Dashboard() {
         {/* Live Assessment Activity Timeline Stream */}
         <PremiumCard>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-bold text-white flex items-center gap-2 tracking-wide uppercase font-mono">
-              <Activity size={15} className="text-cyan-400" />
+            <h2 className="text-sm font-bold text-[#0f1f3d] dark:text-white flex items-center gap-2 tracking-wide uppercase font-mono">
+              <Activity size={15} className="text-blue-600 dark:text-cyan-400" />
               Assessment Activity Stream
             </h2>
-            <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-800 bg-slate-900 px-2 py-0.5 font-mono text-[10px] text-slate-400">
+            <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 px-2 py-0.5 font-mono text-[10px] text-slate-500 dark:text-slate-400">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
               REALTIME
             </span>
@@ -1078,14 +1074,14 @@ export function Dashboard() {
                     initial={{ opacity: 0, x: -6 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.04 * idx }}
-                    className="flex items-center justify-between gap-3 rounded-lg border border-slate-800/80 bg-[#060a14] p-2.5 transition duration-150 hover:border-slate-700 hover:bg-slate-900/60"
+                    className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#060a14] p-2.5 transition duration-150 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900/60"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border ${
-                        isStarted ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400' :
-                        isQueued ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' :
-                        isCreated ? 'bg-purple-500/10 border-purple-500/30 text-purple-400' :
-                        'bg-slate-800 border-slate-700 text-slate-300'
+                        isStarted ? 'bg-cyan-500/10 border-cyan-500/30 text-blue-600 dark:text-cyan-400' :
+                        isQueued ? 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400' :
+                        isCreated ? 'bg-purple-500/10 border-purple-500/30 text-purple-600 dark:text-purple-400' :
+                        'bg-slate-100 border-slate-200 text-slate-600 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300'
                       }`}>
                         {isStarted ? <Play size={11} /> :
                          isQueued ? <Clock size={11} /> :
@@ -1094,19 +1090,19 @@ export function Dashboard() {
                       </span>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-semibold text-white truncate">{a.action}</span>
+                          <span className="text-xs font-semibold text-[#0f1f3d] dark:text-white truncate">{a.action}</span>
                           {a.detail && (
-                            <span className="rounded border border-slate-700/60 bg-slate-800/90 px-1.5 py-0.2 font-mono text-[10px] font-medium text-slate-300">
+                            <span className="rounded border border-slate-200 dark:border-slate-700/60 bg-slate-100 dark:bg-slate-800/90 px-1.5 py-0.2 font-mono text-[10px] font-medium text-slate-600 dark:text-slate-300">
                               {a.detail}
                             </span>
                           )}
                         </div>
-                        <p className="text-[11px] text-slate-400 truncate">
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
                           Security Assessment Event Execution
                         </p>
                       </div>
                     </div>
-                    <span className="shrink-0 font-mono text-[11px] text-slate-400">
+                    <span className="shrink-0 font-mono text-[11px] text-slate-500 dark:text-slate-400">
                       {new Date(a.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                     </span>
                   </motion.div>
@@ -1126,15 +1122,15 @@ export function Dashboard() {
         <PremiumCard>
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-sm font-bold text-white flex items-center gap-2 tracking-wide uppercase font-mono">
-                <ShieldAlert size={15} className="text-cyan-400" />
+              <h2 className="text-sm font-bold text-[#0f1f3d] dark:text-white flex items-center gap-2 tracking-wide uppercase font-mono">
+                <ShieldAlert size={15} className="text-blue-600 dark:text-cyan-400" />
                 Recent Verified Findings Intel
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">Vulnerability evidence payloads & audit traces</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Vulnerability evidence payloads & audit traces</p>
             </div>
             <Link
               to="/findings"
-              className="flex items-center gap-1.5 text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition"
+              className="flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-500 dark:text-cyan-400 dark:hover:text-cyan-300 transition"
             >
               Explore All Findings <ArrowRight size={13} />
             </Link>
@@ -1150,19 +1146,19 @@ export function Dashboard() {
                   initial={{ opacity: 0, x: -6 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3 + idx * 0.04 }}
-                  className="group rounded-lg border border-slate-800/80 bg-[#060a14] transition duration-150 hover:border-slate-700 hover:bg-slate-900/60"
+                  className="group rounded-lg border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#060a14] transition duration-150 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900/60"
                 >
                   <Link to={`/findings/${f._id}`} className="flex flex-wrap items-center justify-between gap-3 p-3">
                     <div className="flex items-center gap-3 min-w-0">
-                      <span className="shrink-0 rounded-md border border-slate-700 bg-slate-800 px-2 py-0.5 font-mono text-xs font-bold text-cyan-400">
+                      <span className="shrink-0 rounded-md border border-blue-100 dark:border-slate-700 bg-blue-50 dark:bg-slate-800 px-2 py-0.5 font-mono text-xs font-bold text-blue-600 dark:text-cyan-400">
                         {f.findingId}
                       </span>
                       <div className="min-w-0">
-                        <h4 className="font-bold text-white text-xs truncate group-hover:text-cyan-300 transition">
+                        <h4 className="font-bold text-[#0f1f3d] dark:text-white text-xs truncate group-hover:text-blue-600 dark:group-hover:text-cyan-300 transition">
                           {f.title}
                         </h4>
-                        <p className="text-[11px] text-slate-400 truncate mt-0.5">
-                          Target Route: <code className="text-slate-300 font-mono">{f.route || f.endpoint || '/api/v1/resource'}</code>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                          Target Route: <code className="text-slate-600 dark:text-slate-300 font-mono">{f.route || f.endpoint || '/api/v1/resource'}</code>
                         </p>
                       </div>
                     </div>
@@ -1170,7 +1166,7 @@ export function Dashboard() {
                     <div className="flex items-center gap-2 shrink-0">
                       <SeverityBadge severity={f.severity} />
                       <StatusBadge status={f.status} />
-                      <span className="hidden sm:flex items-center gap-1 text-xs font-semibold text-slate-400 group-hover:text-cyan-300 transition">
+                      <span className="hidden sm:flex items-center gap-1 text-xs font-semibold text-slate-500 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-cyan-300 transition">
                         Investigate <ChevronRight size={13} />
                       </span>
                     </div>
@@ -1213,11 +1209,11 @@ function SeverityDistributionSection({ pie, sev, activeTotal }) {
   return (
     <PremiumCard>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm font-bold text-white flex items-center gap-2 tracking-wide uppercase font-mono">
-          <BarChart2 size={15} className="text-cyan-400" />
+        <h2 className="text-sm font-bold text-[#0f1f3d] dark:text-white flex items-center gap-2 tracking-wide uppercase font-mono">
+          <BarChart2 size={15} className="text-blue-600 dark:text-cyan-400" />
           Severity Distribution
         </h2>
-        <span className="rounded-md border border-slate-700 bg-slate-800/80 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-slate-300">
+        <span className="rounded-md border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-slate-600 dark:text-slate-300">
           {activeTotal} Total Cases
         </span>
       </div>
@@ -1275,14 +1271,14 @@ function SeverityDistributionSection({ pie, sev, activeTotal }) {
                     <span className="text-2xl font-bold tracking-tight" style={{ color: activeItem.color }}>
                       {activeItem.val}
                     </span>
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-300 mt-0.5">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mt-0.5">
                       {activeItem.name} ({activeItem.pct}%)
                     </span>
                   </>
                 ) : (
                   <>
-                    <span className="text-2xl font-bold tracking-tight text-white">{activeTotal}</span>
-                    <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-slate-400">TOTAL CASES</span>
+                    <span className="text-2xl font-bold tracking-tight text-[#0f1f3d] dark:text-white">{activeTotal}</span>
+                    <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">TOTAL CASES</span>
                   </>
                 )}
               </div>
@@ -1307,28 +1303,28 @@ function SeverityDistributionSection({ pie, sev, activeTotal }) {
                     onMouseLeave={() => setHovered(null)}
                     className={`group flex items-center justify-between gap-3 rounded-lg border px-3 py-2 transition duration-150 cursor-pointer ${
                       isSelected
-                        ? 'border-slate-600 bg-slate-800/90 shadow-sm'
-                        : 'border-slate-800/80 bg-[#060a14] hover:border-slate-700 hover:bg-slate-900/60'
+                        ? 'border-blue-300 bg-blue-50 shadow-sm dark:border-slate-600 dark:bg-slate-800/90'
+                        : 'border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#060a14] hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900/60'
                     }`}
                   >
                     <div className="flex items-center gap-2 min-w-[100px]">
                       <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
-                      <span className="text-xs font-semibold text-slate-200">{item.name}</span>
+                      <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{item.name}</span>
                       <span className="text-[10px] font-mono text-slate-500 hidden sm:inline-block">
                         {slaMap[item.name]}
                       </span>
                     </div>
 
                     <div className="flex-1 flex items-center gap-3">
-                      <div className="h-1.5 flex-1 rounded-full bg-slate-800 overflow-hidden">
+                      <div className="h-1.5 flex-1 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all duration-300"
                           style={{ width: `${pct}%`, backgroundColor: item.color }}
                         />
                       </div>
                       <div className="text-right shrink-0 min-w-[45px]">
-                        <span className="font-mono text-xs font-bold text-white">{val}</span>
-                        <span className="text-[10px] font-mono text-slate-400 ml-1">({pct}%)</span>
+                        <span className="font-mono text-xs font-bold text-[#0f1f3d] dark:text-white">{val}</span>
+                        <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 ml-1">({pct}%)</span>
                       </div>
                     </div>
                   </div>
@@ -1338,20 +1334,20 @@ function SeverityDistributionSection({ pie, sev, activeTotal }) {
           </div>
 
           {/* Enterprise Risk Posture Strip */}
-          <div className="grid grid-cols-3 gap-2 border-t border-slate-800/80 pt-3 text-center">
-            <div className="rounded border border-slate-800/60 bg-[#060a14] p-1.5">
-              <span className="block text-[9px] font-mono font-semibold uppercase text-slate-400">HIGHEST SEVERITY</span>
-              <span className="block font-mono text-xs font-bold text-orange-400 mt-0.5">
+          <div className="grid grid-cols-3 gap-2 border-t border-slate-200 dark:border-slate-800/80 pt-3 text-center">
+            <div className="rounded border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-[#060a14] p-1.5">
+              <span className="block text-[9px] font-mono font-semibold uppercase text-slate-500 dark:text-slate-400">HIGHEST SEVERITY</span>
+              <span className="block font-mono text-xs font-bold text-orange-600 dark:text-orange-400 mt-0.5">
                 {sev.Critical > 0 ? 'CRITICAL' : sev.High > 0 ? 'HIGH' : 'MEDIUM'}
               </span>
             </div>
-            <div className="rounded border border-slate-800/60 bg-[#060a14] p-1.5">
-              <span className="block text-[9px] font-mono font-semibold uppercase text-slate-400">SLA COMPLIANCE</span>
-              <span className="block font-mono text-xs font-bold text-emerald-400 mt-0.5">100% ON TIME</span>
+            <div className="rounded border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-[#060a14] p-1.5">
+              <span className="block text-[9px] font-mono font-semibold uppercase text-slate-500 dark:text-slate-400">SLA COMPLIANCE</span>
+              <span className="block font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">100% ON TIME</span>
             </div>
-            <div className="rounded border border-slate-800/60 bg-[#060a14] p-1.5">
-              <span className="block text-[9px] font-mono font-semibold uppercase text-slate-400">REMEDIATION STATUS</span>
-              <span className="block font-mono text-xs font-bold text-cyan-400 mt-0.5">ACTIVE MONITORING</span>
+            <div className="rounded border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-[#060a14] p-1.5">
+              <span className="block text-[9px] font-mono font-semibold uppercase text-slate-500 dark:text-slate-400">REMEDIATION STATUS</span>
+              <span className="block font-mono text-xs font-bold text-blue-600 dark:text-cyan-400 mt-0.5">ACTIVE MONITORING</span>
             </div>
           </div>
         </div>
@@ -1363,17 +1359,17 @@ function SeverityDistributionSection({ pie, sev, activeTotal }) {
 // Clean Enterprise Stat Card with Sparkline
 function StatCardWithSparkline({ label, value, badge, icon: Icon, stroke }) {
   return (
-    <div className="rounded-xl border border-slate-800 bg-[#090f1f] p-3.5 shadow-sm transition hover:border-slate-700">
+    <div className="rounded-xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#090f1f] p-3.5 shadow-sm transition hover:border-slate-300 dark:hover:border-slate-700">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">{label}</span>
+        <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{label}</span>
         {badge && (
-          <span className="rounded bg-slate-800 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-slate-300">
+          <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-slate-600 dark:text-slate-300">
             {badge}
           </span>
         )}
       </div>
       <div className="mt-2 flex items-baseline justify-between">
-        <span className="text-2xl font-bold tracking-tight text-white">{value}</span>
+        <span className="text-2xl font-bold tracking-tight text-[#0f1f3d] dark:text-white">{value}</span>
         <Icon size={15} className="text-slate-500" />
       </div>
 
@@ -1390,7 +1386,7 @@ function StatCardWithSparkline({ label, value, badge, icon: Icon, stroke }) {
 // Enterprise Container Card
 function PremiumCard({ children, className = '' }) {
   return (
-    <div className={`rounded-xl border border-slate-800 bg-[#090f1f] p-5 shadow-md transition hover:border-slate-700/80 ${className}`}>
+    <div className={`rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] p-5 shadow-sm transition hover:border-slate-300 dark:hover:border-slate-700/80 ${className}`}>
       {children}
     </div>
   );

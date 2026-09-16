@@ -74,12 +74,12 @@ function CopyCurlButton({ finding, className }) {
         }
       }}
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] backdrop-blur-xl px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-200 transition hover:bg-white/[0.08] hover:text-white hover:border-white/15',
+        'inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white/60 backdrop-blur-xl dark:bg-white/[0.04] backdrop-blur-xl px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 transition hover:bg-white/85 dark:hover:bg-white/[0.08] hover:text-[#0f1f3d] dark:hover:text-white hover:border-slate-300 dark:hover:border-white/15',
         className
       )}
       title="Copy reproducible PoC cURL command"
     >
-      {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5 text-cyan-400" />}
+      {copied ? <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="h-3.5 w-3.5 text-blue-600 dark:text-cyan-400" />}
       {copied ? 'Copied!' : 'Copy cURL PoC'}
     </button>
   );
@@ -90,7 +90,7 @@ function SlaBadge({ dueAt }) {
   return (
     <span className={cn(
       'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 font-mono text-[11px] font-semibold',
-      overdue ? 'bg-red-500/15 text-red-300 ring-1 ring-red-400/40' : 'bg-amber-500/15 text-amber-300 ring-1 ring-amber-400/40'
+      overdue ? 'bg-red-500/15 text-red-700 dark:text-red-300 ring-1 ring-red-400/40' : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 ring-1 ring-amber-400/40'
     )}>
       <Timer className="h-3 w-3" /> SLA: {text}
     </span>
@@ -471,7 +471,7 @@ export function Findings() {
           trend={`${Math.round((verifiedCount / (totalCount || 1)) * 100)}% resolved`}
           icon={CheckCircle2}
           color="emerald"
-          badgeColor="bg-cyan-500"
+          badgeColor="bg-blue-500 dark:bg-cyan-500"
           active={filters.status === 'Verified'}
           onClick={() => {
             setFilters({ ...filters, status: filters.status === 'Verified' ? '' : 'Verified' });
@@ -484,10 +484,10 @@ export function Findings() {
       {/* Middle Row: Analytics Modules (3 Columns) */}
       <div className="grid gap-4 lg:grid-cols-3">
         {/* 1. Findings by Severity Bar Breakdown */}
-        <Card className="flex flex-col justify-between border-slate-800 bg-slate-900/90 p-4">
+        <Card className="flex flex-col justify-between border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-4">
           <div>
             <div className="flex items-center justify-between pb-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Findings by Severity</h3>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Findings by Severity</h3>
               <span className="text-[11px] text-slate-500 font-mono">Live Breakdown</span>
             </div>
             <div className="space-y-3 pt-1">
@@ -496,7 +496,7 @@ export function Findings() {
                 count={criticalCount}
                 total={totalCount}
                 color="bg-red-500"
-                text="text-red-400"
+                text="text-red-600 dark:text-red-400"
                 onClick={() => {
                   setFilters({ ...filters, severity: 'Critical' });
                   setPage(1);
@@ -507,7 +507,7 @@ export function Findings() {
                 count={highCount}
                 total={totalCount}
                 color="bg-orange-500"
-                text="text-orange-400"
+                text="text-orange-600 dark:text-orange-400"
                 onClick={() => {
                   setFilters({ ...filters, severity: 'High' });
                   setPage(1);
@@ -518,7 +518,7 @@ export function Findings() {
                 count={mediumCount}
                 total={totalCount}
                 color="bg-amber-500"
-                text="text-amber-400"
+                text="text-amber-600 dark:text-amber-400"
                 onClick={() => {
                   setFilters({ ...filters, severity: 'Medium' });
                   setPage(1);
@@ -529,7 +529,7 @@ export function Findings() {
                 count={lowCount}
                 total={totalCount}
                 color="bg-emerald-500"
-                text="text-emerald-400"
+                text="text-emerald-600 dark:text-emerald-400"
                 onClick={() => {
                   setFilters({ ...filters, severity: 'Low' });
                   setPage(1);
@@ -557,7 +557,7 @@ export function Findings() {
       </div>
 
       {/* Toolbar & Filters Bar */}
-      <Card className="relative z-30 border-slate-800 bg-slate-900/90 p-3 shadow-md backdrop-blur">
+      <Card className="relative z-30 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-3 shadow-md backdrop-blur">
         <div className="flex flex-wrap items-center justify-between gap-3">
           {/* Search Box */}
           <div className="relative min-w-[240px] flex-1">
@@ -570,7 +570,7 @@ export function Findings() {
                 setFilters({ ...filters, search: e.target.value });
                 setPage(1);
               }}
-              className="w-full rounded-md border border-slate-700/80 bg-slate-950/80 py-1.5 pl-9 pr-3 text-xs text-slate-200 placeholder-slate-500 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
+              className="w-full rounded-md border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-950/80 py-1.5 pl-9 pr-3 text-xs text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-600 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
             />
           </div>
 
@@ -655,7 +655,7 @@ export function Findings() {
                 setPage(1);
               }}
               title="Reset all search and filter dropdowns"
-              className="rounded-md border border-slate-700/60 bg-slate-800/80 px-2.5 py-1.5 text-xs text-slate-400 transition hover:bg-slate-700 hover:text-white"
+              className="rounded-md border border-slate-200 dark:border-slate-700/60 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1.5 text-xs text-slate-500 dark:text-slate-400 transition hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-[#0f1f3d] dark:hover:text-white"
             >
               Clear Filters
             </button>
@@ -665,20 +665,20 @@ export function Findings() {
 
       {/* Bulk Selection Actions Bar */}
       {selectedIds.length > 0 && (
-        <div className="flex items-center justify-between rounded-xl border border-cyan-500/40 bg-slate-950 p-3 px-4 shadow-xl font-mono text-xs animate-in fade-in">
-          <span className="text-cyan-300 font-bold">
+        <div className="flex items-center justify-between rounded-xl border border-blue-200 dark:border-cyan-500/40 bg-white dark:bg-slate-950 p-3 px-4 shadow-xl font-mono text-xs animate-in fade-in">
+          <span className="text-blue-600 dark:text-cyan-300 font-bold">
             {selectedIds.length} finding{selectedIds.length > 1 ? 's' : ''} selected
           </span>
           <div className="flex items-center gap-2">
             <button
               onClick={() => handleBulkVerify('Verified')}
-              className="rounded bg-emerald-500/20 px-3 py-1 font-bold text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 transition"
+              className="rounded bg-emerald-500/20 px-3 py-1 font-bold text-emerald-700 dark:text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 transition"
             >
               Mark Selected Verified
             </button>
             <button
               onClick={() => setSelectedIds([])}
-              className="rounded bg-slate-800 px-3 py-1 font-semibold text-slate-400 hover:text-white transition"
+              className="rounded bg-slate-100 dark:bg-slate-800 px-3 py-1 font-semibold text-slate-500 dark:text-slate-400 hover:text-[#0f1f3d] dark:hover:text-white transition"
             >
               Clear Selection
             </button>
@@ -687,19 +687,19 @@ export function Findings() {
       )}
 
       {/* Main Data Table */}
-      <Card className="relative z-10 overflow-hidden border-slate-800 bg-slate-900/90 shadow-xl">
+      <Card className="relative z-10 overflow-hidden border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 shadow-xl">
         {isLoading && <LoadingState label="Loading vulnerability database..." />}
         {isError && <ErrorState message="Could not fetch findings records." onRetry={() => refetch()} />}
 
         {!isLoading && !isError && (
           <div className="w-full">
             {/* Mobile View: Compact Vulnerability Cards (< 768px) */}
-            <div className="divide-y divide-slate-800/70 md:hidden">
+            <div className="divide-y divide-slate-200 dark:divide-slate-800/70 md:hidden">
               {paginatedList.map((item) => (
                 <div
                   key={item._id}
                   onClick={() => setSelectedFinding(item)}
-                  className="p-3.5 space-y-2.5 transition active:bg-slate-800/40 cursor-pointer"
+                  className="p-3.5 space-y-2.5 transition active:bg-slate-50 dark:active:bg-slate-800/40 cursor-pointer"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
@@ -708,9 +708,9 @@ export function Findings() {
                         checked={selectedIds.includes(item._id)}
                         onChange={() => toggleSelectOne(item._id)}
                         title={`Select ${item.findingId}`}
-                        className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0 cursor-pointer"
+                        className="h-4 w-4 rounded border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-cyan-500 focus:ring-0 cursor-pointer"
                       />
-                      <span className="font-mono text-xs font-bold text-cyan-400">{item.findingId}</span>
+                      <span className="font-mono text-xs font-bold text-blue-600 dark:text-cyan-400">{item.findingId}</span>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
                       <SeverityBadge severity={item.severity} />
@@ -719,17 +719,17 @@ export function Findings() {
                   </div>
 
                   <div>
-                    <h4 className="font-bold text-sm text-slate-100 line-clamp-1">{item.title}</h4>
-                    <p className="text-xs text-slate-400 line-clamp-2 mt-0.5">{item.description}</p>
+                    <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100 line-clamp-1">{item.title}</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">{item.description}</p>
                   </div>
 
-                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800/50 font-mono text-[11px]">
-                    <div className="flex items-center gap-1 text-slate-400 truncate max-w-[210px]">
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-200 dark:border-slate-800/50 font-mono text-[11px]">
+                    <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400 truncate max-w-[210px]">
                       <span className="text-slate-500">Target:</span>
-                      <span className="text-cyan-300 truncate">{item.affectedAssets?.[0] || '/api'}</span>
+                      <span className="text-blue-600 dark:text-cyan-300 truncate">{item.affectedAssets?.[0] || '/api'}</span>
                     </div>
                     <div className="flex items-center gap-2.5">
-                      <span className="rounded bg-slate-800 px-1.5 py-0.5 font-bold text-white">
+                      <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 font-bold text-[#0f1f3d] dark:text-white">
                         CVSS {item.cvssScore}
                       </span>
                       <button
@@ -738,7 +738,7 @@ export function Findings() {
                           e.stopPropagation();
                           setSelectedFinding(item);
                         }}
-                        className="inline-flex min-h-[36px] items-center gap-1 rounded-lg border border-cyan-500/40 bg-cyan-950/40 px-2.5 py-1 font-bold text-cyan-300"
+                        className="inline-flex min-h-[36px] items-center gap-1 rounded-lg border border-blue-200 dark:border-cyan-500/40 bg-blue-50 dark:bg-cyan-950/40 px-2.5 py-1 font-bold text-blue-600 dark:text-cyan-300"
                       >
                         Inspect <ChevronRight size={12} />
                       </button>
@@ -751,7 +751,7 @@ export function Findings() {
             {/* Desktop View: High-Density Data Table (>= 768px) */}
             <div className="hidden md:block w-full overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="border-b border-slate-800 bg-slate-950/60 font-mono text-[11px] uppercase tracking-wider text-slate-400">
+                <thead className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 font-mono text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   <tr>
                     <th className="w-8 px-2 py-3 text-center">
                       <input
@@ -759,7 +759,7 @@ export function Findings() {
                         checked={isAllSelected}
                         onChange={toggleSelectAll}
                         title="Select all findings on this page"
-                        className="rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0 cursor-pointer"
+                        className="rounded border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-cyan-500 focus:ring-0 cursor-pointer"
                       />
                     </th>
                     <th className="px-2 py-3">ID</th>
@@ -774,15 +774,15 @@ export function Findings() {
                     <th className="w-16 px-2 py-3 text-center">ACTIONS</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
                   {paginatedList.map((item) => (
                     <tr
                       key={item._id}
                       onClick={() => setSelectedFinding(item)}
                       title={`Click to inspect details for ${item.findingId}: ${item.title}`}
                       className={cn(
-                        'group cursor-pointer transition duration-150 hover:bg-slate-800/60',
-                        selectedFinding?._id === item._id && 'bg-slate-800/80 border-l-2 border-cyan-400'
+                        'group cursor-pointer transition duration-150 hover:bg-slate-50 dark:hover:bg-slate-800/60',
+                        selectedFinding?._id === item._id && 'bg-slate-100 dark:bg-slate-800/80 border-l-2 border-cyan-400'
                       )}
                     >
                       <td className="px-2 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
@@ -791,17 +791,17 @@ export function Findings() {
                           checked={selectedIds.includes(item._id)}
                           onChange={() => toggleSelectOne(item._id)}
                           title={`Select ${item.findingId}`}
-                          className="rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-0 cursor-pointer"
+                          className="rounded border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-cyan-500 focus:ring-0 cursor-pointer"
                         />
                       </td>
-                      <td className="px-2 py-3.5 font-mono font-medium text-slate-400 group-hover:text-cyan-400 whitespace-nowrap">{item.findingId}</td>
+                      <td className="px-2 py-3.5 font-mono font-medium text-slate-500 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-cyan-400 whitespace-nowrap">{item.findingId}</td>
                       <td className="px-3 py-3.5">
-                        <div className="font-semibold text-slate-100 group-hover:text-cyan-300 truncate max-w-[200px]">{item.title}</div>
-                        <div className="truncate max-w-[200px] text-[11px] text-slate-400">{item.description}</div>
+                        <div className="font-semibold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-cyan-300 truncate max-w-[200px]">{item.title}</div>
+                        <div className="truncate max-w-[200px] text-[11px] text-slate-500 dark:text-slate-400">{item.description}</div>
                       </td>
                       <td className="px-3 py-3.5 whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-700/80 bg-slate-800/80 px-2 py-0.5 font-mono text-[11px] font-medium text-slate-200 shadow-sm">
-                          <Folder className="h-3 w-3 text-cyan-400 shrink-0" />
+                        <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 font-mono text-[11px] font-medium text-slate-700 dark:text-slate-200 shadow-sm">
+                          <Folder className="h-3 w-3 text-blue-600 dark:text-cyan-400 shrink-0" />
                           <span className="truncate max-w-[100px]" title={item.projectId?.name || projectMap[String(item.projectId)] || 'Project'}>
                             {item.projectId?.name || projectMap[String(item.projectId)] || 'Project'}
                           </span>
@@ -810,12 +810,12 @@ export function Findings() {
                       <td className="px-2 py-3.5">
                         <SeverityBadge severity={item.severity} />
                       </td>
-                      <td className="px-2 py-3.5 font-mono font-semibold text-slate-200">{item.cvssScore}</td>
+                      <td className="px-2 py-3.5 font-mono font-semibold text-slate-700 dark:text-slate-200">{item.cvssScore}</td>
                       <td className="px-3 py-3.5">
                         <div className="flex items-center gap-1 font-mono text-[11px]">
-                          <span className="truncate max-w-[170px] text-cyan-400" title={`Endpoint asset path: ${item.affectedAssets?.[0]}`}>{item.affectedAssets?.[0] || 'N/A'}</span>
+                          <span className="truncate max-w-[170px] text-blue-600 dark:text-cyan-400" title={`Endpoint asset path: ${item.affectedAssets?.[0]}`}>{item.affectedAssets?.[0] || 'N/A'}</span>
                           {item.httpMethod && (
-                            <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[9px] font-bold uppercase text-slate-300" title={`HTTP Method: ${item.httpMethod}`}>
+                            <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 text-[9px] font-bold uppercase text-slate-600 dark:text-slate-300" title={`HTTP Method: ${item.httpMethod}`}>
                               {item.httpMethod}
                             </span>
                           )}
@@ -824,22 +824,22 @@ export function Findings() {
                       <td className="px-2 py-3.5">
                         <StatusBadge status={item.status} />
                       </td>
-                      <td className="px-3 py-3.5 text-slate-400 font-mono text-[11px] whitespace-nowrap">
+                      <td className="px-3 py-3.5 text-slate-500 dark:text-slate-400 font-mono text-[11px] whitespace-nowrap">
                         {formatDateTime(item.detectedDate || item.createdAt).date}
                         <span className="block text-[10px] text-slate-500 font-semibold mt-0.5">
                           {formatDateTime(item.detectedDate || item.createdAt).time}
                         </span>
                       </td>
-                      <td className="px-3 py-3.5 text-slate-400 font-mono text-[11px] whitespace-nowrap">
+                      <td className="px-3 py-3.5 text-slate-500 dark:text-slate-400 font-mono text-[11px] whitespace-nowrap">
                         {formatDateTime(item.updatedDate || item.updatedAt).date}
                         <span className="block text-[10px] text-slate-500 font-semibold mt-0.5">
                           {formatDateTime(item.updatedDate || item.updatedAt).time}
                         </span>
                       </td>
-                      <td className="px-2 py-3.5 text-center text-slate-500 hover:text-slate-200" onClick={(e) => e.stopPropagation()}>
+                      <td className="px-2 py-3.5 text-center text-slate-500 hover:text-slate-700 dark:hover:text-slate-200" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => setSelectedFinding(item)}
-                          className="inline-flex items-center gap-1 rounded border border-slate-700 bg-slate-800/80 px-2 py-1 font-mono text-[10px] font-bold text-cyan-300 hover:bg-slate-700 hover:border-cyan-500/40 transition"
+                          className="inline-flex items-center gap-1 rounded border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 px-2 py-1 font-mono text-[10px] font-bold text-blue-600 dark:text-cyan-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:border-blue-300 dark:hover:border-cyan-500/40 transition"
                           title={`Inspect finding ${item.findingId}`}
                         >
                           Inspect <ChevronRight size={11} />
@@ -854,8 +854,8 @@ export function Findings() {
         )}
 
         {/* Table Footer with Dynamic Pagination */}
-        <div className="flex flex-wrap items-center justify-between border-t border-slate-800 bg-slate-950/70 px-4 py-3 font-mono text-xs">
-          <span className="text-slate-400">
+        <div className="flex flex-wrap items-center justify-between border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/70 px-4 py-3 font-mono text-xs">
+          <span className="text-slate-500 dark:text-slate-400">
             Showing {totalCount > 0 ? (page - 1) * pageSize + 1 : 0}-
             {Math.min(page * pageSize, totalCount)} of {totalCount} findings
           </span>
@@ -865,7 +865,7 @@ export function Findings() {
             <button
               disabled={page <= 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="rounded border border-slate-800 bg-slate-900 p-1.5 text-slate-400 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition"
+              className="rounded border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition"
               title="Previous page"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -877,8 +877,8 @@ export function Findings() {
                 className={cn(
                   'h-7 w-7 rounded-lg border font-mono text-[11px] font-bold transition backdrop-blur-xl',
                   page === pageNum
-                    ? 'bg-white/[0.08] border-white/[0.14] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
-                    : 'border-slate-800 bg-slate-900 text-slate-400 hover:bg-white/[0.06] hover:text-white hover:border-white/10'
+                    ? 'bg-white/60 backdrop-blur-xl dark:bg-white/[0.08] border-slate-200 dark:border-white/[0.14] text-[#0f1f3d] dark:text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+                    : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-white/85 dark:hover:bg-white/[0.06] hover:text-[#0f1f3d] dark:hover:text-white hover:border-slate-300 dark:hover:border-white/10'
                 )}
               >
                 {pageNum}
@@ -887,7 +887,7 @@ export function Findings() {
             <button
               disabled={page >= totalPages}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              className="rounded border border-slate-800 bg-slate-900 p-1.5 text-slate-400 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition"
+              className="rounded border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition"
               title="Next page"
             >
               <ChevronRight className="h-4 w-4" />
@@ -915,29 +915,29 @@ export function Findings() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-              className="fixed right-0 top-0 z-50 flex h-full w-full max-w-xl flex-col border-l border-slate-800 bg-slate-950 p-0 shadow-2xl"
+              className="fixed right-0 top-0 z-50 flex h-full w-full max-w-xl flex-col border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-0 shadow-2xl"
             >
               {/* Header */}
-              <div className="border-b border-slate-800 bg-slate-900/90 p-4 sm:p-5">
+              <div className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-4 sm:p-5">
                 <div className="flex items-center justify-between pb-2">
-                  <div className="flex items-center gap-2 font-mono text-xs text-slate-400">
-                    <span className="rounded bg-slate-800 px-2.5 py-1 text-cyan-300 font-bold">{selectedFinding.findingId}</span>
+                  <div className="flex items-center gap-2 font-mono text-xs text-slate-500 dark:text-slate-400">
+                    <span className="rounded bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-blue-600 dark:text-cyan-300 font-bold">{selectedFinding.findingId}</span>
                     <StatusBadge status={selectedFinding.status} />
                   </div>
                   <button
                     type="button"
                     onClick={() => setSelectedFinding(null)}
-                    className="flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-xl p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white"
+                    className="flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-xl p-2 text-slate-500 dark:text-slate-400 transition hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0f1f3d] dark:hover:text-white"
                     aria-label="Close Finding Details"
                   >
                     <X className="h-5 w-5" />
                   </button>
                 </div>
-                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white">{selectedFinding.title}</h2>
-                <p className="mt-1 text-xs text-slate-400 line-clamp-2">{selectedFinding.description}</p>
+                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-[#0f1f3d] dark:text-white">{selectedFinding.title}</h2>
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{selectedFinding.description}</p>
 
                 {/* Drawer Nav Tabs (Scrollable on mobile without wrapping) */}
-                <div className="mt-4 flex overflow-x-auto border-b border-slate-800 gap-4 text-xs font-medium" style={{ scrollbarWidth: 'none' }}>
+                <div className="mt-4 flex overflow-x-auto border-b border-slate-200 dark:border-slate-800 gap-4 text-xs font-medium" style={{ scrollbarWidth: 'none' }}>
                   {['details', 'suggestions', 'evidence', 'remediation', 'timeline'].map((tab) => (
                     <button
                       key={tab}
@@ -946,11 +946,11 @@ export function Findings() {
                       className={cn(
                         'pb-3 pt-1 capitalize transition border-b-2 flex items-center gap-1.5 shrink-0 min-h-[44px]',
                         drawerTab === tab
-                          ? 'border-cyan-400 font-semibold text-cyan-300'
-                          : 'border-transparent text-slate-400 hover:text-slate-200'
+                          ? 'border-cyan-400 font-semibold text-blue-600 dark:text-cyan-300'
+                          : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                       )}
                     >
-                      {tab === 'suggestions' && <Code2 className="h-3.5 w-3.5 text-cyan-400" />}
+                      {tab === 'suggestions' && <Code2 className="h-3.5 w-3.5 text-blue-600 dark:text-cyan-400" />}
                       <span>{tab === 'suggestions' ? 'Remediation Code' : tab}</span>
                     </button>
                   ))}
@@ -961,15 +961,15 @@ export function Findings() {
               <div className="flex-1 overflow-y-auto p-5 space-y-5">
                 {drawerTab === 'suggestions' && (
                   <div className="space-y-4">
-                    <div className="rounded-xl border border-cyan-500/30 bg-gradient-to-b from-cyan-950/40 to-slate-900/90 p-4 space-y-3 shadow-md">
+                    <div className="rounded-xl border border-blue-200 dark:border-cyan-500/30 bg-gradient-to-b from-blue-50 dark:from-cyan-950/40 to-white dark:to-slate-900/90 p-4 space-y-3 shadow-md">
                       <div className="flex items-center justify-between">
-                        <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-cyan-300">
-                          <Code2 className="h-4 w-4 text-cyan-400" /> Security Remediation & Analysis
+                        <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-cyan-300">
+                          <Code2 className="h-4 w-4 text-blue-600 dark:text-cyan-400" /> Security Remediation & Analysis
                         </h4>
                         <button
                           disabled={drawerAiMutation.isPending}
                           onClick={() => drawerAiMutation.mutate(selectedFinding._id)}
-                          className="inline-flex items-center gap-1.5 rounded-xl bg-white/[0.08] backdrop-blur-xl border border-white/[0.14] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-white transition hover:bg-white/[0.12] hover:border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="inline-flex items-center gap-1.5 rounded-xl bg-white/60 backdrop-blur-xl dark:bg-white/[0.08] backdrop-blur-xl border border-slate-200 dark:border-white/[0.14] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-[#0f1f3d] dark:text-white transition hover:bg-white/85 dark:hover:bg-white/[0.12] hover:border-slate-300 dark:hover:border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <RefreshCw className={cn('h-3 w-3', drawerAiMutation.isPending && 'animate-spin')} />
                           {drawerAiMutation.isPending ? 'Analyzing…' : 'Re-analyze'}
@@ -977,34 +977,34 @@ export function Findings() {
                       </div>
 
                       {drawerAiMutation.isError && (
-                        <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-2.5 text-xs text-red-300">
+                        <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-2.5 text-xs text-red-700 dark:text-red-300">
                           {errMsg(drawerAiMutation.error)}
                         </div>
                       )}
 
-                      <div className="rounded-lg bg-slate-950/80 p-3 border border-slate-800 text-xs space-y-1.5 text-slate-300">
-                        <p className="font-semibold text-white">Summary & Executive Impact:</p>
-                        <p className="text-slate-300 leading-relaxed">
+                      <div className="rounded-lg bg-white dark:bg-slate-950/80 p-3 border border-slate-200 dark:border-slate-800 text-xs space-y-1.5 text-slate-600 dark:text-slate-300">
+                        <p className="font-semibold text-[#0f1f3d] dark:text-white">Summary & Executive Impact:</p>
+                        <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
                           {selectedFinding.aiAnalysis?.summary || selectedFinding.impact || `Automated threat analysis for ${selectedFinding.title}.`}
                         </p>
                       </div>
 
                       {selectedFinding.aiAnalysis?.priorityReason && (
                         <div className="rounded-lg bg-amber-500/10 p-3 border border-amber-500/30 text-xs">
-                          <span className="font-bold text-amber-300 block mb-0.5">Priority Rationale:</span>
+                          <span className="font-bold text-amber-700 dark:text-amber-300 block mb-0.5">Priority Rationale:</span>
                           <p className="text-amber-200/90">{selectedFinding.aiAnalysis.priorityReason}</p>
                         </div>
                       )}
 
                       <div className="space-y-2 text-xs">
-                        <h5 className="font-bold text-slate-200 uppercase tracking-wider text-[11px]">Recommended Remediation Steps:</h5>
+                        <h5 className="font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider text-[11px]">Recommended Remediation Steps:</h5>
                         <div className="space-y-1.5">
                           {(selectedFinding.aiAnalysis?.remediation?.length > 0
                             ? selectedFinding.aiAnalysis.remediation
                             : selectedFinding.remediation || ['Check server-side input validation and security headers.']
                           ).map((step, i) => (
-                            <div key={i} className="flex items-start gap-2 rounded-md bg-slate-900 p-2 border border-slate-800 text-slate-200">
-                              <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                            <div key={i} className="flex items-start gap-2 rounded-md bg-slate-50 dark:bg-slate-900 p-2 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200">
+                              <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                               <span className="leading-snug">{step}</span>
                             </div>
                           ))}
@@ -1012,9 +1012,9 @@ export function Findings() {
                       </div>
 
                       {/* Dynamic Code Fix Generator Box */}
-                      <div className="mt-3 rounded-lg border border-slate-800 bg-slate-950 p-3 space-y-2">
+                      <div className="mt-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-3 space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="font-mono text-[11px] font-bold text-cyan-400 flex items-center gap-1.5">
+                          <span className="font-mono text-[11px] font-bold text-blue-600 dark:text-cyan-400 flex items-center gap-1.5">
                             <Code2 size={14} /> Express.js Code Fix Snippet
                           </span>
                           <button
@@ -1025,13 +1025,13 @@ export function Findings() {
                                 setTimeout(() => setCopiedCode(false), 2000);
                               } catch (e) {}
                             }}
-                            className="inline-flex items-center gap-1 rounded bg-slate-800 px-2 py-0.5 font-mono text-[10px] text-slate-300 hover:bg-slate-700 hover:text-white"
+                            className="inline-flex items-center gap-1 rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 font-mono text-[10px] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-[#0f1f3d] dark:hover:text-white"
                           >
-                            {copiedCode ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
+                            {copiedCode ? <Check size={11} className="text-emerald-600 dark:text-emerald-400" /> : <Copy size={11} />}
                             {copiedCode ? 'Copied!' : 'Copy Code'}
                           </button>
                         </div>
-                        <pre className="overflow-x-auto rounded bg-slate-900 p-2.5 font-mono text-[11px] text-emerald-400 border border-slate-800/80 leading-relaxed">
+                        <pre className="overflow-x-auto rounded bg-slate-50 dark:bg-slate-900 p-2.5 font-mono text-[11px] text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-800/80 leading-relaxed">
                           {getCodeFixSnippet(selectedFinding)}
                         </pre>
                       </div>
@@ -1041,40 +1041,40 @@ export function Findings() {
                 {drawerTab === 'details' && (
                   <div className="space-y-4">
                     {/* Risk Information Card */}
-                    <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4">
-                      <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-400 mb-3">
+                    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 p-4">
+                      <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-3">
                         <AlertTriangle className="h-4 w-4" /> Risk Information
                       </h4>
                       <div className="grid grid-cols-2 gap-3 text-xs">
                         <div>
-                          <span className="text-slate-400 block text-[11px]">Severity</span>
+                          <span className="text-slate-500 dark:text-slate-400 block text-[11px]">Severity</span>
                           <SeverityBadge severity={selectedFinding.severity} />
                         </div>
                         <div>
-                          <span className="text-slate-400 block text-[11px]">CVSS Score</span>
-                          <span className="font-mono font-bold text-white text-sm">{selectedFinding.cvssScore}</span>
+                          <span className="text-slate-500 dark:text-slate-400 block text-[11px]">CVSS Score</span>
+                          <span className="font-mono font-bold text-[#0f1f3d] dark:text-white text-sm">{selectedFinding.cvssScore}</span>
                         </div>
                         <div>
-                          <span className="text-slate-400 block text-[11px]">CWE</span>
-                          <span className="font-mono text-cyan-300">{selectedFinding.cweId || 'CWE-862'}</span>
+                          <span className="text-slate-500 dark:text-slate-400 block text-[11px]">CWE</span>
+                          <span className="font-mono text-blue-600 dark:text-cyan-300">{selectedFinding.cweId || 'CWE-862'}</span>
                         </div>
                         <div>
-                          <span className="text-slate-400 block text-[11px]">OWASP Top 10</span>
-                          <span className="font-mono text-cyan-300">{selectedFinding.owaspCategory || 'A01:2021'}</span>
+                          <span className="text-slate-500 dark:text-slate-400 block text-[11px]">OWASP Top 10</span>
+                          <span className="font-mono text-blue-600 dark:text-cyan-300">{selectedFinding.owaspCategory || 'A01:2021'}</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Affected Asset Card */}
-                    <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 space-y-3">
-                      <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-cyan-400">
+                    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 p-4 space-y-3">
+                      <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-cyan-400">
                         <Layers className="h-4 w-4" /> Affected Asset
                       </h4>
                       <div className="space-y-2.5 text-xs">
                         <div>
-                          <span className="text-slate-400 font-sans text-[11px] block mb-1">Target Endpoint & Method</span>
-                          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-800 bg-slate-950 p-2.5 font-mono text-[11px] text-cyan-300 break-all">
-                            <span className="shrink-0 rounded bg-slate-800 px-2 py-0.5 font-bold uppercase text-emerald-400 border border-slate-700">
+                          <span className="text-slate-500 dark:text-slate-400 font-sans text-[11px] block mb-1">Target Endpoint & Method</span>
+                          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-2.5 font-mono text-[11px] text-blue-600 dark:text-cyan-300 break-all">
+                            <span className="shrink-0 rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 font-bold uppercase text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-700">
                               {selectedFinding.httpMethod || 'GET'}
                             </span>
                             <span className="break-all">{selectedFinding.affectedAssets?.[0] || 'N/A'}</span>
@@ -1082,44 +1082,44 @@ export function Findings() {
                         </div>
                         <div className="grid grid-cols-2 gap-3 pt-1 font-mono text-xs">
                           <div>
-                            <span className="text-slate-400 font-sans block text-[11px]">Project</span>
-                            <span className="text-slate-200 font-semibold">{selectedFinding.projectId?.name || selectedFinding.project || 'Default Project'}</span>
+                            <span className="text-slate-500 dark:text-slate-400 font-sans block text-[11px]">Project</span>
+                            <span className="text-slate-700 dark:text-slate-200 font-semibold">{selectedFinding.projectId?.name || selectedFinding.project || 'Default Project'}</span>
                           </div>
                           <div>
-                            <span className="text-slate-400 font-sans block text-[11px]">Technology</span>
-                            <span className="text-slate-200">{selectedFinding.technology || 'Node.js (Express)'}</span>
+                            <span className="text-slate-500 dark:text-slate-400 font-sans block text-[11px]">Technology</span>
+                            <span className="text-slate-700 dark:text-slate-200">{selectedFinding.technology || 'Node.js (Express)'}</span>
                           </div>
                         </div>
                       </div>
                     </div>
 
                     {/* Timestamps Card */}
-                    <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4">
-                      <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">
+                    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 p-4">
+                      <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
                         <Clock className="h-4 w-4" /> Timestamps
                       </h4>
                       <div className="grid grid-cols-2 gap-3 text-xs font-mono">
                         <div>
-                          <span className="text-slate-400 font-sans block text-[11px]">Detected</span>
-                          <span className="text-slate-300">
+                          <span className="text-slate-500 dark:text-slate-400 font-sans block text-[11px]">Detected</span>
+                          <span className="text-slate-600 dark:text-slate-300">
                             {formatDateTime(selectedFinding.detectedDate || selectedFinding.createdAt).full}
                           </span>
                         </div>
                         <div>
-                          <span className="text-slate-400 font-sans block text-[11px]">Last Updated</span>
-                          <span className="text-slate-300">
+                          <span className="text-slate-500 dark:text-slate-400 font-sans block text-[11px]">Last Updated</span>
+                          <span className="text-slate-600 dark:text-slate-300">
                             {formatDateTime(selectedFinding.updatedDate || selectedFinding.updatedAt).full}
                           </span>
                         </div>
                         <div>
-                          <span className="text-slate-400 font-sans block text-[11px]">First Seen</span>
-                          <span className="text-slate-300">
+                          <span className="text-slate-500 dark:text-slate-400 font-sans block text-[11px]">First Seen</span>
+                          <span className="text-slate-600 dark:text-slate-300">
                             {formatDateTime(selectedFinding.firstSeen || selectedFinding.createdAt).full}
                           </span>
                         </div>
                         <div>
-                          <span className="text-slate-400 font-sans block text-[11px]">Last Seen</span>
-                          <span className="text-slate-300">
+                          <span className="text-slate-500 dark:text-slate-400 font-sans block text-[11px]">Last Seen</span>
+                          <span className="text-slate-600 dark:text-slate-300">
                             {formatDateTime(selectedFinding.lastSeen || selectedFinding.updatedAt).full}
                           </span>
                         </div>
@@ -1130,15 +1130,15 @@ export function Findings() {
 
                 {drawerTab === 'evidence' && (
                   <div className="space-y-4">
-                    <div className="rounded-xl border border-slate-800 bg-slate-900/90 p-4">
-                      <h4 className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-4">
+                      <h4 className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
                         <span>HTTP Request Trace</span>
                         <span className="flex items-center gap-2">
                           <CopyCurlButton finding={selectedFinding} />
-                          <span className="font-mono text-[10px] text-cyan-400">Captured Log</span>
+                          <span className="font-mono text-[10px] text-blue-600 dark:text-cyan-400">Captured Log</span>
                         </span>
                       </h4>
-                      <pre className="overflow-x-auto rounded-lg bg-slate-950 p-3 font-mono text-xs text-emerald-400 border border-slate-800">
+                      <pre className="overflow-x-auto rounded-lg bg-white dark:bg-slate-950 p-3 font-mono text-xs text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-800">
                         {selectedFinding.evidence || 'No payload log captured.'}
                       </pre>
                     </div>
@@ -1147,9 +1147,9 @@ export function Findings() {
 
                 {drawerTab === 'remediation' && (
                   <div className="space-y-4">
-                    <div className="rounded-xl border border-slate-800 bg-slate-900/90 p-4">
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-cyan-400 mb-2">Recommended Steps</h4>
-                      <ul className="list-disc space-y-2 pl-4 text-xs text-slate-300">
+                    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-4">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-cyan-400 mb-2">Recommended Steps</h4>
+                      <ul className="list-disc space-y-2 pl-4 text-xs text-slate-600 dark:text-slate-300">
                         {(selectedFinding.remediation || ['Check input validation middleware.']).map((r, i) => (
                           <li key={i}>{r}</li>
                         ))}
@@ -1162,18 +1162,18 @@ export function Findings() {
                   <div className="space-y-3">
                     <div className="relative pl-6 before:absolute before:left-2.5 before:top-2 before:h-full before:w-0.5 before:bg-slate-800 space-y-4">
                       <div className="relative">
-                        <span className="absolute -left-6 top-1 h-3 w-3 rounded-full bg-emerald-500 ring-4 ring-slate-950" />
-                        <p className="text-xs font-semibold text-slate-200">Finding Verified</p>
+                        <span className="absolute -left-6 top-1 h-3 w-3 rounded-full bg-emerald-500 ring-4 ring-white dark:ring-slate-950" />
+                        <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">Finding Verified</p>
                         <p className="text-[10px] text-slate-500 font-mono">Sep 12, 2026 - 15:08 by Security Lead</p>
                       </div>
                       <div className="relative">
-                        <span className="absolute -left-6 top-1 h-3 w-3 rounded-full bg-amber-500 ring-4 ring-slate-950" />
-                        <p className="text-xs font-semibold text-slate-200">Moved to Under Review</p>
+                        <span className="absolute -left-6 top-1 h-3 w-3 rounded-full bg-amber-500 ring-4 ring-white dark:ring-slate-950" />
+                        <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">Moved to Under Review</p>
                         <p className="text-[10px] text-slate-500 font-mono">Sep 12, 2026 - 14:40</p>
                       </div>
                       <div className="relative">
-                        <span className="absolute -left-6 top-1 h-3 w-3 rounded-full bg-cyan-500 ring-4 ring-slate-950" />
-                        <p className="text-xs font-semibold text-slate-200">Initial Discovery by Live Scanner</p>
+                        <span className="absolute -left-6 top-1 h-3 w-3 rounded-full bg-blue-500 dark:bg-cyan-500 ring-4 ring-white dark:ring-slate-950" />
+                        <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">Initial Discovery by Live Scanner</p>
                         <p className="text-[10px] text-slate-500 font-mono">Sep 12, 2026 - 14:32</p>
                       </div>
                     </div>
@@ -1182,7 +1182,7 @@ export function Findings() {
               </div>
 
               {/* Drawer Footer Actions */}
-              <div className="border-t border-slate-800 bg-slate-900/90 p-4">
+              <div className="border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <Button
                     variant="outline"
@@ -1207,7 +1207,7 @@ export function Findings() {
                       onClick={() =>
                         verifyMutation.mutate({ id: selectedFinding._id, status: 'Verified' })
                       }
-                      className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs"
+                      className="bg-emerald-500/80 backdrop-blur-xl border border-white/40 hover:bg-emerald-500/90 text-white text-xs shadow-[0_8px_24px_rgba(16,185,129,0.35),inset_0_1px_0_rgba(255,255,255,0.35)] dark:bg-emerald-500/25 dark:border-emerald-300/30 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] dark:hover:bg-emerald-500/35"
                     >
                       Resolve Finding
                     </Button>
@@ -1223,7 +1223,7 @@ export function Findings() {
 }
 
 // Executive Metric Card Helper Component — synced with Reports (icon + flat, no glow)
-function MetricCard({ title, value, trend, icon: Icon, color = 'cyan', badgeColor = 'bg-cyan-500', tooltip, active, onClick }) {
+function MetricCard({ title, value, trend, icon: Icon, color = 'cyan', badgeColor = 'bg-blue-500 dark:bg-cyan-500', tooltip, active, onClick }) {
   const [showTooltip, setShowTooltip] = useState(false);
   const toneMap = { cyan: 'cyan', red: 'red', orange: 'amber', amber: 'amber', green: 'emerald', emerald: 'emerald' };
   return (
@@ -1232,13 +1232,13 @@ function MetricCard({ title, value, trend, icon: Icon, color = 'cyan', badgeColo
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
       className={cn(
-        "relative overflow-visible border-slate-800 bg-[#090f1f] p-3.5 shadow-md transition duration-200 cursor-pointer hover:border-slate-700",
-        active && "bg-white/[0.08] backdrop-blur-xl border-white/[0.14] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+        "relative overflow-visible border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] p-3.5 shadow-md transition duration-200 cursor-pointer hover:border-slate-300 dark:hover:border-slate-700",
+        active && "bg-white/60 backdrop-blur-xl dark:bg-white/[0.08] backdrop-blur-xl border-slate-200 dark:border-white/[0.14] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
       )}
     >
       {showTooltip && tooltip && (
-        <div className="absolute bottom-full left-1/2 z-50 mb-2 w-48 -translate-x-1/2 rounded-lg border border-slate-700 bg-slate-950 p-2 shadow-2xl text-[11px] text-slate-300 pointer-events-none transition duration-150 animate-in fade-in">
-          <span className="block font-bold text-cyan-400 mb-0.5">{title}</span>
+        <div className="absolute bottom-full left-1/2 z-50 mb-2 w-48 -translate-x-1/2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 p-2 shadow-2xl text-[11px] text-slate-600 dark:text-slate-300 pointer-events-none transition duration-150 animate-in fade-in">
+          <span className="block font-bold text-blue-600 dark:text-cyan-400 mb-0.5">{title}</span>
           <span>{tooltip}</span>
         </div>
       )}
@@ -1246,16 +1246,16 @@ function MetricCard({ title, value, trend, icon: Icon, color = 'cyan', badgeColo
         {Icon ? (
           <PremiumIcon icon={Icon} tone={toneMap[color] || 'cyan'} size="sm" />
         ) : (
-          <span className="text-[11px] font-medium text-slate-400 truncate">{title}</span>
+          <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 truncate">{title}</span>
         )}
         <span className={cn('h-2 w-2 shrink-0 rounded-full', badgeColor)} />
       </div>
       <div className="mt-2.5">
         <div className="flex items-baseline justify-between gap-2">
-          <span className="text-2xl font-extrabold tracking-tight text-white font-mono">{value}</span>
-          {trend && <span className="font-mono text-[10px] font-semibold text-slate-400">{trend}</span>}
+          <span className="text-2xl font-extrabold tracking-tight text-[#0f1f3d] dark:text-white font-mono">{value}</span>
+          {trend && <span className="font-mono text-[10px] font-semibold text-slate-500 dark:text-slate-400">{trend}</span>}
         </div>
-        <p className="mt-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400 truncate">{title}</p>
+        <p className="mt-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400 truncate">{title}</p>
       </div>
     </Card>
   );
@@ -1270,15 +1270,15 @@ function SeverityProgressBar({ label, count, total, color, text, onClick }) {
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="space-y-1 relative cursor-pointer p-1.5 rounded-lg transition hover:bg-slate-800/60"
+      className="space-y-1 relative cursor-pointer p-1.5 rounded-lg transition hover:bg-slate-50 dark:hover:bg-slate-800/60"
     >
       <div className="flex justify-between text-xs">
-        <span className="font-medium text-slate-300">{label}</span>
+        <span className="font-medium text-slate-600 dark:text-slate-300">{label}</span>
         <span className={cn('font-mono font-semibold', text)}>
           {count} <span className="text-slate-500 font-normal text-[10px]">({pct}%)</span>
         </span>
       </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
+      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
         <div className={cn('h-full rounded-full transition-all duration-500', color, hovered && 'brightness-125')} style={{ width: `${pct}%` }} />
       </div>
     </div>
@@ -1309,25 +1309,25 @@ function FindingsTrendChart() {
   ];
 
   return (
-    <Card className="border-slate-800 bg-slate-900/90 p-4 relative">
+    <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-4 relative">
       <div className="flex items-center justify-between pb-2">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Findings Trend (Last 7 Days)</h3>
-        <span className="rounded bg-slate-800 px-2 py-0.5 text-[10px] text-slate-400 font-mono">Last 7 days</span>
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Findings Trend (Last 7 Days)</h3>
+        <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] text-slate-500 dark:text-slate-400 font-mono">Last 7 days</span>
       </div>
 
       <div className="relative mt-3 h-32 w-full">
         {/* Interactive Hover Tooltip Box */}
         {activePoint !== null && (
           <div
-            className="absolute z-30 pointer-events-none rounded-lg border border-slate-700 bg-slate-950 p-2 shadow-xl text-xs font-mono transition duration-150 animate-in fade-in"
+            className="absolute z-30 pointer-events-none rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 p-2 shadow-xl text-xs font-mono transition duration-150 animate-in fade-in"
             style={{
               left: `${Math.min(Math.max(points[activePoint].x - 40, 0), 200)}px`,
               top: `${points[activePoint].y - 35}px`,
             }}
           >
-            <span className="text-cyan-400 font-bold block">{trendData[activePoint].date}</span>
-            <span className="text-white font-semibold">{trendData[activePoint].count} Active Findings</span>
-            <span className="text-[10px] text-slate-400 block mt-0.5">{trendData[activePoint].desc}</span>
+            <span className="text-blue-600 dark:text-cyan-400 font-bold block">{trendData[activePoint].date}</span>
+            <span className="text-[#0f1f3d] dark:text-white font-semibold">{trendData[activePoint].count} Active Findings</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">{trendData[activePoint].desc}</span>
           </div>
         )}
 
@@ -1409,12 +1409,12 @@ function SeverityDistributionChart({ critical = 0, high = 0, medium = 0, low = 0
   });
 
   return (
-    <Card className="flex items-center justify-between border-slate-800 bg-slate-900/90 p-4 relative">
+    <Card className="flex items-center justify-between border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-4 relative">
       <div className="flex flex-col justify-between h-full w-full space-y-2">
-        <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Severity Distribution</h3>
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800/80 pb-2">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Severity Distribution</h3>
           {hoverSegment ? (
-            <span className="font-mono text-[10px] text-cyan-300 bg-slate-950 px-2 py-0.5 rounded border border-cyan-500/30 animate-in fade-in">
+            <span className="font-mono text-[10px] text-blue-600 dark:text-cyan-300 bg-white dark:bg-slate-950 px-2 py-0.5 rounded border border-blue-200 dark:border-cyan-500/30 animate-in fade-in">
               {hoverSegment.label}: {hoverSegment.count} ({Math.round((hoverSegment.count / (total || 1)) * 100)}%)
             </span>
           ) : (
@@ -1451,8 +1451,8 @@ function SeverityDistributionChart({ critical = 0, high = 0, medium = 0, low = 0
                 })}
             </svg>
             <div className="absolute text-center pointer-events-none">
-              <span className="text-2xl font-black text-white font-mono tracking-tight">{hoverSegment ? hoverSegment.count : total}</span>
-              <span className="block text-[9px] uppercase tracking-wider text-cyan-400 font-mono font-bold">
+              <span className="text-2xl font-black text-[#0f1f3d] dark:text-white font-mono tracking-tight">{hoverSegment ? hoverSegment.count : total}</span>
+              <span className="block text-[9px] uppercase tracking-wider text-blue-600 dark:text-cyan-400 font-mono font-bold">
                 {hoverSegment ? hoverSegment.label : 'TOTAL CASES'}
               </span>
             </div>
@@ -1467,15 +1467,15 @@ function SeverityDistributionChart({ critical = 0, high = 0, medium = 0, low = 0
                 onMouseEnter={() => setHoverSegment(seg)}
                 onMouseLeave={() => setHoverSegment(null)}
                 className={cn(
-                  'flex items-center justify-between cursor-pointer px-2.5 py-1.5 rounded-lg border border-slate-800/80 bg-slate-950/60 transition duration-150',
-                  hoverSegment?.label === seg.label ? 'bg-slate-800/90 border-cyan-500/40 text-white ring-1 ring-cyan-500/30' : 'hover:border-slate-700 hover:bg-slate-900'
+                  'flex items-center justify-between cursor-pointer px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-950/60 transition duration-150',
+                  hoverSegment?.label === seg.label ? 'bg-slate-100 dark:bg-slate-800/90 border-blue-200 dark:border-cyan-500/40 text-[#0f1f3d] dark:text-white ring-1 ring-cyan-500/30' : 'hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900'
                 )}
               >
                 <div className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: seg.color }} />
-                  <span className="text-slate-300 font-medium">{seg.label}</span>
+                  <span className="text-slate-600 dark:text-slate-300 font-medium">{seg.label}</span>
                 </div>
-                <span className="font-mono text-slate-200 font-bold">{seg.count}</span>
+                <span className="font-mono text-slate-700 dark:text-slate-200 font-bold">{seg.count}</span>
               </div>
             ))}
           </div>
@@ -1608,9 +1608,9 @@ export function FindingDetail() {
               navigate('/findings');
             }
           }}
-          className="group inline-flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900/90 px-3.5 py-2 text-xs font-bold text-slate-300 transition duration-200 hover:border-cyan-500/40 hover:bg-slate-800 hover:text-white shadow-sm"
+          className="group inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 px-3.5 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 transition duration-200 hover:border-blue-300 dark:hover:border-cyan-500/40 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0f1f3d] dark:hover:text-white shadow-sm"
         >
-          <ArrowLeft className="h-4 w-4 text-cyan-400 transition-transform duration-200 group-hover:-translate-x-1" />
+          <ArrowLeft className="h-4 w-4 text-blue-600 dark:text-cyan-400 transition-transform duration-200 group-hover:-translate-x-1" />
           <span>Back to Findings</span>
         </button>
 
@@ -1618,7 +1618,7 @@ export function FindingDetail() {
         <Button
           onClick={handleDownloadPdf}
           disabled={isDownloadingPdf}
-          className="bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-cyan-950/50"
+          className="bg-blue-600/80 backdrop-blur-xl border border-white/40 hover:bg-blue-600/90 text-white text-xs font-bold flex items-center gap-2 shadow-[0_8px_24px_rgba(37,99,235,0.35),inset_0_1px_0_rgba(255,255,255,0.35)] dark:bg-blue-500/25 dark:border-blue-300/30 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] dark:hover:bg-blue-500/35"
         >
           <Download className={cn("h-4 w-4", isDownloadingPdf && "animate-bounce")} />
           <span>{isDownloadingPdf ? 'Generating PDF Report…' : 'Download Vulnerability PDF'}</span>
@@ -1641,25 +1641,25 @@ export function FindingDetail() {
         {/* Left Column: Full Technical Breakdown */}
         <div className="space-y-6 lg:col-span-2">
           {/* 1. Vulnerability Overview */}
-          <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-              <FileText className="h-4 w-4 text-cyan-400" /> Vulnerability Description & Metadata
+          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-4">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
+              <FileText className="h-4 w-4 text-blue-600 dark:text-cyan-400" /> Vulnerability Description & Metadata
             </h3>
-            <p className="text-sm text-slate-200 leading-relaxed">{v.description || 'No detailed description available.'}</p>
+            <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">{v.description || 'No detailed description available.'}</p>
 
-            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-800/80">
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-200 dark:border-slate-800/80">
               {(v.cwe || v.cweId) && (
-                <span className="rounded-md bg-slate-800 px-2.5 py-1 font-mono text-[11px] font-semibold text-cyan-300 border border-slate-700">
+                <span className="rounded-md bg-slate-100 dark:bg-slate-800 px-2.5 py-1 font-mono text-[11px] font-semibold text-blue-600 dark:text-cyan-300 border border-slate-200 dark:border-slate-700">
                   CWE: {v.cwe || v.cweId}
                 </span>
               )}
               {(v.owasp || v.owaspCategory) && (
-                <span className="rounded-md bg-slate-800 px-2.5 py-1 font-mono text-[11px] font-semibold text-purple-300 border border-slate-700">
+                <span className="rounded-md bg-slate-100 dark:bg-slate-800 px-2.5 py-1 font-mono text-[11px] font-semibold text-purple-700 dark:text-purple-300 border border-slate-200 dark:border-slate-700">
                   OWASP: {v.owasp || v.owaspCategory}
                 </span>
               )}
               {v.retestStatus && v.retestStatus !== 'NOT_REQUIRED' && (
-                <span className="rounded-md bg-sky-500/15 px-2.5 py-1 font-mono text-[11px] font-semibold text-sky-300 ring-1 ring-sky-400/40">
+                <span className="rounded-md bg-sky-500/15 px-2.5 py-1 font-mono text-[11px] font-semibold text-sky-700 dark:text-sky-300 ring-1 ring-sky-400/40">
                   RETEST: {v.retestStatus}
                 </span>
               )}
@@ -1668,12 +1668,12 @@ export function FindingDetail() {
           </Card>
 
           {/* 2. Affected Component */}
-          <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-              <Layers className="h-4 w-4 text-cyan-400" /> Affected Component & Endpoint
+          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
+              <Layers className="h-4 w-4 text-blue-600 dark:text-cyan-400" /> Affected Component & Endpoint
             </h3>
-            <div className="rounded-lg border border-slate-800 bg-slate-950 p-3 font-mono text-xs text-cyan-300 break-all flex items-center gap-3">
-              <span className="rounded bg-slate-800 px-2 py-0.5 font-bold uppercase text-emerald-400 border border-slate-700 shrink-0">
+            <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-3 font-mono text-xs text-blue-600 dark:text-cyan-300 break-all flex items-center gap-3">
+              <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 font-bold uppercase text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-700 shrink-0">
                 {v.httpTrace?.method || 'GET'}
               </span>
               <span>{(v.affectedAssets || []).join(', ') || 'N/A'}</span>
@@ -1681,14 +1681,14 @@ export function FindingDetail() {
           </Card>
 
           {/* 3. Steps to Reproduce */}
-          <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-amber-400 flex items-center gap-2">
-              <Bug className="h-4 w-4 text-amber-400" /> Steps to Reproduce (AI Verified)
+          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-2">
+              <Bug className="h-4 w-4 text-amber-600 dark:text-amber-400" /> Steps to Reproduce (AI Verified)
             </h3>
             <div className="space-y-2.5 pt-1">
               {stepsToReproduce.map((step, idx) => (
-                <div key={idx} className="flex items-start gap-3 rounded-lg border border-slate-800/80 bg-slate-950/60 p-3 text-xs text-slate-200">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-800 font-mono text-[11px] font-bold text-amber-400 border border-slate-700">
+                <div key={idx} className="flex items-start gap-3 rounded-lg border border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-950/60 p-3 text-xs text-slate-700 dark:text-slate-200">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 font-mono text-[11px] font-bold text-amber-600 dark:text-amber-400 border border-slate-200 dark:border-slate-700">
                     {idx + 1}
                   </span>
                   <span className="leading-relaxed pt-0.5">{step}</span>
@@ -1698,37 +1698,37 @@ export function FindingDetail() {
           </Card>
 
           {/* 4. Proof of Concept (PoC) */}
-          <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-3">
+          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                <Code2 className="h-4 w-4 text-cyan-400" /> Proof of Concept (Safe Testing Demonstration)
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                <Code2 className="h-4 w-4 text-blue-600 dark:text-cyan-400" /> Proof of Concept (Safe Testing Demonstration)
               </h3>
               <CopyCurlButton finding={v} />
             </div>
-            <pre className="overflow-x-auto rounded-lg bg-slate-950 p-4 font-mono text-xs text-emerald-400 border border-slate-800 leading-relaxed">
+            <pre className="overflow-x-auto rounded-lg bg-white dark:bg-slate-950 p-4 font-mono text-xs text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-800 leading-relaxed">
               {proofOfConcept}
             </pre>
           </Card>
 
           {/* 5. Business Impact Assessment */}
-          <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-3 border-l-4 border-l-red-500">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-red-400 flex items-center gap-2">
-              <ShieldAlert className="h-4 w-4 text-red-400" /> Business Impact Assessment
+          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3 border-l-4 border-l-red-500">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-red-600 dark:text-red-400 flex items-center gap-2">
+              <ShieldAlert className="h-4 w-4 text-red-600 dark:text-red-400" /> Business Impact Assessment
             </h3>
-            <p className="text-xs text-slate-200 leading-relaxed bg-red-950/20 p-3 rounded-lg border border-red-900/30">
+            <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed bg-red-950/20 p-3 rounded-lg border border-red-900/30">
               {businessImpact}
             </p>
           </Card>
 
           {/* 6. Remediation Recommendations */}
-          <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-400" /> Remediation Recommendations
+          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Remediation Recommendations
             </h3>
-            <ul className="space-y-2 text-xs text-slate-300">
+            <ul className="space-y-2 text-xs text-slate-600 dark:text-slate-300">
               {remediationSteps.map((r, i) => (
-                <li key={i} className="flex items-start gap-2.5 rounded-lg border border-slate-800/80 bg-slate-950/60 p-2.5">
-                  <span className="text-emerald-400 font-bold">•</span>
+                <li key={i} className="flex items-start gap-2.5 rounded-lg border border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-950/60 p-2.5">
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">•</span>
                   <span className="leading-relaxed">{r}</span>
                 </li>
               ))}
@@ -1736,13 +1736,13 @@ export function FindingDetail() {
           </Card>
 
           {/* 7. Safe Testing & Ethical Constraints Notice */}
-          <Card className="border-cyan-900/40 bg-cyan-950/15 p-5 space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
-              <Shield className="h-4 w-4 text-cyan-400" /> Rules of Engagement & Ethical Hacking Constraints
+          <Card className="border-cyan-900/40 bg-blue-50 dark:bg-cyan-950/15 p-5 space-y-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-cyan-400 flex items-center gap-2">
+              <Shield className="h-4 w-4 text-blue-600 dark:text-cyan-400" /> Rules of Engagement & Ethical Hacking Constraints
             </h3>
-            <div className="grid gap-2 text-xs text-slate-300">
+            <div className="grid gap-2 text-xs text-slate-600 dark:text-slate-300">
               {ethicalConstraints.map((c, idx) => (
-                <div key={idx} className="flex items-center gap-2 text-[11px] text-cyan-200">
+                <div key={idx} className="flex items-center gap-2 text-[11px] text-blue-600 dark:text-cyan-200">
                   <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 shrink-0" />
                   <span>{c}</span>
                 </div>
@@ -1754,19 +1754,19 @@ export function FindingDetail() {
         {/* Right Side Column */}
         <div className="space-y-6">
           {/* CVSS Metric Card */}
-          <Card className="border-slate-800 bg-slate-900/90 p-5 text-center shadow-lg">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">CVSS v3 Score</h3>
-            <div className="mt-2 text-4xl font-extrabold text-white font-mono">{v.cvssScore}</div>
+          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 text-center shadow-lg">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">CVSS v3 Score</h3>
+            <div className="mt-2 text-4xl font-extrabold text-[#0f1f3d] dark:text-white font-mono">{v.cvssScore}</div>
             <div className="mt-3 flex justify-center">
               <SeverityBadge severity={v.severity} />
             </div>
           </Card>
 
           {/* AI Security Analysis Trigger */}
-          <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-3">
+          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-cyan-400">
-                <Code2 className="h-4 w-4 text-cyan-400" /> AI Security Analysis
+              <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-cyan-400">
+                <Code2 className="h-4 w-4 text-blue-600 dark:text-cyan-400" /> AI Security Analysis
               </h3>
               <Button
                 variant="outline"
@@ -1780,26 +1780,26 @@ export function FindingDetail() {
             </div>
 
             {v.aiAnalysis?.classification ? (
-              <div className="space-y-2 text-xs text-slate-300">
+              <div className="space-y-2 text-xs text-slate-600 dark:text-slate-300">
                 <p>
-                  <b className="text-white">Classification:</b> {v.aiAnalysis.classification} ({v.aiAnalysis.confidence}%)
+                  <b className="text-[#0f1f3d] dark:text-white">Classification:</b> {v.aiAnalysis.classification} ({v.aiAnalysis.confidence}%)
                 </p>
                 <p>
-                  <b className="text-white">Summary:</b> {v.aiAnalysis.summary}
+                  <b className="text-[#0f1f3d] dark:text-white">Summary:</b> {v.aiAnalysis.summary}
                 </p>
-                <p className="text-[10px] text-slate-500 pt-2 border-t border-slate-800">
+                <p className="text-[10px] text-slate-500 pt-2 border-t border-slate-200 dark:border-slate-800">
                   {v.aiAnalysis.priorityReason} · Presented as AI assistance.
                 </p>
               </div>
             ) : (
               <p className="text-xs text-slate-500">No AI analysis generated yet — click Refresh AI Analysis above.</p>
             )}
-            {ai.isError && <p className="text-xs text-red-400">{errMsg(ai.error)}</p>}
+            {ai.isError && <p className="text-xs text-red-600 dark:text-red-400">{errMsg(ai.error)}</p>}
           </Card>
 
           {/* Verification Workflow */}
-          <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Update Status</h3>
+          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Update Status</h3>
             <div className="grid grid-cols-2 gap-2">
               {['Under Review', 'Verified', 'False Positive', 'Resolved'].map((st) => (
                 <Button
@@ -1813,97 +1813,97 @@ export function FindingDetail() {
                 </Button>
               ))}
             </div>
-            {verify.isError && <p className="text-xs text-red-400">{errMsg(verify.error)}</p>}
+            {verify.isError && <p className="text-xs text-red-600 dark:text-red-400">{errMsg(verify.error)}</p>}
           </Card>
 
 
           {/* Fix Verification / Retest */}
-          <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-3">
-            <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
-              <RotateCcw className="h-3.5 w-3.5 text-cyan-400" /> Fix Verification
+          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3">
+            <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <RotateCcw className="h-3.5 w-3.5 text-blue-600 dark:text-cyan-400" /> Fix Verification
             </h3>
-            {v.retestNotes && <p className="text-xs text-slate-400">Last retest: {v.retestNotes}</p>}
+            {v.retestNotes && <p className="text-xs text-slate-500 dark:text-slate-400">Last retest: {v.retestNotes}</p>}
             <div className="grid grid-cols-3 gap-2">
               <Button variant="outline" disabled={retest.isPending} onClick={() => retest.mutate({ result: 'REQUIRED' })} className="text-xs py-1.5">
                 Request Retest
               </Button>
-              <Button variant="outline" disabled={retest.isPending} onClick={() => retest.mutate({ result: 'PASSED', notes: 'Fix confirmed on retest' })} className="text-xs py-1.5 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/10">
+              <Button variant="outline" disabled={retest.isPending} onClick={() => retest.mutate({ result: 'PASSED', notes: 'Fix confirmed on retest' })} className="text-xs py-1.5 border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10">
                 Pass
               </Button>
-              <Button variant="outline" disabled={retest.isPending} onClick={() => retest.mutate({ result: 'FAILED', notes: 'Issue still reproducible' })} className="text-xs py-1.5 border-red-500/40 text-red-300 hover:bg-red-500/10">
+              <Button variant="outline" disabled={retest.isPending} onClick={() => retest.mutate({ result: 'FAILED', notes: 'Issue still reproducible' })} className="text-xs py-1.5 border-red-500/40 text-red-700 dark:text-red-300 hover:bg-red-500/10">
                 Fail
               </Button>
             </div>
-            {retest.isError && <p className="text-xs text-red-400">{errMsg(retest.error)}</p>}
+            {retest.isError && <p className="text-xs text-red-600 dark:text-red-400">{errMsg(retest.error)}</p>}
           </Card>
 
           {/* CVSS v3.1 Severity Score Scale Guide */}
-          <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-3 shadow-md">
-            <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-cyan-400">
-              <BookOpen className="h-4 w-4 text-cyan-400" /> CVSS v3.1 Rating Matrix & Scale Guide
+          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3 shadow-md">
+            <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-cyan-400">
+              <BookOpen className="h-4 w-4 text-blue-600 dark:text-cyan-400" /> CVSS v3.1 Rating Matrix & Scale Guide
             </h3>
-            <p className="text-[11px] text-slate-400 leading-relaxed">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
               CVSS (Common Vulnerability Scoring System) quantifies vulnerability severity from 0.0 to 10.0 based on exploitability, impact, and access complexity:
             </p>
             <div className="space-y-2 text-xs pt-1">
-              <div className="flex items-center justify-between rounded-lg border border-red-500/30 bg-red-950/30 p-2 text-slate-200">
+              <div className="flex items-center justify-between rounded-lg border border-red-500/30 bg-red-950/30 p-2 text-slate-700 dark:text-slate-200">
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-red-500 shrink-0" />
-                  <span className="font-bold text-red-300">9.0 – 10.0</span>
+                  <span className="font-bold text-red-700 dark:text-red-300">9.0 – 10.0</span>
                 </div>
-                <span className="font-mono text-[10px] text-red-400 font-bold uppercase">Critical (RCE / Auth Bypass)</span>
+                <span className="font-mono text-[10px] text-red-600 dark:text-red-400 font-bold uppercase">Critical (RCE / Auth Bypass)</span>
               </div>
 
-              <div className="flex items-center justify-between rounded-lg border border-orange-500/30 bg-orange-950/30 p-2 text-slate-200">
+              <div className="flex items-center justify-between rounded-lg border border-orange-500/30 bg-orange-950/30 p-2 text-slate-700 dark:text-slate-200">
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-orange-500 shrink-0" />
-                  <span className="font-bold text-orange-300">7.0 – 8.9</span>
+                  <span className="font-bold text-orange-700 dark:text-orange-300">7.0 – 8.9</span>
                 </div>
-                <span className="font-mono text-[10px] text-orange-400 font-bold uppercase">High (IDOR / SQLi)</span>
+                <span className="font-mono text-[10px] text-orange-600 dark:text-orange-400 font-bold uppercase">High (IDOR / SQLi)</span>
               </div>
 
-              <div className="flex items-center justify-between rounded-lg border border-amber-500/30 bg-amber-950/30 p-2 text-slate-200">
+              <div className="flex items-center justify-between rounded-lg border border-amber-500/30 bg-amber-950/30 p-2 text-slate-700 dark:text-slate-200">
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" />
-                  <span className="font-bold text-amber-300">4.0 – 6.9</span>
+                  <span className="font-bold text-amber-700 dark:text-amber-300">4.0 – 6.9</span>
                 </div>
-                <span className="font-mono text-[10px] text-amber-400 font-bold uppercase">Medium (Missing CSP / CORS)</span>
+                <span className="font-mono text-[10px] text-amber-600 dark:text-amber-400 font-bold uppercase">Medium (Missing CSP / CORS)</span>
               </div>
 
-              <div className="flex items-center justify-between rounded-lg border border-emerald-500/30 bg-emerald-950/30 p-2 text-slate-200">
+              <div className="flex items-center justify-between rounded-lg border border-emerald-500/30 bg-emerald-950/30 p-2 text-slate-700 dark:text-slate-200">
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
-                  <span className="font-bold text-emerald-300">0.1 – 3.9</span>
+                  <span className="font-bold text-emerald-700 dark:text-emerald-300">0.1 – 3.9</span>
                 </div>
-                <span className="font-mono text-[10px] text-emerald-400 font-bold uppercase">Low (Info Leak / Headers)</span>
+                <span className="font-mono text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase">Low (Info Leak / Headers)</span>
               </div>
             </div>
           </Card>
 
           {/* Technical Security Terms & Glossary Explainer */}
-          <Card className="border-slate-800 bg-slate-900/90 p-5 space-y-3 shadow-md">
-            <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-purple-400">
-              <HelpCircle className="h-4 w-4 text-purple-400" /> Technical Terms & Security Glossary
+          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3 shadow-md">
+            <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-purple-600 dark:text-purple-400">
+              <HelpCircle className="h-4 w-4 text-purple-600 dark:text-purple-400" /> Technical Terms & Security Glossary
             </h3>
             <div className="space-y-2.5 text-xs">
-              <div className="rounded-lg border border-slate-800 bg-slate-950 p-2.5 space-y-0.5">
-                <span className="font-mono font-bold text-cyan-300 text-[11px] block">CWE (Common Weakness Enumeration)</span>
-                <p className="text-[11px] text-slate-400 leading-snug">Community dictionary of software flaw types (e.g. CWE-306 for Broken Authentication).</p>
+              <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-2.5 space-y-0.5">
+                <span className="font-mono font-bold text-blue-600 dark:text-cyan-300 text-[11px] block">CWE (Common Weakness Enumeration)</span>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">Community dictionary of software flaw types (e.g. CWE-306 for Broken Authentication).</p>
               </div>
 
-              <div className="rounded-lg border border-slate-800 bg-slate-950 p-2.5 space-y-0.5">
-                <span className="font-mono font-bold text-purple-300 text-[11px] block">OWASP Top 10</span>
-                <p className="text-[11px] text-slate-400 leading-snug">Standard awareness framework identifying top security risks in web applications & APIs.</p>
+              <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-2.5 space-y-0.5">
+                <span className="font-mono font-bold text-purple-700 dark:text-purple-300 text-[11px] block">OWASP Top 10</span>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">Standard awareness framework identifying top security risks in web applications & APIs.</p>
               </div>
 
-              <div className="rounded-lg border border-slate-800 bg-slate-950 p-2.5 space-y-0.5">
-                <span className="font-mono font-bold text-emerald-300 text-[11px] block">PoC (Proof of Concept)</span>
-                <p className="text-[11px] text-slate-400 leading-snug">A safe HTTP trace or cURL command validating vulnerability existence without destroying data.</p>
+              <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-2.5 space-y-0.5">
+                <span className="font-mono font-bold text-emerald-700 dark:text-emerald-300 text-[11px] block">PoC (Proof of Concept)</span>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">A safe HTTP trace or cURL command validating vulnerability existence without destroying data.</p>
               </div>
 
-              <div className="rounded-lg border border-slate-800 bg-slate-950 p-2.5 space-y-0.5">
-                <span className="font-mono font-bold text-amber-300 text-[11px] block">IDOR / BOLA</span>
-                <p className="text-[11px] text-slate-400 leading-snug">Broken Object Level Authorization where manipulating object IDs exposes unauthorized records.</p>
+              <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-2.5 space-y-0.5">
+                <span className="font-mono font-bold text-amber-700 dark:text-amber-300 text-[11px] block">IDOR / BOLA</span>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">Broken Object Level Authorization where manipulating object IDs exposes unauthorized records.</p>
               </div>
             </div>
           </Card>

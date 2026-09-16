@@ -124,13 +124,13 @@ export function SakshamBot() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.97 }}
             transition={{ duration: 0.2 }}
-            className="flex h-[480px] w-[360px] max-w-[calc(100vw-1.5rem)] max-h-[calc(100vh-8rem)] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#070b16] shadow-2xl shadow-black/80"
+            className="flex h-[480px] w-[360px] max-w-[calc(100vw-1.5rem)] max-h-[calc(100vh-8rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl dark:border-white/10 dark:bg-[#070b16] dark:shadow-2xl dark:shadow-black/80"
           >
             {/* Header */}
-            <div className="flex items-center gap-2.5 border-b border-white/10 bg-white/[0.04] px-4 py-3">
+            <div className="flex items-center gap-2.5 border-b border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-white/10 dark:bg-white/[0.04]">
               <SakshamIcon size={28} />
               <div className="min-w-0 flex-1">
-                <p className="flex items-center gap-1.5 text-sm font-semibold">Saksham Bot <Sparkles size={12} className="text-cyan-500" /></p>
+                <p className="flex items-center gap-1.5 text-sm font-semibold text-[#0f1f3d] dark:text-white">Saksham Bot <Sparkles size={12} className="text-blue-600 dark:text-cyan-500" /></p>
                 <p className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400">
                   <span className="live-dot relative inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 text-emerald-500" />
                   {authed ? 'Full workspace access' : 'Intro mode · login for full access'}
@@ -156,7 +156,7 @@ export function SakshamBot() {
                   <div className={cn(
                     'max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed',
                     m.role === 'user'
-                      ? 'rounded-br-md bg-slate-900 text-white dark:bg-cyan-400 dark:text-slate-950'
+                      ? 'rounded-br-md bg-blue-600 text-white dark:bg-cyan-400 dark:text-slate-950'
                       : 'rounded-bl-md border border-slate-200 bg-white text-slate-800 shadow-sm dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-100'
                   )}>
                     <p className="whitespace-pre-wrap">{m.role === 'assistant' ? <BotReply content={m.content} /> : m.content}</p>
@@ -212,7 +212,7 @@ export function SakshamBot() {
               <button
                 type="submit"
                 disabled={busy || !input.trim()}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white transition hover:-translate-y-px disabled:opacity-40 dark:border dark:border-white/[0.14] dark:bg-white/[0.08] dark:text-white dark:backdrop-blur-xl dark:hover:bg-white/[0.12] dark:hover:translate-y-0"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/60 backdrop-blur-xl border border-slate-200 text-slate-700 shadow-sm transition hover:bg-white/90 hover:-translate-y-px disabled:opacity-40 dark:border-white/[0.14] dark:bg-white/[0.08] dark:text-white dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] dark:hover:bg-white/[0.12] dark:hover:translate-y-0"
               >
                 <Send size={15} />
               </button>
@@ -226,14 +226,14 @@ export function SakshamBot() {
         whileHover={{ scale: 1.07 }}
         whileTap={{ scale: 0.93 }}
         onClick={() => { setOpen((o) => !o); greet(); }}
-        className="relative flex h-[54px] w-[54px] items-center justify-center rounded-full border border-white/[0.14] bg-white/[0.08] text-slate-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl transition hover:bg-white/[0.12] hover:border-white/20"
+        className="relative flex h-[54px] w-[54px] items-center justify-center rounded-full border border-slate-200 bg-white/70 text-slate-700 shadow-[0_8px_24px_rgba(15,31,61,0.12)] backdrop-blur-xl transition hover:bg-white hover:border-slate-300 dark:border-white/[0.14] dark:bg-white/[0.08] dark:text-slate-200 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] dark:hover:bg-white/[0.12] dark:hover:border-white/20"
         title="Chat with Saksham Bot"
       >
         {open
           ? <X size={22} className="relative" />
           : <Bot size={25} className="relative" />}
         {!open && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full border border-white/15 bg-[#0b1120]">
+          <span className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full border border-slate-200 bg-white dark:border-white/15 dark:bg-[#0b1120]">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
           </span>
         )}

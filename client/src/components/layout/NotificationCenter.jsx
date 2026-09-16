@@ -120,15 +120,15 @@ export function NotificationCenter() {
   const getSeverityStyle = (sev) => {
     switch (sev?.toLowerCase()) {
       case 'critical':
-        return { dot: 'bg-red-500', badge: 'bg-red-500/10 border-red-500/30 text-red-400', label: 'CRITICAL' };
+        return { dot: 'bg-red-500', badge: 'bg-red-500/10 border-red-500/30 text-red-700 dark:text-red-400', label: 'CRITICAL' };
       case 'high':
-        return { dot: 'bg-orange-500', badge: 'bg-orange-500/10 border-orange-500/30 text-orange-400', label: 'HIGH' };
+        return { dot: 'bg-orange-500', badge: 'bg-orange-500/10 border-orange-500/30 text-orange-700 dark:text-orange-400', label: 'HIGH' };
       case 'medium':
-        return { dot: 'bg-amber-500', badge: 'bg-amber-500/10 border-amber-500/30 text-amber-400', label: 'MEDIUM' };
+        return { dot: 'bg-amber-500', badge: 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400', label: 'MEDIUM' };
       case 'verified':
-        return { dot: 'bg-cyan-500', badge: 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400', label: 'VERIFIED' };
+        return { dot: 'bg-cyan-500', badge: 'bg-cyan-500/10 border-cyan-500/30 text-cyan-700 dark:text-cyan-400', label: 'VERIFIED' };
       default:
-        return { dot: 'bg-emerald-500', badge: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400', label: 'LOW' };
+        return { dot: 'bg-emerald-500', badge: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400', label: 'LOW' };
     }
   };
 
@@ -138,7 +138,7 @@ export function NotificationCenter() {
       <button
         type="button"
         onClick={toggleOpen}
-        className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-slate-800 bg-slate-900 text-slate-300 transition hover:border-slate-700 hover:bg-slate-800 hover:text-white"
+        className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 transition hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
         title="Security Alerts"
       >
         <Bell size={15} />
@@ -157,17 +157,17 @@ export function NotificationCenter() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 6, scale: 0.98 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full z-[999] mt-2 w-80 sm:w-96 rounded-xl border border-slate-800 bg-[#090f1f] p-4 shadow-2xl backdrop-blur-xl"
+            className="absolute right-0 top-full z-[999] mt-2 w-80 sm:w-96 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] p-4 shadow-sm dark:shadow-2xl backdrop-blur-xl"
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800/80 pb-3">
               <div className="flex items-center gap-2">
-                <ShieldAlert size={16} className="text-cyan-400" />
-                <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-white">
+                <ShieldAlert size={16} className="text-blue-600 dark:text-cyan-400" />
+                <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-[#0f1f3d] dark:text-white">
                   Security Alerts
                 </h3>
                 {unreadCount > 0 && (
-                  <span className="rounded bg-red-500/10 border border-red-500/30 px-1.5 py-0.2 font-mono text-[10px] font-bold text-red-400">
+                  <span className="rounded bg-red-500/10 border border-red-500/30 px-1.5 py-0.2 font-mono text-[10px] font-bold text-red-700 dark:text-red-400">
                     {unreadCount} UNREAD
                   </span>
                 )}
@@ -177,7 +177,7 @@ export function NotificationCenter() {
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllAsRead}
-                    className="flex items-center gap-1 text-[11px] font-medium text-slate-400 hover:text-cyan-400 transition"
+                    className="flex items-center gap-1 text-[11px] font-medium text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-cyan-400 transition"
                     title="Mark all as read"
                   >
                     <CheckCheck size={13} />
@@ -186,7 +186,7 @@ export function NotificationCenter() {
                 {notifications.length > 0 && (
                   <button
                     onClick={clearAll}
-                    className="flex items-center gap-1 text-[11px] font-medium text-slate-400 hover:text-rose-400 transition"
+                    className="flex items-center gap-1 text-[11px] font-medium text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition"
                     title="Clear notifications"
                   >
                     <Trash2 size={13} />
@@ -210,8 +210,8 @@ export function NotificationCenter() {
                       onClick={() => handleAlertClick(n)}
                       className={`group relative flex flex-col gap-1.5 rounded-lg border p-3 transition duration-150 cursor-pointer ${
                         !n.read
-                          ? 'border-slate-700/80 bg-slate-900/90 shadow-sm'
-                          : 'border-slate-800/60 bg-[#060a14] opacity-75 hover:opacity-100 hover:bg-slate-900/40'
+                          ? 'border-slate-200 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-900/90 shadow-sm'
+                          : 'border-slate-200 dark:border-slate-800/60 bg-white dark:bg-[#060a14] opacity-75 hover:opacity-100 hover:bg-slate-50 dark:hover:bg-slate-900/40'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2">
@@ -219,19 +219,19 @@ export function NotificationCenter() {
                           <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
                           {style.label}
                         </span>
-                        <span className="font-mono text-[10px] text-slate-400">{n.time}</span>
+                        <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400">{n.time}</span>
                       </div>
 
-                      <h4 className="font-semibold text-xs text-white truncate group-hover:text-cyan-300 transition">
+                      <h4 className="font-semibold text-xs text-[#0f1f3d] dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
                         {n.title}
                       </h4>
-                      <p className="text-[11px] text-slate-400 leading-snug">{n.desc}</p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">{n.desc}</p>
 
                       <div className="mt-1 flex items-center justify-between">
-                        <span className="text-[10px] font-mono text-cyan-400 font-medium">
+                        <span className="text-[10px] font-mono text-blue-600 dark:text-cyan-400 font-medium">
                           {n.findingId}
                         </span>
-                        <span className="flex items-center gap-1 text-[10px] font-bold text-slate-400 group-hover:text-cyan-300 transition">
+                        <span className="flex items-center gap-1 text-[10px] font-bold text-slate-500 dark:text-slate-400 group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
                           View Finding <ArrowRight size={10} />
                         </span>
                       </div>
@@ -246,13 +246,13 @@ export function NotificationCenter() {
             </div>
 
             {/* Footer */}
-            <div className="mt-3 border-t border-slate-800/80 pt-2 text-center">
+            <div className="mt-3 border-t border-slate-200 dark:border-slate-800/80 pt-2 text-center">
               <button
                 onClick={() => {
                   setIsOpen(false);
                   navigate('/findings');
                 }}
-                className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition"
+                className="text-xs font-semibold text-blue-600 dark:text-cyan-400 hover:text-blue-700 dark:hover:text-cyan-300 transition"
               >
                 View Security Findings Center →
               </button>

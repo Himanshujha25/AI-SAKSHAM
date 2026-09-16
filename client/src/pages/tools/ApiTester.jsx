@@ -8,10 +8,10 @@ import { Button, Card, Input, Select, Label } from '../../components/ui/primitiv
 
 function ResultPane({ title, tokenLabel, result, busy, tone }) {
   return (
-    <div className="rounded-xl border border-slate-800 bg-[#090f1f] p-5 shadow-md transition hover:border-slate-700/80">
+    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] p-5 shadow-md transition hover:border-slate-300 dark:hover:border-slate-700/80">
       <div className="mb-3 flex items-center justify-between gap-2">
-        <p className="truncate font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
-          {title} · <span className="text-cyan-300">{tokenLabel}</span>
+        <p className="truncate font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+          {title} · <span className="text-blue-600 dark:text-cyan-300">{tokenLabel}</span>
         </p>
         <PremiumIcon icon={ShieldCheck} tone={tone || 'cyan'} size="sm" />
       </div>
@@ -22,24 +22,24 @@ function ResultPane({ title, tokenLabel, result, busy, tone }) {
           <div className="flex flex-wrap items-center gap-2">
             <span className={cn(
               'rounded-md border px-2 py-0.5 font-mono text-[11px] font-bold',
-              result.status >= 200 && result.status < 300 ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
-              : result.status >= 400 ? 'border-red-500/30 bg-red-500/10 text-red-300'
-              : 'border-slate-700 bg-slate-800 text-slate-300'
+              result.status >= 200 && result.status < 300 ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+              : result.status >= 400 ? 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300'
+              : 'border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
             )}>
               {result.status ?? 'ERR'}
             </span>
-            <span className="font-mono text-[11px] text-slate-400">{result.ms}ms</span>
-            {result.error && <span className="truncate font-mono text-[11px] text-red-400">{result.error}</span>}
+            <span className="font-mono text-[11px] text-slate-500 dark:text-slate-400">{result.ms}ms</span>
+            {result.error && <span className="truncate font-mono text-[11px] text-red-600 dark:text-red-400">{result.error}</span>}
           </div>
           <details className="text-xs">
-            <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:text-slate-300">Headers ({Object.keys(result.headers || {}).length})</summary>
-            <pre className="mt-1.5 max-h-40 overflow-auto rounded-lg border border-slate-800 bg-slate-950 p-2.5 font-mono text-[11px] leading-relaxed text-slate-300">
+            <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-300 dark:hover:text-slate-200">Headers ({Object.keys(result.headers || {}).length})</summary>
+            <pre className="mt-1.5 max-h-40 overflow-auto rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-2.5 font-mono text-[11px] leading-relaxed text-slate-800 dark:text-slate-200">
               {JSON.stringify(result.headers || {}, null, 1)}
             </pre>
           </details>
           <details className="text-xs" open>
-            <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:text-slate-300">Body snippet</summary>
-            <pre className="mt-1.5 max-h-48 overflow-auto whitespace-pre-wrap rounded-lg border border-slate-800 bg-slate-950 p-2.5 font-mono text-[11px] leading-relaxed text-emerald-300">
+            <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-300 dark:hover:text-slate-200">Body snippet</summary>
+            <pre className="mt-1.5 max-h-48 overflow-auto whitespace-pre-wrap rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-2.5 font-mono text-[11px] leading-relaxed text-slate-800 dark:text-slate-200">
               {result.bodySnippet || '(empty)'}
             </pre>
           </details>
@@ -117,21 +117,21 @@ export function ApiTester() {
         subtitle="Probe an authorized endpoint as two roles side-by-side — server executes, browser never touches the target"
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-800 bg-[#090f1f] px-3 py-1.5 font-mono text-[11px] font-bold text-slate-300 shadow-sm">
-              <Timer size={13} className="text-cyan-300" /> 10s timeout
+            <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] px-3 py-1.5 font-mono text-[11px] font-bold text-slate-600 dark:text-slate-300 shadow-sm">
+              <Timer size={13} className="text-blue-600 dark:text-cyan-300" /> 10s timeout
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-500/30 bg-gradient-to-r from-cyan-950/60 to-slate-900 px-3 py-1.5 font-mono text-[11px] font-bold text-white shadow-md">
-              <ScrollText size={13} className="text-cyan-300" /> Audit-logged
+            <span className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 dark:border-cyan-500/30 bg-white dark:bg-gradient-to-r dark:from-cyan-950/60 dark:to-slate-900 px-3 py-1.5 font-mono text-[11px] font-bold text-[#0f1f3d] dark:text-white shadow-md">
+              <ScrollText size={13} className="text-blue-600 dark:text-cyan-300" /> Audit-logged
             </span>
           </div>
         }
       />
 
-      <Card className="border-slate-800 bg-[#090f1f] p-5 shadow-xl">
-        <div className="mb-4 flex items-center gap-2 border-b border-slate-800 pb-3">
+      <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] p-5 shadow-xl">
+        <div className="mb-4 flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
           <PremiumIcon icon={FlaskConical} tone="cyan" size="sm" />
           <div>
-            <h3 className="text-sm font-bold tracking-tight text-white">Role Comparison Probe</h3>
+            <h3 className="text-sm font-bold tracking-tight text-[#0f1f3d] dark:text-white">Role Comparison Probe</h3>
             <p className="font-mono text-[10px] uppercase tracking-wider text-slate-500">Read-only style probe · 50KB cap · logged to audit trail</p>
           </div>
         </div>
@@ -157,7 +157,7 @@ export function ApiTester() {
               placeholder='{"amount": 100, "description": "topup"}'
               value={form.bodyData}
               onChange={(e) => setForm({ ...form, bodyData: e.target.value })}
-              className="w-full rounded-lg border border-slate-800 bg-slate-950 p-2.5 font-mono text-xs leading-relaxed text-emerald-300 placeholder-slate-600 transition focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/30"
+              className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-2.5 font-mono text-xs leading-relaxed text-emerald-700 dark:text-emerald-300 placeholder-slate-400 dark:placeholder-slate-600 transition focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/30"
             />
           </div>
         )}
@@ -173,7 +173,7 @@ export function ApiTester() {
           </div>
         </div>
         <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-3">
-          <Button disabled={!form.url || run.isPending} onClick={testSingle} className="w-full sm:w-auto bg-cyan-600 hover:bg-cyan-500 text-white font-semibold px-5 py-2">
+          <Button disabled={!form.url || run.isPending} onClick={testSingle} className="w-full sm:w-auto bg-blue-600/80 backdrop-blur-xl border border-white/40 hover:bg-blue-600/90 text-white shadow-[0_8px_24px_rgba(37,99,235,0.35),inset_0_1px_0_rgba(255,255,255,0.35)] font-semibold px-5 py-2 dark:bg-blue-500/25 dark:border-blue-300/30 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] dark:hover:bg-blue-500/35">
             <Play size={14} className="fill-current" /> {run.isPending ? 'Probing…' : 'Send Probe (Single)'}
           </Button>
           <Button disabled={!form.url || run.isPending} variant="outline" onClick={compare} className="w-full sm:w-auto px-5 py-2">
@@ -183,13 +183,13 @@ export function ApiTester() {
             <FlaskConical size={13} className="text-slate-500 shrink-0" /> Read-only probe · 10s timeout · 50KB cap
           </span>
         </div>
-        {run.isError && <p className="mt-2 font-mono text-xs font-semibold text-red-400">{errMsg(run.error)}</p>}
+        {run.isError && <p className="mt-2 font-mono text-xs font-semibold text-red-600 dark:text-red-400">{errMsg(run.error)}</p>}
       </Card>
 
       {verdict && (
         <div className={cn(
           'flex items-start gap-3 rounded-xl border p-4 text-xs leading-relaxed shadow-md',
-          verdict.bad ? 'border-amber-500/30 bg-amber-500/10 text-amber-200' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200'
+          verdict.bad ? 'border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-200' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200'
         )}>
           <PremiumIcon icon={Scale} tone={verdict.bad ? 'amber' : 'emerald'} size="sm" />
           <p className="pt-1 font-semibold">{verdict.text}</p>

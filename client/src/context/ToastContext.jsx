@@ -119,38 +119,38 @@ function ToastItem({ toast, onClose }) {
 
   const typeStyles = {
     critical: {
-      border: 'border-red-500/60 bg-[#120709]',
-      badge: 'bg-red-500/10 border-red-500/30 text-red-400',
+      border: 'border-red-500/60 bg-red-50 dark:bg-[#120709]',
+      badge: 'bg-red-500/10 border-red-500/30 text-red-700 dark:text-red-400',
       icon: ShieldAlert,
-      iconColor: 'text-red-400',
+      iconColor: 'text-red-600 dark:text-red-400',
       badgeText: 'CRITICAL ALERT',
     },
     warning: {
-      border: 'border-amber-500/50 bg-[#140f07]',
-      badge: 'bg-amber-500/10 border-amber-500/30 text-amber-400',
+      border: 'border-amber-500/50 bg-amber-50 dark:bg-[#140f07]',
+      badge: 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400',
       icon: AlertTriangle,
-      iconColor: 'text-amber-400',
+      iconColor: 'text-amber-600 dark:text-amber-400',
       badgeText: 'WARNING',
     },
     success: {
-      border: 'border-emerald-500/50 bg-[#07130c]',
-      badge: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400',
+      border: 'border-emerald-500/50 bg-emerald-50 dark:bg-[#07130c]',
+      badge: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400',
       icon: CheckCircle2,
-      iconColor: 'text-emerald-400',
+      iconColor: 'text-emerald-600 dark:text-emerald-400',
       badgeText: 'SUCCESS',
     },
     error: {
-      border: 'border-rose-500/50 bg-[#14070a]',
-      badge: 'bg-rose-500/10 border-rose-500/30 text-rose-400',
+      border: 'border-rose-500/50 bg-rose-50 dark:bg-[#14070a]',
+      badge: 'bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-400',
       icon: XCircle,
-      iconColor: 'text-rose-400',
+      iconColor: 'text-rose-600 dark:text-rose-400',
       badgeText: 'ERROR',
     },
     info: {
-      border: 'border-cyan-500/50 bg-[#071018]',
-      badge: 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400',
+      border: 'border-cyan-500/50 bg-sky-50 dark:bg-[#071018]',
+      badge: 'bg-cyan-500/10 border-cyan-500/30 text-cyan-700 dark:text-cyan-400',
       icon: Info,
-      iconColor: 'text-cyan-400',
+      iconColor: 'text-cyan-600 dark:text-cyan-400',
       badgeText: 'INFO',
     },
   };
@@ -164,7 +164,7 @@ function ToastItem({ toast, onClose }) {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 10, scale: 0.96 }}
       transition={{ duration: 0.2 }}
-      className={`pointer-events-auto rounded-xl border ${style.border} p-3.5 shadow-2xl backdrop-blur-xl`}
+      className={`pointer-events-auto rounded-xl border ${style.border} p-3.5 shadow-xl dark:shadow-2xl backdrop-blur-xl bg-white/85 dark:bg-transparent`}
     >
       <div className="flex items-start gap-3">
         <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border ${style.badge}`}>
@@ -179,8 +179,8 @@ function ToastItem({ toast, onClose }) {
             <span className="font-mono text-[10px] text-slate-500">{timestamp}</span>
           </div>
 
-          <h4 className="font-bold text-xs text-white truncate mt-1">{title}</h4>
-          {message && <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">{message}</p>}
+          <h4 className="font-bold text-xs text-[#0f1f3d] dark:text-white truncate mt-1">{title}</h4>
+          {message && <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 leading-relaxed">{message}</p>}
 
           {actionLabel && (
             <button
@@ -188,7 +188,7 @@ function ToastItem({ toast, onClose }) {
                 if (onAction) onAction();
                 onClose();
               }}
-              className="mt-2.5 inline-flex items-center gap-1 text-xs font-bold text-cyan-400 hover:text-cyan-300 transition"
+              className="mt-2.5 inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-500 transition dark:text-cyan-400 dark:hover:text-cyan-300"
             >
               {actionLabel} <ArrowRight size={12} />
             </button>
@@ -197,7 +197,7 @@ function ToastItem({ toast, onClose }) {
 
         <button
           onClick={onClose}
-          className="shrink-0 p-1 text-slate-500 hover:text-slate-200 transition"
+          className="shrink-0 p-1 text-slate-400 hover:text-slate-700 transition dark:text-slate-500 dark:hover:text-slate-200"
         >
           <X size={14} />
         </button>

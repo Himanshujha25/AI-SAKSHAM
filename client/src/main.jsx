@@ -3,8 +3,15 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 
-// Saksham AI Security Command Center - Permanently Dark-First Cyber Theme
-document.documentElement.classList.add('dark');
+// Theme is light by default; ThemeProvider owns the .dark class afterwards.
+// Apply the persisted choice before first paint to avoid a flash.
+try {
+  if (localStorage.getItem('saksham_ai_theme') === 'dark') {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+} catch { /* ignore */ }
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

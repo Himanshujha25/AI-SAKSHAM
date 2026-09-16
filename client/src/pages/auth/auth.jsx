@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowLeft, Moon, Sun, ArrowRight, Shield, Crown, Eye, Zap } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Shield, Crown, Eye, Zap } from 'lucide-react';
 import { useAuth } from '../../store/auth';
 import { errMsg, safeNext } from '../../lib/utils';
 import { Button, Card, Input, Label } from '../../components/ui/primitives';
@@ -26,23 +25,6 @@ function OrDivider() {
   );
 }
 
-function AuthThemeToggle() {
-  const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'));
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', dark);
-    localStorage.setItem('saksham_ai_theme', dark ? 'dark' : 'light');
-  }, [dark]);
-  return (
-    <button
-      onClick={() => setDark((d) => !d)}
-      className="rounded-lg border border-slate-200 bg-white/60 p-2 text-slate-600 backdrop-blur transition hover:scale-105 hover:bg-white dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:bg-slate-800"
-      title="Toggle theme"
-    >
-      {dark ? <Sun size={16} /> : <Moon size={16} />}
-    </button>
-  );
-}
-
 function AuthNav({ mode }) {
   return (
     <header className="shrink-0 z-50 w-full border-b border-slate-200/60 bg-white/70 backdrop-blur-xl dark:border-white/10 dark:bg-[#04060d]/70">
@@ -60,7 +42,7 @@ function AuthNav({ mode }) {
           {mode === 'login' ? (
             <Link
               to="/auth/register"
-              className="group flex min-h-[40px] items-center rounded-xl border border-slate-900 bg-slate-900 px-3.5 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-white transition hover:bg-slate-800 sm:px-4 dark:border-white/[0.14] dark:bg-white/[0.08] dark:backdrop-blur-xl dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] dark:hover:bg-white/[0.12] dark:hover:border-white/20"
+              className="group flex min-h-[40px] items-center rounded-xl bg-blue-600/80 backdrop-blur-xl border border-white/40 px-3.5 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-white shadow-[0_8px_24px_rgba(37,99,235,0.35),inset_0_1px_0_rgba(255,255,255,0.35)] transition hover:bg-blue-600/90 sm:px-4 dark:bg-blue-500/25 dark:border-blue-300/30 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] dark:hover:bg-blue-500/35"
             >
               <span>Get started</span> <ArrowRight size={14} className="ml-1 inline transition group-hover:translate-x-0.5" />
             </Link>
@@ -91,7 +73,7 @@ function AuthShell({ mode, title, subtitle, children, switchHint, switchTo, swit
             <p className="mb-3 mt-0.5 text-xs text-slate-500 dark:text-slate-400">{subtitle}</p>
             {children}
             <p className="mt-2.5 text-center text-xs text-slate-500 dark:text-slate-400">
-              {switchHint} <Link to={switchTo} className="font-semibold text-cyan-500 hover:text-cyan-400 underline underline-offset-4">{switchLabel}</Link>
+              {switchHint} <Link to={switchTo} className="font-semibold text-blue-600 hover:text-blue-500 underline underline-offset-4 dark:text-cyan-500 dark:hover:text-cyan-400">{switchLabel}</Link>
             </p>
           </Card>
         </main>
@@ -128,7 +110,7 @@ export function Login() {
     try {
       await demoLogin(role);
       navigate(target, { replace: true });
-    } catch (err) {
+    } catch {
       if (import.meta.env.PROD) {
         setError('1-Click Demo accounts are disabled in production mode. Please sign in with your enterprise credentials.');
         return;
@@ -168,7 +150,7 @@ export function Login() {
       <div className="mb-4">
         <div className="mb-2 flex items-center justify-between">
           <span className="flex items-center gap-1 font-mono text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-            <Zap size={13} className="text-cyan-400 shrink-0" />
+            <Zap size={13} className="text-blue-600 dark:text-cyan-400 shrink-0" />
             <span>1-Click Demo Role Access:</span>
           </span>
           <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-medium text-blue-500">Instant</span>
@@ -181,7 +163,7 @@ export function Login() {
             className="group flex min-h-[44px] flex-col items-center justify-center rounded-xl border border-blue-500/30 bg-blue-500/5 p-2 text-center transition hover:border-blue-500 hover:bg-blue-500/15 active:scale-[0.98] disabled:opacity-50"
             title="Log in as Security Analyst"
           >
-            <Shield size={18} className="text-blue-400" />
+            <Shield size={18} className="text-blue-600 dark:text-blue-400" />
             <span className="mt-1 font-mono text-xs font-bold text-slate-800 dark:text-slate-200">Analyst</span>
             <span className="text-[10px] text-slate-500 dark:text-slate-400">SOC & Audits</span>
           </button>
@@ -192,7 +174,7 @@ export function Login() {
             className="group flex min-h-[44px] flex-col items-center justify-center rounded-xl border border-purple-500/30 bg-purple-500/5 p-2 text-center transition hover:border-purple-500 hover:bg-purple-500/15 active:scale-[0.98] disabled:opacity-50"
             title="Log in as System Admin"
           >
-            <Crown size={18} className="text-purple-400" />
+            <Crown size={18} className="text-purple-600 dark:text-purple-400" />
             <span className="mt-1 font-mono text-xs font-bold text-slate-800 dark:text-slate-200">Admin</span>
             <span className="text-[10px] text-slate-500 dark:text-slate-400">Full Control</span>
           </button>
@@ -203,7 +185,7 @@ export function Login() {
             className="group flex min-h-[44px] flex-col items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-2 text-center transition hover:border-emerald-500 hover:bg-emerald-500/15 active:scale-[0.98] disabled:opacity-50"
             title="Log in as Compliance Auditor"
           >
-            <Eye size={18} className="text-emerald-400" />
+            <Eye size={18} className="text-emerald-600 dark:text-emerald-400" />
             <span className="mt-1 font-mono text-xs font-bold text-slate-800 dark:text-slate-200">Auditor</span>
             <span className="text-[10px] text-slate-500 dark:text-slate-400">Read-Only</span>
           </button>
