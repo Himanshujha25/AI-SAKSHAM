@@ -42,9 +42,23 @@ async function main() {
   app.set('io', io);
 
   io.on('connection', (socket) => {
+    socket.on('error', (err) => {
+      console.warn('[socket] client error:', err.message);
+    });
     socket.on('assessment:subscribe', (assessmentId) => {
       if (assessmentId) socket.join(`assessment:${assessmentId}`);
     });
+  });
+
+  server.on('error', (err) => {
+    console.error('[server] HTTP server error:', err.message);
+    if (err.code === 'EADDRINUSE') {
+      console.error(`[server] Port ${env.port} is already in use. Retrying in 2s...`);
+      setTimeout(() => {
+        server.close();
+        server.listen(env.port);
+      }, 2000);
+    }
   });
 
   server.listen(env.port, () => {
@@ -52,7 +66,28 @@ async function main() {
   });
 }
 
+process.on('uncaughtException', (err) => {
+  console.error('[server] uncaughtException:', err?.stack || err);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[server] unhandledRejection:', reason?.stack || reason);
+});
+
+process.on('exit', (code) => {
+  console.log(`[server] Process exiting with code ${code}`);
+  console.trace('[server] Exit stack trace');
+});
+
+process.on('SIGTERM', () => {
+  console.log('[server] Received SIGTERM');
+});
+
+process.on('SIGINT', () => {
+  console.log('[server] Received SIGINT');
+});
+
 main().catch((e) => {
-  console.error(e);
+  console.error('[server] Fatal startup error:', e);
   process.exit(1);
 });

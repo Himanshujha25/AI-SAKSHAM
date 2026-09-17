@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema(
     avatar: { type: String, default: '' },
     provider: { type: String, enum: ['local', 'google'], default: 'local' },
     googleId: { type: String, default: undefined, sparse: true, unique: true },
+    hasSeenTour: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
@@ -34,6 +35,7 @@ userSchema.methods.toSafeJSON = function () {
     role: this.role,
     avatar: this.avatar,
     provider: this.provider || 'local',
+    hasSeenTour: !!this.hasSeenTour,
     createdAt: this.createdAt,
   };
 };

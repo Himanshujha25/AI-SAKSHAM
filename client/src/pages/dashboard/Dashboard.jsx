@@ -890,28 +890,17 @@ export function Dashboard() {
             </button>
 
             <div className="relative inline-flex items-center">
-              {((data.recentAssessments?.length ?? 0) === 0 && !isScanning) && (
-                <motion.div
-                  initial={{ opacity: 0, y: -6 }}
-                  animate={{ opacity: 1, y: [0, -6, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.2, ease: 'easeInOut' }}
-                  className="absolute -top-9 right-2 flex items-center gap-1 px-2.5 py-1 rounded-full border border-cyan-400/80 bg-cyan-950/95 text-cyan-300 font-mono text-[11px] font-bold shadow-[0_0_15px_rgba(6,182,212,0.6)] whitespace-nowrap z-20 pointer-events-none"
-                >
-                  <span className="animate-pulse">Click here</span>
-                  <span className="text-sm">👇</span>
-                </motion.div>
-              )}
               <button
                 type="button"
                 data-tour="start-scan"
                 onClick={() => setIsModalOpen(true)}
                 className={`flex items-center gap-2 rounded-xl min-h-[44px] px-4 py-2.5 font-mono text-[11px] font-bold uppercase tracking-wider transition ${
                   (data.recentAssessments?.length ?? 0) === 0 && !isScanning
-                    ? 'bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-600 bg-[length:200%_auto] text-white shadow-[0_0_24px_rgba(6,182,212,0.8)] animate-pulse ring-2 ring-cyan-400 ring-offset-2 ring-offset-white dark:ring-offset-[#070c18]'
+                    ? 'bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-600 bg-[length:200%_auto] text-white shadow-[0_0_24px_rgba(6,182,212,0.85)] animate-pulse ring-2 ring-cyan-400 ring-offset-2 ring-offset-white dark:ring-offset-[#070c18]'
                     : 'bg-blue-600/80 backdrop-blur-xl border border-white/40 hover:bg-blue-600/90 text-white shadow-[0_8px_24px_rgba(37,99,235,0.35),inset_0_1px_0_rgba(255,255,255,0.35)] dark:bg-blue-500/25 dark:border-blue-300/30 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] dark:hover:bg-blue-500/35'
                 }`}
               >
-                <Zap size={14} className="fill-current text-white animate-bounce" />
+                <Zap size={14} className="fill-current text-white" />
                 <span>Start Assessment</span>
               </button>
             </div>

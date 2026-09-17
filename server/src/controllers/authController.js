@@ -59,18 +59,30 @@ const me = asyncHandler(async (req, res) => {
   res.json({ user: req.user.toSafeJSON() });
 });
 
-// PATCH /auth/me { name } — rename only. Email/role/provider can never be
-// changed here (identity stays locked to the login account).
+// PATCH /auth/me { name, hasSeenTour } — update profile name and/or tour status.
 const updateMe = asyncHandler(async (req, res) => {
-  const { name } = req.body || {};
-  if (!name || typeof name !== 'string' || !name.trim()) {
-    return res.status(400).json({ message: 'name is required' });
+  const { name, hasSeenTour } = req.body || {};
+  let changed = false;
+
+  if (typeof hasSeenTour === 'boolean') {
+    req.user.hasSeenTour = hasSeenTour;
+    changed = true;
   }
-  if (name.trim().length > 80) {
-    return res.status(400).json({ message: 'name is too long (max 80 chars)' });
+
+  if (name !== undefined) {
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ message: 'name is required' });
+    }
+    if (name.trim().length > 80) {
+      return res.status(400).json({ message: 'name is too long (max 80 chars)' });
+    }
+    req.user.name = name.trim().slice(0, 80);
+    changed = true;
   }
-  req.user.name = name.trim().slice(0, 80);
-  await req.user.save();
+
+  if (changed) {
+    await req.user.save();
+  }
   res.json({ user: req.user.toSafeJSON() });
 });
 

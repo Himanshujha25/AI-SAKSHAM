@@ -83,8 +83,59 @@ const PIPELINE_STAGES = [
   { num: '08', title: 'Hotpatch Synthesis', desc: 'Ready-to-merge Express/Nginx code fixes & PDFs', icon: FileText },
 ];
 
+// Strict check to filter out British English voices
+const isBritishVoice = (v) => {
+  const lang = (v?.lang || '').toLowerCase().replace(/_/g, '-');
+  const name = (v?.name || '').toLowerCase();
+  return (
+    lang.includes('en-gb') ||
+    lang.includes('en-uk') ||
+    name.includes('united kingdom') ||
+    name.includes('great britain') ||
+    name.includes('british') ||
+    name.includes('george') ||
+    name.includes('hazel') ||
+    name.includes('susan') ||
+    name.includes('uk english') ||
+    name.includes('oliver') ||
+    name.includes('stephanie')
+  );
+};
+
+// Strict check to select American or Indian English voices
+const isAmericanOrIndianVoice = (v) => {
+  if (isBritishVoice(v)) return false;
+  const lang = (v?.lang || '').toLowerCase().replace(/_/g, '-');
+  const name = (v?.name || '').toLowerCase();
+
+  const isUS =
+    lang === 'en-us' ||
+    lang.startsWith('en-us') ||
+    name.includes('united states') ||
+    name.includes('us english') ||
+    name.includes('david') ||
+    name.includes('mark') ||
+    name.includes('zira') ||
+    name.includes('guy') ||
+    name.includes('aria') ||
+    name.includes('alex') ||
+    name.includes('google us');
+
+  const isIN =
+    lang === 'en-in' ||
+    lang.startsWith('en-in') ||
+    name.includes('india') ||
+    name.includes('ravi') ||
+    name.includes('heera') ||
+    name.includes('neerja') ||
+    name.includes('prabhat') ||
+    name.includes('google english (india)');
+
+  return isUS || isIN;
+};
+
 export function OnboardingTour({ forceOpen = false, onClose }) {
-  const { user } = useAuth();
+  const { user, markTourCompleted } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [targetRect, setTargetRect] = useState(null);
@@ -93,12 +144,21 @@ export function OnboardingTour({ forceOpen = false, onClose }) {
   const speechRef = useRef(null);
   const speechTimeoutRef = useRef(null);
   const keepAliveRef = useRef(null);
-  const [maleVoice, setMaleVoice] = useState(null);
+  const isCancelledRef = useRef(false);
+  const isOpenRef = useRef(false);
+  const [selectedVoice, setSelectedVoice] = useState(null);
 
-  const storageKey = `saksham_tour_completed_${user?._id || 'default'}`;
+  const userIdentifier = user?.id || user?._id || user?.email || null;
+  const storageKey = `saksham_tour_completed_${userIdentifier || 'guest'}`;
+
+  // Keep isOpenRef strictly in sync with isOpen state
+  useEffect(() => {
+    isOpenRef.current = isOpen;
+  }, [isOpen]);
 
   // Instantly halts all speech synthesis, active utterances, and pending timeouts
   const stopAllSpeech = useCallback(() => {
+    isCancelledRef.current = true;
     if (speechTimeoutRef.current) {
       clearTimeout(speechTimeoutRef.current);
       speechTimeoutRef.current = null;
@@ -108,150 +168,190 @@ export function OnboardingTour({ forceOpen = false, onClose }) {
       keepAliveRef.current = null;
     }
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      if (window.speechSynthesis.paused) {
-        window.speechSynthesis.resume();
-      }
+      try {
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+        window.speechSynthesis.cancel();
+      } catch (e) {}
     }
     setIsSpeaking(false);
   }, []);
 
-  // Configure Natural & Reliable Voice (Local English voices prioritized to prevent cloud TTS silent drops)
+  // Ensure speech synthesis stops on component unmount or tab close
+  useEffect(() => {
+    return () => {
+      stopAllSpeech();
+    };
+  }, [stopAllSpeech]);
+
+  // Configure Natural & Reliable Voice: American or Indian English (NEVER British)
   const loadVoices = useCallback(() => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
     const voices = window.speechSynthesis.getVoices();
     if (!voices || voices.length === 0) return;
 
-    // Prioritize reliable local/offline English voices to ensure 100% audibility across Chrome/Edge
-    const localEn = voices.filter((v) => v.lang.toLowerCase().startsWith('en') && v.localService);
-    const anyEn = voices.filter((v) => v.lang.toLowerCase().startsWith('en'));
+    // 1. Natural named American or Indian voices
+    const naturalChoice = voices.find((v) => {
+      if (isBritishVoice(v)) return false;
+      const n = (v.name || '').toLowerCase();
+      return (
+        n.includes('david') ||
+        n.includes('mark') ||
+        n.includes('ravi') ||
+        n.includes('heera') ||
+        n.includes('neerja') ||
+        n.includes('google us') ||
+        n.includes('google english (india)') ||
+        n.includes('guy') ||
+        n.includes('aria')
+      );
+    });
 
-    const chosen =
-      localEn.find((v) => {
-        const n = v.name.toLowerCase();
-        return n.includes('david') || n.includes('mark') || n.includes('george') || n.includes('alex') || n.includes('google us');
-      }) ||
-      localEn[0] ||
-      anyEn.find((v) => {
-        const n = v.name.toLowerCase();
-        return !n.includes('online') && (n.includes('david') || n.includes('mark') || n.includes('george') || n.includes('alex'));
-      }) ||
-      anyEn[0] ||
-      voices[0];
+    // 2. Any local/offline American or Indian voice
+    const localChoice = voices.find((v) => v.localService && isAmericanOrIndianVoice(v));
 
-    if (chosen) setMaleVoice(chosen);
+    // 3. Any American or Indian voice
+    const anyUSorIN = voices.find((v) => isAmericanOrIndianVoice(v));
+
+    // 4. Any English voice that is NOT British
+    const anyNonBritish = voices.find((v) => {
+      const l = (v.lang || '').toLowerCase();
+      return l.startsWith('en') && !isBritishVoice(v);
+    });
+
+    const chosen = naturalChoice || localChoice || anyUSorIN || anyNonBritish;
+    if (chosen) {
+      setSelectedVoice(chosen);
+    }
   }, []);
 
   useEffect(() => {
     loadVoices();
-    if ('speechSynthesis' in window) {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.onvoiceschanged = loadVoices;
     }
   }, [loadVoices]);
 
-  // Check if first-time login
+  // First-time login detection & auto-show
   useEffect(() => {
     if (forceOpen) {
       setIsOpen(true);
       setCurrentStep(0);
       return;
     }
-    const completed = localStorage.getItem(storageKey);
-    if (!completed) {
+
+    // Only auto-open if user is loaded and hasn't seen the tour before
+    if (!userIdentifier) return;
+
+    const completedLocal = localStorage.getItem(storageKey);
+    const completedServer = user?.hasSeenTour;
+
+    // Only auto-show popup if it is strictly the user's first time
+    if (!completedLocal && !completedServer) {
       const timer = setTimeout(() => {
         setIsOpen(true);
         setCurrentStep(0);
       }, 700);
       return () => clearTimeout(timer);
     }
-  }, [storageKey, forceOpen]);
+  }, [userIdentifier, user?.hasSeenTour, storageKey, forceOpen]);
 
-  // Guaranteed Audible Voice Narration (Snappy 1.2x rate, instant queue flush)
-  const speakText = useCallback((text) => {
-    stopAllSpeech();
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-    if (!voiceEnabled) return;
+  // Clean, audible voice narration with instant cancellation guard
+  const speakText = useCallback(
+    (text) => {
+      stopAllSpeech();
+      if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+      if (!voiceEnabled || !isOpenRef.current) return;
 
-    try {
-      // 1. Play audible tone so user immediately has auditory confirmation
-      playCyberSound('click');
+      isCancelledRef.current = false;
 
-      // 2. Resume synthesizer if suspended
-      if (window.speechSynthesis.paused) {
-        window.speechSynthesis.resume();
-      }
+      try {
+        playCyberSound('click');
 
-      // 3. Cancel prior speech cleanly
-      window.speechSynthesis.cancel();
+        speechTimeoutRef.current = setTimeout(() => {
+          if (!voiceEnabled || isCancelledRef.current || !isOpenRef.current) return;
 
-      // 4. Brief delay to let Chromium flush cancel queue
-      speechTimeoutRef.current = setTimeout(() => {
-        if (!voiceEnabled) return;
-        try {
-          if (window.speechSynthesis.paused) {
-            window.speechSynthesis.resume();
-          }
-
-          const utterance = new SpeechSynthesisUtterance(text);
-          // Faster, crisp professional pace as requested
-          utterance.rate = 1.2;
-          utterance.pitch = 1.0;
-          utterance.volume = 1.0;
-          utterance.lang = 'en-US';
-
-          if (maleVoice) {
-            utterance.voice = maleVoice;
-          }
-
-          utterance.onstart = () => {
-            setIsSpeaking(true);
-          };
-
-          utterance.onend = () => {
-            setIsSpeaking(false);
-          };
-
-          utterance.onerror = () => {
-            setIsSpeaking(false);
-            if (maleVoice && voiceEnabled) {
-              try {
-                const fallback = new SpeechSynthesisUtterance(text);
-                fallback.rate = 1.2;
-                fallback.pitch = 1.0;
-                fallback.volume = 1.0;
-                fallback.lang = 'en-US';
-                fallback.onstart = () => setIsSpeaking(true);
-                fallback.onend = () => setIsSpeaking(false);
-                window.speechSynthesis.speak(fallback);
-              } catch (err) {}
-            }
-          };
-
-          speechRef.current = utterance;
-          window.speechSynthesis.speak(utterance);
-
-          // Chromium long utterance keep-alive
-          keepAliveRef.current = setInterval(() => {
-            if (!window.speechSynthesis.speaking) {
-              if (keepAliveRef.current) clearInterval(keepAliveRef.current);
-            } else {
-              window.speechSynthesis.pause();
+          try {
+            if (window.speechSynthesis.paused) {
               window.speechSynthesis.resume();
             }
-          }, 8000);
 
-          utterance.onend = () => {
-            if (keepAliveRef.current) clearInterval(keepAliveRef.current);
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1.15;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+
+            // Ensure American or Indian English voice and language tag (Never British)
+            if (selectedVoice) {
+              utterance.voice = selectedVoice;
+              const vLang = (selectedVoice.lang || '').toLowerCase();
+              if (vLang.startsWith('en-in')) {
+                utterance.lang = 'en-IN';
+              } else {
+                utterance.lang = 'en-US';
+              }
+            } else {
+              utterance.lang = 'en-US';
+            }
+
+            utterance.onstart = () => {
+              if (isCancelledRef.current || !isOpenRef.current) {
+                try { window.speechSynthesis.cancel(); } catch (e) {}
+                return;
+              }
+              setIsSpeaking(true);
+            };
+
+            utterance.onend = () => {
+              if (keepAliveRef.current) {
+                clearInterval(keepAliveRef.current);
+                keepAliveRef.current = null;
+              }
+              setIsSpeaking(false);
+            };
+
+            utterance.onerror = (event) => {
+              if (keepAliveRef.current) {
+                clearInterval(keepAliveRef.current);
+                keepAliveRef.current = null;
+              }
+              setIsSpeaking(false);
+              // CRITICAL: NEVER play fallback if intentionally cancelled or stopped!
+              if (
+                isCancelledRef.current ||
+                !isOpenRef.current ||
+                event?.error === 'canceled' ||
+                event?.error === 'interrupted'
+              ) {
+                return;
+              }
+            };
+
+            speechRef.current = utterance;
+            window.speechSynthesis.speak(utterance);
+
+            // Keep-alive for Chromium long utterances
+            keepAliveRef.current = setInterval(() => {
+              if (!window.speechSynthesis.speaking) {
+                if (keepAliveRef.current) clearInterval(keepAliveRef.current);
+              } else {
+                try {
+                  window.speechSynthesis.pause();
+                  window.speechSynthesis.resume();
+                } catch (e) {}
+              }
+            }, 8000);
+          } catch (err) {
             setIsSpeaking(false);
-          };
-        } catch (err) {
-          setIsSpeaking(false);
-        }
-      }, 35);
-    } catch (e) {
-      setIsSpeaking(false);
-    }
-  }, [voiceEnabled, maleVoice, stopAllSpeech]);
+          }
+        }, 50);
+      } catch (e) {
+        setIsSpeaking(false);
+      }
+    },
+    [voiceEnabled, selectedVoice, stopAllSpeech]
+  );
 
   // Update target element bounding box
   const updateTargetRect = useCallback(() => {
@@ -293,6 +393,8 @@ export function OnboardingTour({ forceOpen = false, onClose }) {
     window.addEventListener('scroll', handleResize);
 
     return () => {
+      // Immediate cancellation when transitioning between steps or unmounting
+      stopAllSpeech();
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('scroll', handleResize);
     };
@@ -336,7 +438,13 @@ export function OnboardingTour({ forceOpen = false, onClose }) {
 
   const handleClose = () => {
     stopAllSpeech();
-    localStorage.setItem(storageKey, 'true');
+    if (userIdentifier) {
+      localStorage.setItem(`saksham_tour_completed_${userIdentifier}`, 'true');
+    }
+    localStorage.setItem('saksham_tour_completed_guest', 'true');
+    if (markTourCompleted) {
+      markTourCompleted();
+    }
     setIsOpen(false);
     try { playCyberSound('toast'); } catch (e) {}
     if (onClose) onClose();

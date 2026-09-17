@@ -77,12 +77,22 @@ export function AuthProvider({ children }) {
     return res.data.user;
   };
 
-  // Rename only (email/role stay locked). Server returns the fresh user,
+  // Rename only or tour state. Server returns the fresh user,
   // so every screen (navbar, bot, settings) updates instantly.
   const updateProfile = async (name) => {
     const res = await api.patch('/auth/me', { name });
     setUser(res.data.user);
     return res.data.user;
+  };
+
+  const markTourCompleted = async () => {
+    try {
+      const res = await api.patch('/auth/me', { hasSeenTour: true });
+      setUser(res.data.user);
+      return res.data.user;
+    } catch {
+      // Ignore if offline/network hiccup; local state already marked
+    }
   };
 
   const logout = async () => {
@@ -98,7 +108,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, demoLogin, register, googleLogin, updateProfile, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, demoLogin, register, googleLogin, updateProfile, markTourCompleted, logout }}>
       {children}
     </AuthContext.Provider>
   );
