@@ -53,11 +53,12 @@ async function generateReportFile({ project, target, assessment, findings = [], 
       background: var(--bg-base);
       color: var(--text-primary);
       line-height: 1.5;
-      padding: 32px 16px;
+      padding: 24px 16px;
       -webkit-font-smoothing: antialiased;
     }
     .wrapper {
-      max-width: 1040px;
+      max-width: 1440px;
+      width: 96%;
       margin: 0 auto;
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);

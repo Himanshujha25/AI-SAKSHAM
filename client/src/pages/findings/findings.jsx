@@ -8,6 +8,7 @@ import {
   AlertOctagon,
   Info,
   CheckCircle2,
+  XCircle,
   Search,
   Filter,
   X,
@@ -35,6 +36,8 @@ import {
   Download,
   BookOpen,
   HelpCircle,
+  Scale,
+  Zap,
 } from 'lucide-react';
 import api from '../../lib/api';
 import { getSocket } from '../../lib/socket';
@@ -42,6 +45,8 @@ import { errMsg, cn, buildCurl, slaCountdown } from '../../lib/utils';
 import CustomSelect from '../../components/ui/CustomSelect';
 import { PageHeader, LoadingState, ErrorState, EmptyState, SeverityBadge, StatusBadge, PremiumIcon } from '../../components/shared/shared';
 import { Button, Card, Input } from '../../components/ui/primitives';
+import { CombinedConclusionCard } from '../../components/pentera/CombinedConclusionCard';
+import { PenteraRemediationWiki } from '../../components/pentera/PenteraRemediationWiki';
 
 function formatDateTime(val) {  if (!val) val = new Date().toISOString();
   const d = new Date(val);
@@ -748,12 +753,12 @@ export function Findings() {
               ))}
             </div>
 
-            {/* Desktop View: High-Density Data Table (>= 768px) */}
-            <div className="hidden md:block w-full overflow-x-auto">
-              <table className="w-full text-left text-xs">
+            {/* Desktop View: High-Density Data Table (>= 768px) — Locked 100% Width (No Horizontal Scroll) */}
+            <div className="hidden md:block w-full overflow-hidden">
+              <table className="w-full table-fixed text-left text-xs">
                 <thead className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 font-mono text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   <tr>
-                    <th className="w-8 px-2 py-3 text-center">
+                    <th className="w-9 px-2 py-3 text-center">
                       <input
                         type="checkbox"
                         checked={isAllSelected}
@@ -762,16 +767,15 @@ export function Findings() {
                         className="rounded border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-cyan-500 focus:ring-0 cursor-pointer"
                       />
                     </th>
-                    <th className="px-2 py-3">ID</th>
+                    <th className="w-20 px-2 py-3">ID</th>
                     <th className="px-3 py-3">TITLE</th>
-                    <th className="px-3 py-3">PROJECT</th>
-                    <th className="px-2 py-3">SEVERITY</th>
-                    <th className="px-2 py-3">CVSS</th>
-                    <th className="px-3 py-3">ASSET / ENDPOINT</th>
-                    <th className="px-2 py-3">STATUS</th>
-                    <th className="px-3 py-3">DETECTED</th>
-                    <th className="px-3 py-3">UPDATED</th>
-                    <th className="w-16 px-2 py-3 text-center">ACTIONS</th>
+                    <th className="w-28 px-2 py-3">PROJECT</th>
+                    <th className="w-24 px-2 py-3">SEVERITY</th>
+                    <th className="w-14 px-2 py-3">CVSS</th>
+                    <th className="w-48 px-2 py-3">ASSET / ENDPOINT</th>
+                    <th className="w-28 px-2 py-3">STATUS</th>
+                    <th className="w-28 px-2 py-3">DETECTED</th>
+                    <th className="w-20 px-2 py-3 text-center">ACTIONS</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
@@ -785,7 +789,7 @@ export function Findings() {
                         selectedFinding?._id === item._id && 'bg-slate-100 dark:bg-slate-800/80 border-l-2 border-cyan-400'
                       )}
                     >
-                      <td className="px-2 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
+                      <td className="w-9 px-2 py-3 text-center" onClick={(e) => e.stopPropagation()}>
                         <input
                           type="checkbox"
                           checked={selectedIds.includes(item._id)}
@@ -794,52 +798,58 @@ export function Findings() {
                           className="rounded border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-cyan-500 focus:ring-0 cursor-pointer"
                         />
                       </td>
-                      <td className="px-2 py-3.5 font-mono font-medium text-slate-500 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-cyan-400 whitespace-nowrap">{item.findingId}</td>
-                      <td className="px-3 py-3.5">
-                        <div className="font-semibold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-cyan-300 truncate max-w-[200px]">{item.title}</div>
-                        <div className="truncate max-w-[200px] text-[11px] text-slate-500 dark:text-slate-400">{item.description}</div>
+                      <td className="w-20 px-2 py-3 font-mono font-medium text-slate-500 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-cyan-400 truncate">
+                        {item.findingId}
                       </td>
-                      <td className="px-3 py-3.5 whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 font-mono text-[11px] font-medium text-slate-700 dark:text-slate-200 shadow-sm">
+                      <td className="px-3 py-3 min-w-0">
+                        <div className="font-semibold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-cyan-300 truncate" title={item.title}>
+                          {item.title}
+                        </div>
+                        <div className="truncate text-[11px] text-slate-500 dark:text-slate-400" title={item.description}>
+                          {item.description}
+                        </div>
+                      </td>
+                      <td className="w-28 px-2 py-3">
+                        <span className="inline-flex items-center gap-1 rounded-md border border-slate-200 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 font-mono text-[11px] font-medium text-slate-700 dark:text-slate-200 shadow-sm max-w-full truncate" title={item.projectId?.name || projectMap[String(item.projectId)] || 'Project'}>
                           <Folder className="h-3 w-3 text-blue-600 dark:text-cyan-400 shrink-0" />
-                          <span className="truncate max-w-[100px]" title={item.projectId?.name || projectMap[String(item.projectId)] || 'Project'}>
+                          <span className="truncate">
                             {item.projectId?.name || projectMap[String(item.projectId)] || 'Project'}
                           </span>
                         </span>
                       </td>
-                      <td className="px-2 py-3.5">
+                      <td className="w-24 px-2 py-3">
                         <SeverityBadge severity={item.severity} />
                       </td>
-                      <td className="px-2 py-3.5 font-mono font-semibold text-slate-700 dark:text-slate-200">{item.cvssScore}</td>
-                      <td className="px-3 py-3.5">
-                        <div className="flex items-center gap-1 font-mono text-[11px]">
-                          <span className="truncate max-w-[170px] text-blue-600 dark:text-cyan-400" title={`Endpoint asset path: ${item.affectedAssets?.[0]}`}>{item.affectedAssets?.[0] || 'N/A'}</span>
+                      <td className="w-14 px-2 py-3 font-mono font-semibold text-slate-700 dark:text-slate-200">
+                        {item.cvssScore}
+                      </td>
+                      <td className="w-48 px-2 py-3">
+                        <div className="flex items-center gap-1 font-mono text-[11px] max-w-full">
+                          <span className="truncate text-blue-600 dark:text-cyan-400" title={`Endpoint asset path: ${item.affectedAssets?.[0]}`}>
+                            {item.affectedAssets?.[0] || 'N/A'}
+                          </span>
                           {item.httpMethod && (
-                            <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 text-[9px] font-bold uppercase text-slate-600 dark:text-slate-300" title={`HTTP Method: ${item.httpMethod}`}>
+                            <span className="shrink-0 rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 text-[9px] font-bold uppercase text-slate-600 dark:text-slate-300" title={`HTTP Method: ${item.httpMethod}`}>
                               {item.httpMethod}
                             </span>
                           )}
                         </div>
                       </td>
-                      <td className="px-2 py-3.5">
+                      <td className="w-28 px-2 py-3">
                         <StatusBadge status={item.status} />
                       </td>
-                      <td className="px-3 py-3.5 text-slate-500 dark:text-slate-400 font-mono text-[11px] whitespace-nowrap">
-                        {formatDateTime(item.detectedDate || item.createdAt).date}
-                        <span className="block text-[10px] text-slate-500 font-semibold mt-0.5">
+                      <td className="w-28 px-2 py-3 text-slate-500 dark:text-slate-400 font-mono text-[11px]">
+                        <span className="font-medium text-slate-700 dark:text-slate-300 block truncate">
+                          {formatDateTime(item.detectedDate || item.createdAt).date}
+                        </span>
+                        <span className="block text-[10px] text-slate-500">
                           {formatDateTime(item.detectedDate || item.createdAt).time}
                         </span>
                       </td>
-                      <td className="px-3 py-3.5 text-slate-500 dark:text-slate-400 font-mono text-[11px] whitespace-nowrap">
-                        {formatDateTime(item.updatedDate || item.updatedAt).date}
-                        <span className="block text-[10px] text-slate-500 font-semibold mt-0.5">
-                          {formatDateTime(item.updatedDate || item.updatedAt).time}
-                        </span>
-                      </td>
-                      <td className="px-2 py-3.5 text-center text-slate-500 hover:text-slate-700 dark:hover:text-slate-200" onClick={(e) => e.stopPropagation()}>
+                      <td className="w-20 px-2 py-3 text-center text-slate-500 hover:text-slate-700 dark:hover:text-slate-200" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => setSelectedFinding(item)}
-                          className="inline-flex items-center gap-1 rounded border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 px-2 py-1 font-mono text-[10px] font-bold text-blue-600 dark:text-cyan-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:border-blue-300 dark:hover:border-cyan-500/40 transition"
+                          className="inline-flex items-center gap-1 rounded border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 font-mono text-[10px] font-bold text-blue-600 dark:text-cyan-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:border-blue-300 dark:hover:border-cyan-500/40 transition"
                           title={`Inspect finding ${item.findingId}`}
                         >
                           Inspect <ChevronRight size={11} />
@@ -990,9 +1000,9 @@ export function Findings() {
                       </div>
 
                       {selectedFinding.aiAnalysis?.priorityReason && (
-                        <div className="rounded-lg bg-amber-500/10 p-3 border border-amber-500/30 text-xs">
-                          <span className="font-bold text-amber-700 dark:text-amber-300 block mb-0.5">Priority Rationale:</span>
-                          <p className="text-amber-200/90">{selectedFinding.aiAnalysis.priorityReason}</p>
+                        <div className="rounded-lg bg-amber-50 dark:bg-amber-950/40 p-3.5 border border-amber-300 dark:border-amber-500/30 text-xs space-y-1">
+                          <span className="font-bold text-amber-900 dark:text-amber-300 block">Priority Rationale:</span>
+                          <p className="text-amber-950 dark:text-amber-100 font-medium leading-relaxed">{selectedFinding.aiAnalysis.priorityReason}</p>
                         </div>
                       )}
 
@@ -1187,7 +1197,7 @@ export function Findings() {
                   <Button
                     variant="outline"
                     onClick={() => navigate(`/findings/${selectedFinding._id}`)}
-                    className="flex items-center gap-1.5"
+                    className="flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 shadow-sm"
                   >
                     Open Full Page View <ExternalLink className="h-3.5 w-3.5" />
                   </Button>
@@ -1198,16 +1208,17 @@ export function Findings() {
                       onClick={() =>
                         verifyMutation.mutate({ id: selectedFinding._id, status: 'Under Review' })
                       }
-                      className="text-xs"
+                      className="text-xs font-semibold text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 shadow-sm"
                     >
                       Mark Under Review
                     </Button>
 
                     <Button
+                      variant="success"
                       onClick={() =>
                         verifyMutation.mutate({ id: selectedFinding._id, status: 'Verified' })
                       }
-                      className="bg-emerald-500/80 backdrop-blur-xl border border-white/40 hover:bg-emerald-500/90 text-white text-xs shadow-[0_8px_24px_rgba(16,185,129,0.35),inset_0_1px_0_rgba(255,255,255,0.35)] dark:bg-emerald-500/25 dark:border-emerald-300/30 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] dark:hover:bg-emerald-500/35"
+                      className="text-xs font-bold shadow-md shadow-emerald-500/25"
                     >
                       Resolve Finding
                     </Button>
@@ -1511,15 +1522,22 @@ export function FindingDetail() {
 
   const verify = useMutation({
     mutationFn: async (status) => (await api.post(`/findings/${id}/verify`, { status })).data,
-    onSuccess: () => {
+    onSuccess: (resData) => {
+      if (resData?.finding) {
+        qc.setQueryData(['finding', id], (old) => (old ? { ...old, finding: resData.finding } : { finding: resData.finding }));
+      }
       qc.invalidateQueries({ queryKey: ['finding', id] });
       qc.invalidateQueries({ queryKey: ['findings'] });
+      qc.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });
 
   const ai = useMutation({
     mutationFn: async () => (await api.post(`/findings/${id}/ai-analysis`)).data,
-    onSuccess: () => {
+    onSuccess: (resData) => {
+      if (resData?.finding) {
+        qc.setQueryData(['finding', id], (old) => (old ? { ...old, finding: resData.finding } : { finding: resData.finding }));
+      }
       qc.invalidateQueries({ queryKey: ['finding', id] });
       qc.invalidateQueries({ queryKey: ['findings'] });
     },
@@ -1527,7 +1545,10 @@ export function FindingDetail() {
 
   const retest = useMutation({
     mutationFn: async ({ result, notes }) => (await api.post(`/findings/${id}/retest`, { result, notes })).data,
-    onSuccess: () => {
+    onSuccess: (resData) => {
+      if (resData?.finding) {
+        qc.setQueryData(['finding', id], (old) => (old ? { ...old, finding: resData.finding } : { finding: resData.finding }));
+      }
       qc.invalidateQueries({ queryKey: ['finding', id] });
       qc.invalidateQueries({ queryKey: ['findings'] });
       qc.invalidateQueries({ queryKey: ['dashboard'] });
@@ -1633,15 +1654,37 @@ export function FindingDetail() {
           <div className="flex items-center gap-2">
             <SeverityBadge severity={v.severity} />
             <StatusBadge status={v.status} />
+            {v.retestStatus === 'PASSED' && (
+              <span className="rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 px-3 py-1 text-xs font-mono font-bold flex items-center gap-1.5 shadow-sm animate-in fade-in duration-150">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                VERIFIED - PASSED
+              </span>
+            )}
+            {v.retestStatus === 'FAILED' && (
+              <span className="rounded-full bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/40 px-3 py-1 text-xs font-mono font-bold flex items-center gap-1.5 shadow-sm animate-in fade-in duration-150">
+                <XCircle className="h-3.5 w-3.5" />
+                RETEST FAILED
+              </span>
+            )}
+            {v.retestStatus === 'REQUIRED' && (
+              <span className="rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/40 px-3 py-1 text-xs font-mono font-bold flex items-center gap-1.5 shadow-sm animate-in fade-in duration-150">
+                <RotateCcw className="h-3.5 w-3.5" />
+                RETEST REQUIRED
+              </span>
+            )}
           </div>
         }
       />
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left Column: Full Technical Breakdown */}
-        <div className="space-y-6 lg:col-span-2">
+      {/* Synergistic Scanner + AI Conclusion - Spans Full Width */}
+      <CombinedConclusionCard finding={v} />
+
+      {/* 2-Column Overview & Triage Grid: Left has Details, Right has Scores & Status Actions */}
+      <div className="grid gap-6 lg:grid-cols-12">
+        {/* Left: Overview, Component, Impact */}
+        <div className="space-y-6 lg:col-span-7">
           {/* 1. Vulnerability Overview */}
-          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-4">
+          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-4 shadow-sm">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
               <FileText className="h-4 w-4 text-blue-600 dark:text-cyan-400" /> Vulnerability Description & Metadata
             </h3>
@@ -1659,7 +1702,14 @@ export function FindingDetail() {
                 </span>
               )}
               {v.retestStatus && v.retestStatus !== 'NOT_REQUIRED' && (
-                <span className="rounded-md bg-sky-500/15 px-2.5 py-1 font-mono text-[11px] font-semibold text-sky-700 dark:text-sky-300 ring-1 ring-sky-400/40">
+                <span className={cn(
+                  "rounded-md px-2.5 py-1 font-mono text-[11px] font-semibold ring-1",
+                  v.retestStatus === 'PASSED'
+                    ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 ring-emerald-400/40"
+                    : v.retestStatus === 'FAILED'
+                    ? "bg-red-500/15 text-red-700 dark:text-red-300 ring-red-400/40"
+                    : "bg-amber-500/15 text-amber-700 dark:text-amber-300 ring-amber-400/40"
+                )}>
                   RETEST: {v.retestStatus}
                 </span>
               )}
@@ -1668,7 +1718,7 @@ export function FindingDetail() {
           </Card>
 
           {/* 2. Affected Component */}
-          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3">
+          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3 shadow-sm">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
               <Layers className="h-4 w-4 text-blue-600 dark:text-cyan-400" /> Affected Component & Endpoint
             </h3>
@@ -1680,38 +1730,8 @@ export function FindingDetail() {
             </div>
           </Card>
 
-          {/* 3. Steps to Reproduce */}
-          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-2">
-              <Bug className="h-4 w-4 text-amber-600 dark:text-amber-400" /> Steps to Reproduce (AI Verified)
-            </h3>
-            <div className="space-y-2.5 pt-1">
-              {stepsToReproduce.map((step, idx) => (
-                <div key={idx} className="flex items-start gap-3 rounded-lg border border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-950/60 p-3 text-xs text-slate-700 dark:text-slate-200">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 font-mono text-[11px] font-bold text-amber-600 dark:text-amber-400 border border-slate-200 dark:border-slate-700">
-                    {idx + 1}
-                  </span>
-                  <span className="leading-relaxed pt-0.5">{step}</span>
-                </div>
-              ))}
-            </div>
-          </Card>
-
-          {/* 4. Proof of Concept (PoC) */}
-          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                <Code2 className="h-4 w-4 text-blue-600 dark:text-cyan-400" /> Proof of Concept (Safe Testing Demonstration)
-              </h3>
-              <CopyCurlButton finding={v} />
-            </div>
-            <pre className="overflow-x-auto rounded-lg bg-white dark:bg-slate-950 p-4 font-mono text-xs text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-800 leading-relaxed">
-              {proofOfConcept}
-            </pre>
-          </Card>
-
-          {/* 5. Business Impact Assessment */}
-          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3 border-l-4 border-l-red-500">
+          {/* 3. Business Impact Assessment */}
+          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3 border-l-4 border-l-red-500 shadow-sm">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-red-600 dark:text-red-400 flex items-center gap-2">
               <ShieldAlert className="h-4 w-4 text-red-600 dark:text-red-400" /> Business Impact Assessment
             </h3>
@@ -1720,39 +1740,88 @@ export function FindingDetail() {
             </p>
           </Card>
 
-          {/* 6. Remediation Recommendations */}
-          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Remediation Recommendations
-            </h3>
-            <ul className="space-y-2 text-xs text-slate-600 dark:text-slate-300">
-              {remediationSteps.map((r, i) => (
-                <li key={i} className="flex items-start gap-2.5 rounded-lg border border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-950/60 p-2.5">
-                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">•</span>
-                  <span className="leading-relaxed">{r}</span>
-                </li>
-              ))}
-            </ul>
-          </Card>
+          {/* 4. Regulatory Compliance Impact & Threat Vector Matrix */}
+          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-4 shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800/80 pb-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                <Scale className="h-4 w-4 text-purple-600 dark:text-purple-400" /> Regulatory Compliance & Threat Vector Matrix
+              </h3>
+              <span className="font-mono text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 px-2 py-0.5 rounded border border-red-200 dark:border-red-500/30 uppercase">
+                Audit Impact: High
+              </span>
+            </div>
 
-          {/* 7. Safe Testing & Ethical Constraints Notice */}
-          <Card className="border-cyan-900/40 bg-blue-50 dark:bg-cyan-950/15 p-5 space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-cyan-400 flex items-center gap-2">
-              <Shield className="h-4 w-4 text-blue-600 dark:text-cyan-400" /> Rules of Engagement & Ethical Hacking Constraints
-            </h3>
-            <div className="grid gap-2 text-xs text-slate-600 dark:text-slate-300">
-              {ethicalConstraints.map((c, idx) => (
-                <div key={idx} className="flex items-center gap-2 text-[11px] text-blue-600 dark:text-cyan-200">
-                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 shrink-0" />
-                  <span>{c}</span>
+            {/* Compliance Standards Impact Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-2.5 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[11px] font-bold text-slate-900 dark:text-white">PCI-DSS 4.0</span>
+                  <span className="h-2 w-2 rounded-full bg-red-500" />
                 </div>
-              ))}
+                <p className="text-[10px] text-red-600 dark:text-red-400 font-semibold uppercase">Req 6.5 Failure</p>
+                <p className="text-[10px] text-slate-500 leading-tight">Web application & API misconfiguration</p>
+              </div>
+
+              <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-2.5 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[11px] font-bold text-slate-900 dark:text-white">GDPR Art. 32</span>
+                  <span className="h-2 w-2 rounded-full bg-orange-500" />
+                </div>
+                <p className="text-[10px] text-orange-600 dark:text-orange-400 font-semibold uppercase">Exposure Risk</p>
+                <p className="text-[10px] text-slate-500 leading-tight">Inadequate technical data safeguards</p>
+              </div>
+
+              <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-2.5 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[11px] font-bold text-slate-900 dark:text-white">ISO 27001</span>
+                  <span className="h-2 w-2 rounded-full bg-amber-500" />
+                </div>
+                <p className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold uppercase">Ctrl A.8.20</p>
+                <p className="text-[10px] text-slate-500 leading-tight">Network & perimeter boundary lapse</p>
+              </div>
+
+              <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-2.5 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[11px] font-bold text-slate-900 dark:text-white">SOC 2 Type II</span>
+                  <span className="h-2 w-2 rounded-full bg-purple-500" />
+                </div>
+                <p className="text-[10px] text-purple-600 dark:text-purple-400 font-semibold uppercase">Criteria CC6.1</p>
+                <p className="text-[10px] text-slate-500 leading-tight">Logical & remote access vulnerability</p>
+              </div>
+            </div>
+
+            {/* Exploitability & Attack Vectors */}
+            <div className="rounded-lg border border-slate-200 dark:border-slate-800/90 bg-white dark:bg-slate-950 p-3 space-y-2">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="font-mono font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                  <Zap className="h-3.5 w-3.5 text-amber-500" /> Attack Vector & Exploitability Profile:
+                </span>
+                <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">Remotely Exploitable</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 font-mono text-[11px]">
+                <div className="rounded bg-slate-100 dark:bg-slate-900 p-2 border border-slate-200 dark:border-slate-800">
+                  <span className="text-[10px] text-slate-500 block uppercase">Vector</span>
+                  <span className="font-bold text-blue-600 dark:text-cyan-300">Network (AV:N)</span>
+                </div>
+                <div className="rounded bg-slate-100 dark:bg-slate-900 p-2 border border-slate-200 dark:border-slate-800">
+                  <span className="text-[10px] text-slate-500 block uppercase">Complexity</span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400">Low (AC:L)</span>
+                </div>
+                <div className="rounded bg-slate-100 dark:bg-slate-900 p-2 border border-slate-200 dark:border-slate-800">
+                  <span className="text-[10px] text-slate-500 block uppercase">Privileges</span>
+                  <span className="font-bold text-purple-600 dark:text-purple-300">None (PR:N)</span>
+                </div>
+                <div className="rounded bg-slate-100 dark:bg-slate-900 p-2 border border-slate-200 dark:border-slate-800">
+                  <span className="text-[10px] text-slate-500 block uppercase">User Action</span>
+                  <span className="font-bold text-amber-600 dark:text-amber-400">None (UI:N)</span>
+                </div>
+              </div>
             </div>
           </Card>
         </div>
 
-        {/* Right Side Column */}
-        <div className="space-y-6">
+        {/* Right: CVSS Score, AI Trigger, Update Status, Fix Verification */}
+        <div className="space-y-6 lg:col-span-5">
           {/* CVSS Metric Card */}
           <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 text-center shadow-lg">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">CVSS v3 Score</h3>
@@ -1763,7 +1832,7 @@ export function FindingDetail() {
           </Card>
 
           {/* AI Security Analysis Trigger */}
-          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3">
+          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3 shadow-sm">
             <div className="flex items-center justify-between">
               <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-cyan-400">
                 <Code2 className="h-4 w-4 text-blue-600 dark:text-cyan-400" /> AI Security Analysis
@@ -1797,48 +1866,177 @@ export function FindingDetail() {
             {ai.isError && <p className="text-xs text-red-600 dark:text-red-400">{errMsg(ai.error)}</p>}
           </Card>
 
-          {/* Verification Workflow */}
-          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Update Status</h3>
+          {/* Verification Workflow - Clearly Highlight Active Button */}
+          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3 shadow-md">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Update Status</h3>
+              <span className="font-mono text-[10px] font-bold text-blue-600 dark:text-cyan-400 uppercase bg-blue-50 dark:bg-cyan-950/50 px-2 py-0.5 rounded border border-blue-200 dark:border-cyan-500/30">
+                Active: {v.status}
+              </span>
+            </div>
             <div className="grid grid-cols-2 gap-2">
-              {['Under Review', 'Verified', 'False Positive', 'Resolved'].map((st) => (
-                <Button
-                  key={st}
-                  variant="outline"
-                  disabled={verify.isPending}
-                  onClick={() => verify.mutate(st)}
-                  className="text-xs py-1.5"
-                >
-                  Mark {st}
-                </Button>
-              ))}
+              {['Under Review', 'Verified', 'False Positive', 'Resolved'].map((st) => {
+                const isActive = (v.status || '').toLowerCase() === st.toLowerCase();
+                return (
+                  <Button
+                    key={st}
+                    variant={isActive ? 'default' : 'outline'}
+                    disabled={verify.isPending}
+                    onClick={() => verify.mutate(st)}
+                    className={cn(
+                      "text-xs py-2 font-bold transition-all duration-150 flex items-center justify-center gap-1.5",
+                      isActive
+                        ? "bg-blue-600 dark:bg-cyan-500 text-white dark:text-slate-950 shadow-md ring-2 ring-blue-500/60 dark:ring-cyan-300"
+                        : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950/60 hover:border-blue-400 text-slate-700 dark:text-slate-300"
+                    )}
+                  >
+                    {isActive && <Check className="h-3.5 w-3.5 stroke-[2.5]" />}
+                    <span>Mark {st}</span>
+                  </Button>
+                );
+              })}
             </div>
             {verify.isError && <p className="text-xs text-red-600 dark:text-red-400">{errMsg(verify.error)}</p>}
           </Card>
 
-
-          {/* Fix Verification / Retest */}
-          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3">
-            <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              <RotateCcw className="h-3.5 w-3.5 text-blue-600 dark:text-cyan-400" /> Fix Verification
-            </h3>
-            {v.retestNotes && <p className="text-xs text-slate-500 dark:text-slate-400">Last retest: {v.retestNotes}</p>}
+          {/* Fix Verification / Retest - Clearly Highlight Active Button */}
+          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3 shadow-md">
+            <div className="flex items-center justify-between">
+              <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <RotateCcw className="h-3.5 w-3.5 text-blue-600 dark:text-cyan-400" /> Fix Verification
+              </h3>
+              {v.retestStatus && v.retestStatus !== 'NOT_REQUIRED' && (
+                <span className={cn(
+                  "font-mono text-[10px] font-bold uppercase px-2 py-0.5 rounded border",
+                  v.retestStatus === 'PASSED'
+                    ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+                    : v.retestStatus === 'FAILED'
+                    ? "bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30"
+                    : "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30"
+                )}>
+                  {v.retestStatus}
+                </span>
+              )}
+            </div>
+            {v.retestNotes && <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">Last retest notes: {v.retestNotes}</p>}
             <div className="grid grid-cols-3 gap-2">
-              <Button variant="outline" disabled={retest.isPending} onClick={() => retest.mutate({ result: 'REQUIRED' })} className="text-xs py-1.5">
+              <Button
+                variant={v.retestStatus === 'REQUIRED' ? 'default' : 'outline'}
+                disabled={retest.isPending}
+                onClick={() => retest.mutate({ result: 'REQUIRED', notes: 'Retest requested by analyst' })}
+                className={cn(
+                  "text-xs py-2 font-bold transition-all duration-150 flex items-center justify-center gap-1",
+                  v.retestStatus === 'REQUIRED'
+                    ? "bg-amber-600 text-white ring-2 ring-amber-400/60 shadow-md"
+                    : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950/60 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                )}
+              >
+                {v.retestStatus === 'REQUIRED' && <Check className="h-3.5 w-3.5 stroke-[2.5]" />}
                 Request Retest
               </Button>
-              <Button variant="outline" disabled={retest.isPending} onClick={() => retest.mutate({ result: 'PASSED', notes: 'Fix confirmed on retest' })} className="text-xs py-1.5 border-emerald-500/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10">
+              <Button
+                variant={v.retestStatus === 'PASSED' ? 'default' : 'outline'}
+                disabled={retest.isPending}
+                onClick={() => retest.mutate({ result: 'PASSED', notes: 'Fix confirmed and verified' })}
+                className={cn(
+                  "text-xs py-2 font-bold transition-all duration-150 flex items-center justify-center gap-1",
+                  v.retestStatus === 'PASSED'
+                    ? "bg-emerald-600 text-white ring-2 ring-emerald-400 shadow-md"
+                    : "border-emerald-500/40 bg-white dark:bg-slate-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/15"
+                )}
+              >
+                {v.retestStatus === 'PASSED' && <Check className="h-3.5 w-3.5 stroke-[2.5]" />}
                 Pass
               </Button>
-              <Button variant="outline" disabled={retest.isPending} onClick={() => retest.mutate({ result: 'FAILED', notes: 'Issue still reproducible' })} className="text-xs py-1.5 border-red-500/40 text-red-700 dark:text-red-300 hover:bg-red-500/10">
+              <Button
+                variant={v.retestStatus === 'FAILED' ? 'default' : 'outline'}
+                disabled={retest.isPending}
+                onClick={() => retest.mutate({ result: 'FAILED', notes: 'Vulnerability still reproducible' })}
+                className={cn(
+                  "text-xs py-2 font-bold transition-all duration-150 flex items-center justify-center gap-1",
+                  v.retestStatus === 'FAILED'
+                    ? "bg-red-600 text-white ring-2 ring-red-400 shadow-md"
+                    : "border-red-500/40 bg-white dark:bg-slate-950/60 text-red-700 dark:text-red-300 hover:bg-red-500/15"
+                )}
+              >
+                {v.retestStatus === 'FAILED' && <Check className="h-3.5 w-3.5 stroke-[2.5]" />}
                 Fail
               </Button>
             </div>
             {retest.isError && <p className="text-xs text-red-600 dark:text-red-400">{errMsg(retest.error)}</p>}
           </Card>
+        </div>
+      </div>
 
+      {/* FULL WIDTH TECHNICAL SECTIONS (Zero Empty Right Space) */}
+      <div className="space-y-6">
+        {/* 4. Steps to Reproduce */}
+        <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3 shadow-sm">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-2">
+            <Bug className="h-4 w-4 text-amber-600 dark:text-amber-400" /> Steps to Reproduce (AI Verified)
+          </h3>
+          <div className="space-y-2.5 pt-1">
+            {stepsToReproduce.map((step, idx) => (
+              <div key={idx} className="flex items-start gap-3 rounded-lg border border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-950/60 p-3 text-xs text-slate-700 dark:text-slate-200">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 font-mono text-[11px] font-bold text-amber-600 dark:text-amber-400 border border-slate-200 dark:border-slate-700">
+                  {idx + 1}
+                </span>
+                <span className="leading-relaxed pt-0.5">{step}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* 5. Proof of Concept (PoC) */}
+        <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3 shadow-sm">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
+              <Code2 className="h-4 w-4 text-blue-600 dark:text-cyan-400" /> Proof of Concept (Safe Testing Demonstration)
+            </h3>
+            <CopyCurlButton finding={v} />
+          </div>
+          <pre className="overflow-x-auto rounded-lg bg-white dark:bg-slate-950 p-4 font-mono text-xs text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-800 leading-relaxed">
+            {proofOfConcept}
+          </pre>
+        </Card>
+
+        {/* Saksham AI Remediation Blueprint & Configuration Playbook */}
+        <PenteraRemediationWiki finding={v} />
+
+        {/* 6. Remediation Recommendations */}
+        <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3 shadow-sm">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Remediation Recommendations
+          </h3>
+          <ul className="space-y-2 text-xs text-slate-600 dark:text-slate-300">
+            {remediationSteps.map((r, i) => (
+              <li key={i} className="flex items-start gap-2.5 rounded-lg border border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-950/60 p-2.5">
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold">•</span>
+                <span className="leading-relaxed">{r}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+
+        {/* 7. Safe Testing & Ethical Constraints Notice */}
+        <Card className="border-cyan-900/40 bg-blue-50 dark:bg-cyan-950/15 p-5 space-y-3 shadow-sm">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-cyan-400 flex items-center gap-2">
+            <Shield className="h-4 w-4 text-blue-600 dark:text-cyan-400" /> Rules of Engagement & Ethical Hacking Constraints
+          </h3>
+          <div className="grid gap-2 text-xs text-slate-600 dark:text-slate-300">
+            {ethicalConstraints.map((c, idx) => (
+              <div key={idx} className="flex items-center gap-2 text-[11px] text-blue-600 dark:text-cyan-200">
+                <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 shrink-0" />
+                <span>{c}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* Side-by-Side Reference Guides: Rating Matrix & Security Glossary */}
+        <div className="grid gap-6 md:grid-cols-2">
           {/* CVSS v3.1 Severity Score Scale Guide */}
-          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3 shadow-md">
+          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3 shadow-sm">
             <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-cyan-400">
               <BookOpen className="h-4 w-4 text-blue-600 dark:text-cyan-400" /> CVSS v3.1 Rating Matrix & Scale Guide
             </h3>
@@ -1880,8 +2078,8 @@ export function FindingDetail() {
             </div>
           </Card>
 
-          {/* Technical Security Terms & Glossary Explainer */}
-          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3 shadow-md">
+          {/* Technical Security Terms & Security Glossary */}
+          <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-5 space-y-3 shadow-sm">
             <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-purple-600 dark:text-purple-400">
               <HelpCircle className="h-4 w-4 text-purple-600 dark:text-purple-400" /> Technical Terms & Security Glossary
             </h3>
@@ -1912,3 +2110,4 @@ export function FindingDetail() {
     </div>
   );
 }
+

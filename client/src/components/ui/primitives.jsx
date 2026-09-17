@@ -41,7 +41,11 @@ export const Button = forwardRef(function Button(
         ? 'border border-slate-200 dark:border-white/10 bg-white/40 dark:bg-white/[0.04] backdrop-blur-xl text-slate-700 dark:text-slate-200 font-mono text-[11px] font-bold uppercase tracking-wider hover:bg-white/85 dark:hover:bg-white/[0.08] hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-white/15 active:scale-[0.98]'
         : variant === 'danger'
           ? 'border border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300 font-mono text-[11px] font-bold uppercase tracking-wider hover:bg-red-500/20 active:scale-[0.98]'
-          : 'text-slate-500 dark:text-slate-400 hover:bg-white/85 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-slate-100 font-mono text-[11px] font-bold uppercase tracking-wider active:scale-[0.98]';
+          : variant === 'success'
+            ? 'border border-emerald-600 bg-emerald-600 text-white font-mono text-[11px] font-bold uppercase tracking-wider hover:bg-emerald-700 dark:bg-emerald-500 dark:text-slate-950 dark:hover:bg-emerald-600 shadow-md shadow-emerald-500/25 active:scale-[0.98]'
+            : variant === 'ghost'
+              ? 'text-slate-500 dark:text-slate-400 hover:bg-white/85 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-slate-100 font-mono text-[11px] font-bold uppercase tracking-wider active:scale-[0.98]'
+              : '';
 
   const selectedStyles = selected
     ? 'border-cyan-500/60 bg-cyan-500/20 text-cyan-200 shadow-[0_0_12px_rgba(6,182,212,0.25)] ring-1 ring-cyan-500/40'

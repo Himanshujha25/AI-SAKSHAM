@@ -16,7 +16,7 @@ function ResultPane({ title, tokenLabel, result, busy, tone }) {
         <PremiumIcon icon={ShieldCheck} tone={tone || 'cyan'} size="sm" />
       </div>
       {busy && <LoadingState label="Probing…" />}
-      {!busy && !result && <EmptyState title="No result yet" hint="Run the probe to compare." icon={Database} />}
+      {!busy && !result && <EmptyState title="No result yet" hint="Run the security test to compare." icon={Database} />}
       {!busy && result && (
         <div className="space-y-2.5 text-sm">
           <div className="flex flex-wrap items-center gap-2">
@@ -131,8 +131,8 @@ export function ApiTester() {
         <div className="mb-4 flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
           <PremiumIcon icon={FlaskConical} tone="cyan" size="sm" />
           <div>
-            <h3 className="text-sm font-bold tracking-tight text-[#0f1f3d] dark:text-white">Role Comparison Probe</h3>
-            <p className="font-mono text-[10px] uppercase tracking-wider text-slate-500">Read-only style probe · 50KB cap · logged to audit trail</p>
+            <h3 className="text-sm font-bold tracking-tight text-[#0f1f3d] dark:text-white">Role Comparison Security Test</h3>
+            <p className="font-mono text-[10px] uppercase tracking-wider text-slate-500">Safe automated check · 50KB cap · logged to audit trail</p>
           </div>
         </div>
 
@@ -174,13 +174,13 @@ export function ApiTester() {
         </div>
         <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-3">
           <Button disabled={!form.url || run.isPending} onClick={testSingle} className="w-full sm:w-auto bg-blue-600/80 backdrop-blur-xl border border-white/40 hover:bg-blue-600/90 text-white shadow-[0_8px_24px_rgba(37,99,235,0.35),inset_0_1px_0_rgba(255,255,255,0.35)] font-semibold px-5 py-2 dark:bg-blue-500/25 dark:border-blue-300/30 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] dark:hover:bg-blue-500/35">
-            <Play size={14} className="fill-current" /> {run.isPending ? 'Probing…' : 'Send Probe (Single)'}
+            <Play size={14} className="fill-current" /> {run.isPending ? 'Testing…' : 'Run Security Test'}
           </Button>
           <Button disabled={!form.url || run.isPending} variant="outline" onClick={compare} className="w-full sm:w-auto px-5 py-2">
-            <Scale size={14} /> {run.isPending ? 'Probing…' : 'Compare Roles (A vs B)'}
+            <Scale size={14} /> {run.isPending ? 'Testing…' : 'Compare Roles (A vs B)'}
           </Button>
           <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-slate-500">
-            <FlaskConical size={13} className="text-slate-500 shrink-0" /> Read-only probe · 10s timeout · 50KB cap
+            <FlaskConical size={13} className="text-slate-500 shrink-0" /> Safe automated test · 10s timeout · 50KB cap
           </span>
         </div>
         {run.isError && <p className="mt-2 font-mono text-xs font-semibold text-red-600 dark:text-red-400">{errMsg(run.error)}</p>}

@@ -136,7 +136,7 @@ export function Activity() {
         icon={ScrollText}
         tone="cyan"
         title="Activity Audit Trail"
-        subtitle="Real-time timeline of assessment executions, target probes, findings verifications, and report exports."
+        subtitle="Real-time timeline of assessment executions, target security checks, findings verifications, and report exports."
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] px-3 py-1.5 font-mono text-[11px] font-bold text-slate-600 dark:text-slate-300 shadow-sm">

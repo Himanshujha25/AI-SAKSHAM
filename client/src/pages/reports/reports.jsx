@@ -52,6 +52,7 @@ import { errMsg, cn } from '../../lib/utils';
 import CustomSelect from '../../components/ui/CustomSelect';
 import { PageHeader, LoadingState, ErrorState, EmptyState, StatusBadge, PremiumIcon } from '../../components/shared/shared';
 import { Button, Card, Input } from '../../components/ui/primitives';
+import { AiKnowledgeCard } from '../../components/pentera/AiKnowledgeCard';
 
 // Inline Cyber Shield Vector Emblem
 function CyberShieldLogo({ className = "h-8 w-8" }) {
@@ -753,20 +754,20 @@ export function Reports() {
               )}
             </div>
 
-            {/* Desktop View: High-Density Table (>= 768px) */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-left text-xs">
+            {/* Desktop View: High-Density Table (>= 768px) — Locked 100% Width */}
+            <div className="hidden md:block w-full overflow-hidden">
+              <table className="w-full table-fixed text-left text-xs">
                 <thead className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#060b18] font-mono text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   <tr>
-                    <th className="w-10 px-3 py-3.5 text-center">#</th>
-                    <th className="px-4 py-3.5">REPORT DOSSIER</th>
-                    <th className="px-4 py-3.5">PROJECT / TARGET</th>
-                    <th className="px-3 py-3.5">ARCHETYPE</th>
-                    <th className="px-3 py-3.5">FORMAT</th>
-                    <th className="px-3 py-3.5">POSTURE</th>
-                    <th className="px-3 py-3.5">STATUS</th>
-                    <th className="px-4 py-3.5">GENERATED</th>
-                    <th className="px-4 py-3.5 text-center">ACTIONS</th>
+                    <th className="w-8 px-2 py-3 text-center">#</th>
+                    <th className="px-3 py-3">REPORT DOSSIER</th>
+                    <th className="w-44 px-2.5 py-3">PROJECT / TARGET</th>
+                    <th className="w-28 px-2 py-3">ARCHETYPE</th>
+                    <th className="w-20 px-2 py-3">FORMAT</th>
+                    <th className="w-24 px-2 py-3">POSTURE</th>
+                    <th className="w-28 px-2 py-3">STATUS</th>
+                    <th className="w-28 px-2 py-3">GENERATED</th>
+                    <th className="w-28 px-2 py-3 text-center">ACTIONS</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
@@ -789,10 +790,10 @@ export function Reports() {
                           onClick={() => handleOpenPreview(item)}
                         >
                           {/* Row Index */}
-                          <td className="px-3 py-4 text-center font-mono text-slate-500">{item.idx}</td>
+                          <td className="w-8 px-2 py-3 text-center font-mono text-slate-500">{item.idx}</td>
 
                           {/* Report Dossier Name & Subtitle */}
-                          <td className="px-4 py-4">
+                          <td className="px-3 py-3">
                             <div className="flex items-center gap-2.5">
                               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 group-hover:border-blue-200 dark:border-cyan-500/40 group-hover:bg-blue-50 dark:bg-cyan-500/10 transition">
                                 {item.format === 'HTML' ? (
@@ -813,13 +814,13 @@ export function Reports() {
                           </td>
 
                           {/* Project & Target Context */}
-                          <td className="px-4 py-4">
-                            <div className="font-medium text-slate-700 dark:text-slate-200">{item.projectName}</div>
-                            <div className="font-mono text-[10px] text-cyan-400/90 truncate max-w-[200px]">{item.targetUrl}</div>
+                          <td className="w-44 px-2.5 py-3 truncate">
+                            <div className="font-medium text-slate-700 dark:text-slate-200 truncate">{item.projectName}</div>
+                            <div className="font-mono text-[10px] text-cyan-400/90 truncate">{item.targetUrl}</div>
                           </td>
 
                           {/* Archetype Badge */}
-                          <td className="px-3 py-4">
+                          <td className="w-28 px-2 py-3">
                             <span
                               className={cn(
                                 'rounded-md border px-2 py-0.5 font-mono text-[10px] font-bold uppercase',
@@ -837,7 +838,7 @@ export function Reports() {
                           </td>
 
                           {/* Format Badge */}
-                          <td className="px-3 py-4">
+                          <td className="w-20 px-2 py-3">
                             <span
                               className={cn(
                                 'rounded-md border px-2 py-0.5 font-mono text-[10px] font-bold flex items-center gap-1 w-fit',
@@ -853,7 +854,7 @@ export function Reports() {
                           </td>
 
                           {/* Security Posture Score */}
-                          <td className="px-3 py-4">
+                          <td className="w-24 px-2 py-3">
                             <div className="flex items-center gap-1.5 font-mono text-[11px]">
                               <span
                                 className={cn(
@@ -867,20 +868,22 @@ export function Reports() {
                           </td>
 
                           {/* Status Badge */}
-                          <td className="px-3 py-4">
+                          <td className="w-28 px-2 py-3">
                             <StatusBadge status={item.status} />
                           </td>
 
                           {/* Timestamp */}
-                          <td className="px-4 py-4 font-mono text-[11px] text-slate-500 dark:text-slate-400">
-                            {new Date(item.generatedOn).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                          <td className="w-28 px-2 py-3 font-mono text-[11px] text-slate-500 dark:text-slate-400">
+                            <span className="truncate block">
+                              {new Date(item.generatedOn).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                            </span>
                             <span className="block text-[10px] text-slate-500">
                               {new Date(item.generatedOn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           </td>
 
                           {/* Action Buttons */}
-                          <td className="px-4 py-4 text-center" onClick={(e) => e.stopPropagation()}>
+                          <td className="w-28 px-2 py-3 text-center" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center justify-center gap-1.5">
                               {/* In-App Preview Action */}
                               <button
@@ -981,7 +984,7 @@ export function Reports() {
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.96 }}
-              className="relative w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl border border-blue-200 dark:border-cyan-500/30 bg-white dark:bg-[#080e1e] shadow-2xl overflow-hidden"
+              className="relative w-full max-w-[96vw] lg:max-w-[94vw] max-h-[94vh] flex flex-col rounded-2xl border border-blue-200 dark:border-cyan-500/30 bg-white dark:bg-[#080e1e] shadow-2xl overflow-hidden"
             >
               {/* Modal Top Control Bar */}
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#050a16] px-5 py-3.5">
@@ -1258,6 +1261,12 @@ export function Settings() {
             </div>
           </div>
         </div>
+
+        {/* AI Knowledge Ingestion Status & Sync from ai_files/ */}
+        <div className="md:col-span-2">
+          <AiKnowledgeCard />
+        </div>
+
         {/* User Profile Card — live data from the logged-in account */}
         <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] p-5 space-y-4 shadow-md">
           <div className="flex items-center gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">

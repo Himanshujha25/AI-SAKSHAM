@@ -7,7 +7,7 @@ const Assessment = require('../models/Assessment');
 const Finding = require('../models/Finding');
 const { asyncHandler } = require('../middleware/errors');
 const { generateReportFile } = require('../services/reportService');
-const { executiveSummary, generateExecutiveSummary } = require('../services/aiService');
+const { executiveSummary, generateExecutiveSummary, generateCombinedAssessmentConclusion } = require('../services/aiService');
 const { getUserProjectIds, hasProjectAccess } = require('../middleware/auth');
 const Activity = require('../models/Activity');
 const { logActivity } = require('../utils/security');
@@ -27,22 +27,21 @@ const generate = asyncHandler(async (req, res) => {
     Finding.find({ assessmentId }).sort({ cvssScore: -1 }),
   ]);
   const totals = assessment.summary?.totals || { critical: 0, high: 0, medium: 0, low: 0 };
-  // Prefer an AI-written summary grounded in real findings; fall back to the
-  // factual template only when all AI providers are unreachable.
+  // Generate unified conclusion combining automated scanner results with AI adversary model
   let summary;
   let summarySource = 'template';
   try {
-    const ai = await generateExecutiveSummary({
+    const ai = await generateCombinedAssessmentConclusion({
       projectName: project?.name || 'Target',
       targetUrl: target?.url,
       score: assessment.summary?.securityScore ?? 0,
       totals,
-      topFindings: findings,
+      findings,
     });
     summary = ai.text;
     summarySource = `ai:${ai.provider}`;
   } catch (e) {
-    console.warn('[reports] AI summary unavailable, using template:', e.message);
+    console.warn('[reports] Combined AI conclusion unavailable, using template:', e.message);
     summary = executiveSummary({
       projectName: project?.name || 'Target',
       score: assessment.summary?.securityScore ?? 0,

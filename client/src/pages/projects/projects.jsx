@@ -1230,7 +1230,7 @@ export function ProjectDetail() {
             onChange={(e) => setTarget({ ...target, authorizationConfirmed: e.target.checked })}
             className="h-3.5 w-3.5 rounded border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-cyan-500 focus:ring-cyan-500"
           />
-          <span>I confirm explicit authorization to audit and probe this target asset.</span>
+          <span>I confirm explicit authorization to audit and test this target asset.</span>
         </label>
         {addTarget.isError && <p className="mt-2 text-xs font-semibold text-red-600 dark:text-red-400">{errMsg(addTarget.error)}</p>}
       </Card>

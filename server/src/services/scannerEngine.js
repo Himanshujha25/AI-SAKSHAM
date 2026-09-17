@@ -204,7 +204,7 @@ async function scanTarget(targetUrl, customHeadersString = '', profile = 'Standa
     if (status === 405) {
       faultTitle = 'Target Method Mismatch (HTTP 405 Method Not Allowed)';
       faultSeverity = 'High';
-      faultImpact = `The target endpoint rejected the ${effectiveMethod} request method with HTTP 405. The endpoint requires GET or a different method.`;
+      faultImpact = `Target endpoint does not accept ${effectiveMethod} requests (HTTP 405 Method Not Allowed). Verify endpoint routing.`;
       faultRemediation = [
         'Switch the HTTP Method to GET (or appropriate method) in Step 1 of the assessment setup.',
         'Verify API route documentation for allowed HTTP methods.',
@@ -212,7 +212,7 @@ async function scanTarget(targetUrl, customHeadersString = '', profile = 'Standa
     } else if (status === 401 || status === 403) {
       faultTitle = `Target Authentication Failure (HTTP ${status})`;
       faultSeverity = 'High';
-      faultImpact = `Target endpoint rejected probe due to missing or invalid authentication credentials (HTTP ${status}).`;
+      faultImpact = `Target endpoint rejected automated security check due to missing or invalid authentication credentials (HTTP ${status}).`;
       faultRemediation = [
         'Check Bearer JWT session token or Developer API Key in Step 2 of the assessment setup.',
         'Ensure token has not expired and has permissions to access target asset.',

@@ -1,9 +1,15 @@
 const Finding = require('../models/Finding');
 const Project = require('../models/Project');
+const Assessment = require('../models/Assessment');
 const Activity = require('../models/Activity');
 const { asyncHandler } = require('../middleware/errors');
 const { logActivity } = require('../utils/security');
-const { analyzeFinding } = require('../services/aiService');
+const {
+  analyzeFinding,
+  generateFallbackRemediationWiki,
+  generateFallbackCombinedConclusion,
+  generateFallbackKillChainStep,
+} = require('../services/aiService');
 const { getUserProjectIds, hasProjectAccess } = require('../middleware/auth');
 
 const list = asyncHandler(async (req, res) => {
@@ -39,7 +45,39 @@ const get = asyncHandler(async (req, res) => {
   if (!project || !hasProjectAccess(req.user, project)) {
     return res.status(403).json({ message: 'Access denied: not authorized to view this finding' });
   }
-  res.json({ finding });
+
+  const fObj = finding.toObject();
+  const endpoint = (fObj.affectedAssets || [])[0] || '';
+
+  if (!fObj.combinedConclusion || !fObj.combinedConclusion.executiveVerdict) {
+    fObj.combinedConclusion = generateFallbackCombinedConclusion(
+      fObj.title,
+      fObj.category,
+      fObj.severity,
+      fObj.evidence,
+      endpoint,
+      fObj.cvssScore
+    );
+  }
+  if (!fObj.remediationWiki || !fObj.remediationWiki.configs || fObj.remediationWiki.configs.length === 0) {
+    fObj.remediationWiki = generateFallbackRemediationWiki(
+      fObj.title,
+      fObj.category,
+      fObj.severity,
+      endpoint
+    );
+  }
+  if (!fObj.killChainStep || !fObj.killChainStep.achievementTitle) {
+    fObj.killChainStep = generateFallbackKillChainStep(
+      fObj.title,
+      fObj.category,
+      fObj.severity,
+      endpoint,
+      fObj.cvssScore
+    );
+  }
+
+  res.json({ finding: fObj });
 });
 
 const update = asyncHandler(async (req, res) => {
@@ -99,12 +137,110 @@ const aiAnalysis = asyncHandler(async (req, res) => {  const finding = await Fin
     remediation: result.remediation,
     priorityReason: result.priorityReason,
   };
+  finding.combinedConclusion = result.combinedConclusion;
+  finding.remediationWiki = result.remediationWiki;
+  finding.killChainStep = result.killChainStep;
+
   if (!finding.stepsToReproduce || finding.stepsToReproduce.length === 0) finding.stepsToReproduce = result.stepsToReproduce;
   if (!finding.proofOfConcept) finding.proofOfConcept = result.proofOfConcept;
   if (!finding.businessImpact) finding.businessImpact = result.businessImpact;
   if (!finding.remediation || finding.remediation.length === 0) finding.remediation = result.remediation;
   await finding.save();
   res.json({ finding, meta: result._meta });
+});
+
+const getKillChainMap = asyncHandler(async (req, res) => {
+  const { assessmentId } = req.params;
+  const assessment = await Assessment.findById(assessmentId);
+  if (!assessment) return res.status(404).json({ message: 'Assessment not found' });
+  const project = await Project.findById(assessment.projectId);
+  if (!project || !hasProjectAccess(req.user, project)) {
+    return res.status(403).json({ message: 'Access denied to assessment kill chain' });
+  }
+
+  const rawFindings = await Finding.find({ assessmentId }).sort({ cvssScore: -1 });
+
+  const nodes = rawFindings.map((f, idx) => {
+    const endpoint = (f.affectedAssets || [])[0] || '192.168.100.2';
+    const fallbackStep = generateFallbackKillChainStep(f.title, f.category, f.severity, endpoint, f.cvssScore);
+    const step = (f.killChainStep && f.killChainStep.achievementTitle) ? f.killChainStep : fallbackStep;
+    const fallbackWiki = generateFallbackRemediationWiki(f.title, f.category, f.severity, endpoint);
+    const wiki = (f.remediationWiki && f.remediationWiki.insight) ? f.remediationWiki : fallbackWiki;
+    const conclusion = (f.combinedConclusion && f.combinedConclusion.executiveVerdict)
+      ? f.combinedConclusion
+      : generateFallbackCombinedConclusion(f.title, f.category, f.severity, f.evidence, endpoint, f.cvssScore);
+
+    return {
+      id: String(f._id),
+      findingId: f.findingId || `VUL-${idx + 1}`,
+      title: f.title,
+      category: f.category,
+      severity: f.severity,
+      cvssScore: f.cvssScore,
+      status: f.status,
+      phase: step.phase || 'Initial Access',
+      order: step.order || (idx + 1),
+      achievementTitle: step.achievementTitle || f.title,
+      score: Number((step.score || f.cvssScore || 5.0).toFixed(1)),
+      adversaryLevel: step.adversaryLevel || 'Opportunistic',
+      sourceAsset: step.sourceAsset || 'External Gateway',
+      targetAsset: step.targetAsset || endpoint,
+      vector: step.vector || 'HTTP Network Vector',
+      insight: wiki.insight,
+      impact: wiki.impact,
+      mitreTechnique: wiki.mitreTechnique,
+      mitreUrl: wiki.mitreUrl,
+      configs: wiki.configs,
+      validationMethod: wiki.validationMethod,
+      combinedConclusion: conclusion,
+    };
+  });
+
+  const phaseRank = {
+    'Reconnaissance': 1,
+    'Initial Access': 2,
+    'Credential Access': 3,
+    'Lateral Movement': 4,
+    'Privilege Escalation': 5,
+    'Impact': 6,
+  };
+
+  nodes.sort((a, b) => {
+    const rankDiff = (phaseRank[a.phase] || 3) - (phaseRank[b.phase] || 3);
+    if (rankDiff !== 0) return rankDiff;
+    return b.score - a.score;
+  });
+
+  const edges = [];
+  for (let i = 0; i < nodes.length - 1; i++) {
+    edges.push({
+      id: `edge-${nodes[i].id}-${nodes[i + 1].id}`,
+      from: nodes[i].id,
+      to: nodes[i + 1].id,
+      label: nodes[i + 1].vector || 'Attack Vector Pivot',
+      phaseTransition: `${nodes[i].phase} -> ${nodes[i + 1].phase}`,
+    });
+  }
+
+  const achievements = [...nodes].sort((a, b) => b.score - a.score);
+
+  res.json({
+    assessmentId,
+    target: assessment.targetId,
+    totalAchievements: achievements.length,
+    highestScore: achievements.length > 0 ? achievements[0].score : 0,
+    killChainProgression: {
+      reconnaissance: nodes.filter(n => n.phase === 'Reconnaissance').length,
+      initialAccess: nodes.filter(n => n.phase === 'Initial Access').length,
+      credentialAccess: nodes.filter(n => n.phase === 'Credential Access').length,
+      lateralMovement: nodes.filter(n => n.phase === 'Lateral Movement').length,
+      privilegeEscalation: nodes.filter(n => n.phase === 'Privilege Escalation').length,
+      impact: nodes.filter(n => n.phase === 'Impact').length,
+    },
+    nodes,
+    edges,
+    achievements,
+  });
 });
 
 const retest = asyncHandler(async (req, res) => {
@@ -151,5 +287,5 @@ const downloadPdf = asyncHandler(async (req, res) => {
   res.json({ fileName, fileUrl });
 });
 
-module.exports = { list, get, update, verify, aiAnalysis, retest, downloadPdf };
+module.exports = { list, get, update, verify, aiAnalysis, getKillChainMap, retest, downloadPdf };
 

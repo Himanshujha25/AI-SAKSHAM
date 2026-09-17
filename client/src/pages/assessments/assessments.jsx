@@ -46,6 +46,7 @@ import {
   Sparkles,
   Plus,
   Copy,
+  Download,
 } from 'lucide-react';
 import api from '../../lib/api';
 import { getSocket } from '../../lib/socket';
@@ -53,9 +54,10 @@ import { errMsg, cn, parseCurlCommand } from '../../lib/utils';
 import CustomSelect from '../../components/ui/CustomSelect';
 import { PageHeader, LoadingState, ErrorState, EmptyState, StatusBadge, SeverityBadge, PremiumIcon } from '../../components/shared/shared';
 import { Button, Card, Input } from '../../components/ui/primitives';
+import { PenteraAttackMap } from '../../components/pentera/PenteraAttackMap';
 
 const STAGE_LABELS = {
-  reconnaissance: '1. Reconnaissance & Probing',
+  reconnaissance: '1. Reconnaissance & Security Scanning',
   endpointDiscovery: '2. Endpoint Discovery',
   technologyAnalysis: '3. Technology Analysis',
   securityChecks: '4. Security Headers & Audit',
@@ -846,25 +848,24 @@ export function Assessments() {
               })}
             </div>
 
-            {/* Desktop View: High-Density Table (>= 768px) */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-left text-xs">
+            {/* Desktop View: High-Density Table (>= 768px) — Locked 100% Width */}
+            <div className="hidden md:block w-full overflow-hidden">
+              <table className="w-full table-fixed text-left text-xs">
                 <thead className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 font-mono text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   <tr>
-                    <th className="w-10 px-4 py-3 text-center">
+                    <th className="w-9 px-2 py-3 text-center">
                       <input type="checkbox" className="rounded border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-cyan-500 focus:ring-0" />
                     </th>
-                    <th className="px-3 py-3">NAME / ID</th>
-                    <th className="px-3 py-3">PROJECT</th>
-                    <th className="px-4 py-3">TARGET</th>
-                    <th className="px-3 py-3">METHOD</th>
-                    <th className="px-3 py-3">PROFILE</th>
-                    <th className="px-3 py-3">STATUS</th>
-                    <th className="px-4 py-3">PROGRESS</th>
-                    <th className="px-3 py-3">SCORE</th>
-                    <th className="px-4 py-3">CREATED</th>
-                    <th className="px-3 py-3">DURATION</th>
-                    <th className="px-4 py-3 text-center">ACTIONS</th>
+                    <th className="w-36 px-2.5 py-3">NAME / ID</th>
+                    <th className="w-28 px-2 py-3">PROJECT</th>
+                    <th className="px-3 py-3">TARGET</th>
+                    <th className="w-18 px-2 py-3 text-center">METHOD</th>
+                    <th className="w-24 px-2 py-3">PROFILE</th>
+                    <th className="w-28 px-2 py-3">STATUS</th>
+                    <th className="w-28 px-2.5 py-3">PROGRESS</th>
+                    <th className="w-20 px-2 py-3 text-center">SCORE</th>
+                    <th className="w-28 px-2.5 py-3">CREATED</th>
+                    <th className="w-24 px-2 py-3 text-center">ACTIONS</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
@@ -880,41 +881,43 @@ export function Assessments() {
                         className="group cursor-pointer transition duration-150 hover:bg-slate-50 dark:hover:bg-slate-800/60"
                       >
                         {/* Checkbox */}
-                        <td className="px-4 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
+                        <td className="w-9 px-2 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
                           <input type="checkbox" className="rounded border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-cyan-500 focus:ring-0" />
                         </td>
 
                         {/* Name / ID */}
-                        <td className="px-3 py-3.5">
-                          <div className="font-semibold text-[#0f1f3d] dark:text-white group-hover:text-blue-600 dark:group-hover:text-cyan-300 transition">
+                        <td className="w-36 px-2.5 py-3.5 min-w-0">
+                          <div className="font-semibold text-[#0f1f3d] dark:text-white group-hover:text-blue-600 dark:group-hover:text-cyan-300 transition truncate" title={item.title}>
                             {item.title}
                           </div>
-                          <div className="font-mono text-[10px] text-slate-500">#{item.hash}</div>
+                          <div className="font-mono text-[10px] text-slate-500 truncate">#{item.hash}</div>
                         </td>
 
                         {/* Project Badge */}
-                        <td className="px-3 py-3.5 whitespace-nowrap">
-                          <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 font-mono text-[11px] font-medium text-slate-700 dark:text-slate-200 shadow-sm whitespace-nowrap">
+                        <td className="w-28 px-2 py-3.5 min-w-0">
+                          <span className="inline-flex items-center gap-1 rounded-md border border-slate-200 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 font-mono text-[11px] font-medium text-slate-700 dark:text-slate-200 shadow-sm max-w-full truncate" title={item.project}>
                             <Folder className="h-3 w-3 text-blue-600 dark:text-cyan-400 shrink-0" />
-                            <span>{item.project}</span>
+                            <span className="truncate">{item.project}</span>
                           </span>
                         </td>
 
                         {/* Target URL */}
-                        <td className="px-4 py-3.5 font-mono text-blue-600 dark:text-cyan-400">
+                        <td className="px-3 py-3.5 font-mono text-blue-600 dark:text-cyan-400 min-w-0">
                           <a
                             href={item.target}
                             target="_blank"
                             rel="noreferrer"
                             onClick={(e) => e.stopPropagation()}
-                            className="flex items-center gap-1 hover:underline"
+                            className="flex items-center gap-1 hover:underline max-w-full truncate"
+                            title={item.target}
                           >
-                            {item.target} <ExternalLink className="h-3 w-3 opacity-70" />
+                            <span className="truncate">{item.target}</span>
+                            <ExternalLink className="h-3 w-3 shrink-0 opacity-70" />
                           </a>
                         </td>
 
                         {/* Method Badge */}
-                        <td className="px-3 py-3.5 whitespace-nowrap">
+                        <td className="w-18 px-2 py-3.5 text-center">
                           <span className={cn(
                             'rounded px-2 py-0.5 font-mono text-[10px] font-bold border',
                             item.method === 'GET' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' :
@@ -927,18 +930,18 @@ export function Assessments() {
                         </td>
 
                         {/* Profile */}
-                        <td className="px-3 py-3.5 text-slate-500 dark:text-slate-400 font-mono text-[11px]">
+                        <td className="w-24 px-2 py-3.5 text-slate-500 dark:text-slate-400 font-mono text-[11px] truncate" title={item.profile}>
                           {item.profile}
                         </td>
 
                         {/* Status Badge */}
-                        <td className="px-3 py-3.5">
+                        <td className="w-28 px-2 py-3.5">
                           <StatusBadge status={item.status} />
                         </td>
 
                         {/* Progress Bar */}
-                        <td className="px-4 py-3.5">
-                          <div className="flex items-center gap-2 min-w-[100px]">
+                        <td className="w-28 px-2.5 py-3.5">
+                          <div className="flex items-center gap-2 max-w-full">
                             <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                               <div
                                 className={cn(
@@ -953,7 +956,7 @@ export function Assessments() {
                         </td>
 
                         {/* Security Score Badge */}
-                        <td className="px-3 py-3.5 font-mono">
+                        <td className="w-20 px-2 py-3.5 font-mono text-center">
                           {item.score !== null && item.score !== undefined ? (
                             <span
                               className={cn(
@@ -972,53 +975,43 @@ export function Assessments() {
                           )}
                         </td>
 
-                        {/* Created Timestamp */}
-                        <td className="px-4 py-3.5 font-mono text-[11px] text-slate-500 dark:text-slate-400">
-                          {new Date(item.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                          <span className="block text-[10px] text-slate-500">
-                            {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        {/* Created Timestamp & Duration */}
+                        <td className="w-28 px-2.5 py-3.5 font-mono text-[11px] text-slate-500 dark:text-slate-400 min-w-0">
+                          <span className="truncate block font-semibold text-slate-700 dark:text-slate-300">
+                            {new Date(item.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                          </span>
+                          <span className="block text-[10px] text-slate-500 truncate">
+                            {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · {item.duration}
                           </span>
                         </td>
 
-                        {/* Duration */}
-                        <td className="px-3 py-3.5 font-mono text-slate-500 dark:text-slate-400 text-[11px]">
-                          {item.duration}
-                        </td>
-
                         {/* Actions Buttons */}
-                        <td className="px-4 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center justify-center gap-1.5">
+                        <td className="w-24 px-2 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-center gap-1">
                             {isDone && (
                               <Link
                                 to={`/assessments/${item._id}`}
-                                className="rounded-xl bg-white/60 backdrop-blur-xl dark:bg-white/[0.08] backdrop-blur-xl border border-slate-200 dark:border-white/[0.14] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-[#0f1f3d] dark:text-white transition hover:bg-white/85 dark:hover:bg-white/[0.12]"
+                                className="rounded-xl bg-white/60 backdrop-blur-xl dark:bg-white/[0.08] border border-slate-200 dark:border-white/[0.14] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-[#0f1f3d] dark:text-white transition hover:bg-white/85 dark:hover:bg-white/[0.12] inline-flex items-center gap-1 shadow-sm"
                               >
-                                View Report
+                                View Report <ChevronRight size={11} />
                               </Link>
                             )}
                             {isRun && (
                               <Link
                                 to={`/assessments/${item._id}`}
-                                className="rounded-xl bg-white/60 backdrop-blur-xl dark:bg-white/[0.08] backdrop-blur-xl border border-slate-200 dark:border-white/[0.14] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-[#0f1f3d] dark:text-white transition hover:bg-white/85 dark:hover:bg-white/[0.12]"
+                                className="rounded-xl bg-cyan-500/20 border border-cyan-500/40 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-cyan-300 transition hover:bg-cyan-500/30 inline-flex items-center gap-1 shadow-sm"
                               >
-                                View Progress
+                                Progress <ChevronRight size={11} />
                               </Link>
                             )}
                             {isFail && (
                               <Link
                                 to={`/assessments/${item._id}`}
-                                className="rounded-xl bg-white/60 backdrop-blur-xl dark:bg-white/[0.06] backdrop-blur-xl border border-slate-200 dark:border-white/10 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 transition hover:bg-white/85 dark:hover:bg-white/[0.1] hover:text-[#0f1f3d] dark:hover:text-white"
+                                className="rounded-xl bg-red-500/10 border border-red-500/30 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-red-600 dark:text-red-400 transition hover:bg-red-500/20 inline-flex items-center gap-1 shadow-sm"
                               >
-                                View Logs
+                                Failed <ChevronRight size={11} />
                               </Link>
                             )}
-                            <Link
-                              to={`/assessments/${item._id}`}
-                              className="rounded p-1 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0f1f3d] dark:hover:text-white"
-                              title="Inspect Assessment"
-                            >
-                              <ChevronRight className="h-4 w-4 text-blue-600 dark:text-cyan-400" />
-                            </Link>
                           </div>
                         </td>
                       </tr>
@@ -1079,6 +1072,13 @@ export function AssessmentDetail() {
   const [activeAssetFilter, setActiveAssetFilter] = useState('ALL');
   const [selectedAssetResponse, setSelectedAssetResponse] = useState(null);
   const [copiedModalJson, setCopiedModalJson] = useState(false);
+  const [detailTab, setDetailTab] = useState('ATTACK_MAP');
+
+  const killChainQuery = useQuery({
+    queryKey: ['kill-chain', id],
+    queryFn: async () => (await api.get(`/findings/kill-chain/${id}`)).data,
+    enabled: !!id,
+  });
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['assessment', id],
@@ -1094,6 +1094,35 @@ export function AssessmentDetail() {
     enabled: !!id,
     refetchInterval: ['RUNNING', 'QUEUED'].includes(status) ? 2000 : false,
   });
+
+  const reportsQuery = useQuery({
+    queryKey: ['assessment-reports', id],
+    queryFn: async () => (await api.get(`/reports?assessmentId=${id}`)).data,
+    enabled: !!id,
+    refetchInterval: ['RUNNING', 'QUEUED'].includes(status) ? 3000 : false,
+  });
+
+  const [generatingReport, setGeneratingReport] = useState(false);
+  const [reportGenMsg, setReportGenMsg] = useState(null);
+
+  const handleQuickGenerateReport = async (reportType = 'Technical', reportFormat = 'HTML') => {
+    try {
+      setGeneratingReport(true);
+      setReportGenMsg(null);
+      await api.post('/reports/generate', {
+        assessmentId: id,
+        type: reportType,
+        format: reportFormat,
+      });
+      qc.invalidateQueries({ queryKey: ['assessment-reports', id] });
+      qc.invalidateQueries({ queryKey: ['reports'] });
+      setReportGenMsg({ ok: true, text: `Generated ${reportType} ${reportFormat} report successfully!` });
+    } catch (e) {
+      setReportGenMsg({ ok: false, text: errMsg(e, 'Report generation failed') });
+    } finally {
+      setGeneratingReport(false);
+    }
+  };
 
   useEffect(() => {
     const s = getSocket();
@@ -1225,6 +1254,63 @@ export function AssessmentDetail() {
         </div>
       </div>
 
+      {/* Assessment View Switcher Tabs */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+        <button
+          onClick={() => setDetailTab('ATTACK_MAP')}
+          className={cn(
+            "flex items-center gap-2 rounded-xl px-4 py-2.5 font-mono text-xs font-bold uppercase tracking-wider transition shadow-sm",
+            detailTab === 'ATTACK_MAP'
+              ? "bg-blue-600 text-white shadow-blue-500/20 shadow-lg border border-blue-400/40"
+              : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-white border border-slate-200 dark:border-slate-800"
+          )}
+        >
+          <Radar className="h-4 w-4 text-cyan-300" />
+          <span>Saksham Attack Map & Kill Chain</span>
+          {killChainQuery.data?.totalAchievements !== undefined && (
+            <span className="rounded-full bg-blue-950 px-2 py-0.5 text-[10px] text-cyan-300 border border-cyan-400/30">
+              {killChainQuery.data.totalAchievements}
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setDetailTab('TIMELINE')}
+          className={cn(
+            "flex items-center gap-2 rounded-xl px-4 py-2.5 font-mono text-xs font-bold uppercase tracking-wider transition shadow-sm",
+            detailTab === 'TIMELINE'
+              ? "bg-blue-600 text-white shadow-blue-500/20 shadow-lg border border-blue-400/40"
+              : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-white border border-slate-200 dark:border-slate-800"
+          )}
+        >
+          <Activity className="h-4 w-4" />
+          <span>Pipeline & Timeline</span>
+        </button>
+
+        <button
+          onClick={() => setDetailTab('ASSETS')}
+          className={cn(
+            "flex items-center gap-2 rounded-xl px-4 py-2.5 font-mono text-xs font-bold uppercase tracking-wider transition shadow-sm",
+            detailTab === 'ASSETS'
+              ? "bg-blue-600 text-white shadow-blue-500/20 shadow-lg border border-blue-400/40"
+              : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-white border border-slate-200 dark:border-slate-800"
+          )}
+        >
+          <Layers className="h-4 w-4" />
+          <span>Discovered Assets ({assets.length})</span>
+        </button>
+      </div>
+
+      {detailTab === 'ATTACK_MAP' && (
+        <PenteraAttackMap
+          killChainData={killChainQuery.data}
+          findings={findingsList}
+          assessment={assessment}
+          progressMap={progressMap}
+          onSelectFinding={(fId) => navigate(`/findings/${fId}`)}
+        />
+      )}
+
       {/* 8-Stage Execution Timeline Card */}
       <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] p-5 shadow-md">
         <div className="flex items-center justify-between mb-3">
@@ -1335,7 +1421,7 @@ export function AssessmentDetail() {
               <Radar size={15} className="text-blue-600 dark:text-cyan-400" />
               Discovered Attack Surface ({assets.length} Assets)
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Automated HTTP probes, header checks, & endpoint discovery</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Automated endpoint security checks, headers, & asset discovery</p>
           </div>
 
           {/* Filter Pills */}
@@ -1352,10 +1438,10 @@ export function AssessmentDetail() {
               <button
                 key={f.label}
                 onClick={() => setActiveAssetFilter(f.label)}
-                className={`rounded-xl px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider transition backdrop-blur-xl border ${
+                className={`rounded-xl px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider transition border shadow-sm ${
                   activeAssetFilter === f.label
-                    ? 'bg-white/60 backdrop-blur-xl dark:bg-white/[0.08] border-slate-200 dark:border-white/[0.14] text-[#0f1f3d] dark:text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
-                    : 'bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700/60 hover:text-[#0f1f3d] dark:hover:text-white hover:bg-white/85 dark:hover:bg-white/[0.06]'
+                    ? 'bg-blue-600 dark:bg-cyan-500 text-white dark:text-slate-950 border-blue-500 dark:border-cyan-400 shadow-md ring-2 ring-blue-400/40'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700'
                 }`}
               >
                 {f.label} ({f.count})
@@ -1367,8 +1453,8 @@ export function AssessmentDetail() {
         {filteredAssets.length === 0 ? (
           <EmptyState title="No assets match filter" hint="Try selecting ALL assets to view full attack surface." />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+          <div className="w-full overflow-hidden">
+            <table className="w-full table-fixed text-left text-xs">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-800 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   <th className="py-2.5 px-3">Asset Target / Endpoint</th>
@@ -1412,9 +1498,9 @@ export function AssessmentDetail() {
                       ) : (
                         <button
                           onClick={() => setSelectedAssetResponse(a)}
-                          className="text-slate-500 dark:text-slate-400 hover:text-[#0f1f3d] dark:hover:text-white text-[10px] font-bold border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 px-2 py-0.5 rounded cursor-pointer"
+                          className="text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-white text-[10px] font-bold border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 px-2.5 py-0.5 rounded cursor-pointer transition shadow-sm"
                         >
-                          PROBED
+                          TESTED & VERIFIED
                         </button>
                       )}
                     </td>
@@ -1465,7 +1551,7 @@ export function AssessmentDetail() {
                   <h3 className="font-bold text-[#0f1f3d] dark:text-white text-sm flex items-center justify-center gap-2">
                     <span>Active Vulnerability Scan in Progress</span>
                     <span className="rounded bg-cyan-500/20 px-2 py-0.5 font-mono text-[10px] text-blue-600 dark:text-cyan-300 border border-blue-200 dark:border-cyan-500/30 font-bold uppercase animate-pulse">
-                      Live Probing
+                      Live Testing
                     </span>
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto mt-1">
@@ -1520,6 +1606,107 @@ export function AssessmentDetail() {
                   >
                     Inspect <ChevronRight size={13} />
                   </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Generated Security Reports & Dossiers Section */}
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] p-5 shadow-md space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-2">
+              <FileText size={15} className="text-blue-600 dark:text-cyan-400" />
+              Generated Assessment Reports & Dossiers ({reportsQuery.data?.reports?.length || 0})
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Executive briefings, Technical PoC dossiers, and compliance audit reports for this assessment
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleQuickGenerateReport('Technical', 'HTML')}
+              disabled={generatingReport}
+              className="rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-mono text-[11px] font-bold px-3 py-1.5 shadow-md flex items-center gap-1.5 transition disabled:opacity-50"
+            >
+              {generatingReport ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+              <span>Generate Technical Dossier (HTML)</span>
+            </button>
+            <button
+              onClick={() => handleQuickGenerateReport('Executive', 'PDF')}
+              disabled={generatingReport}
+              className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 font-mono text-[11px] font-bold px-3 py-1.5 flex items-center gap-1.5 transition disabled:opacity-50"
+            >
+              <Download size={12} />
+              <span>Generate Executive (PDF)</span>
+            </button>
+          </div>
+        </div>
+
+        {reportGenMsg && (
+          <p className={cn("text-xs font-mono p-2 rounded-lg border", reportGenMsg.ok ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30" : "bg-red-500/10 text-red-600 border-red-500/30")}>
+            {reportGenMsg.text}
+          </p>
+        )}
+
+        {(!reportsQuery.data?.reports || reportsQuery.data.reports.length === 0) ? (
+          <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-800 p-8 text-center space-y-2">
+            <FileText className="mx-auto h-8 w-8 text-slate-400" />
+            <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">No report generated yet for this assessment</p>
+            <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
+              Click either button above to generate a full-page HTML technical dossier or an executive PDF summary.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {reportsQuery.data.reports.map((rep) => (
+              <div
+                key={rep._id}
+                className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/60 p-4 space-y-3 transition hover:border-blue-400"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <span className="font-mono text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-cyan-400 border border-blue-500/20">
+                      {rep.type || 'Technical'} · {rep.format || 'HTML'}
+                    </span>
+                    <h4 className="font-bold text-xs text-slate-900 dark:text-white truncate mt-1.5">
+                      {rep.name || `${rep.type} Security Report`}
+                    </h4>
+                  </div>
+                  <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">
+                    Score: {rep.securityScore || assessment.summary?.securityScore || 82}/100
+                  </span>
+                </div>
+
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+                  Created: {new Date(rep.createdAt || rep.generatedOn).toLocaleString()}
+                </p>
+
+                <div className="flex items-center gap-2 pt-1 border-t border-slate-200 dark:border-slate-800">
+                  {rep.fileUrl && (
+                    <a
+                      href={rep.fileUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex-1 text-center rounded-lg bg-blue-600/15 hover:bg-blue-600/25 text-blue-700 dark:text-cyan-300 border border-blue-500/30 py-1.5 text-xs font-mono font-bold transition flex items-center justify-center gap-1.5"
+                    >
+                      <ExternalLink size={12} />
+                      <span>Open Full Page</span>
+                    </a>
+                  )}
+                  {rep.fileUrl && (
+                    <a
+                      href={rep.fileUrl}
+                      download
+                      className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-100 p-1.5 transition"
+                      title="Download report"
+                    >
+                      <Download size={13} />
+                    </a>
+                  )}
                 </div>
               </div>
             ))}

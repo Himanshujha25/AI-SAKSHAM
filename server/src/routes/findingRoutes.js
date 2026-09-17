@@ -5,6 +5,7 @@ const c = require('../controllers/findingController');
 const router = express.Router();
 router.use(protect);
 router.get('/', c.list);
+router.get('/kill-chain/:assessmentId', c.getKillChainMap);
 router.get('/:id', c.get);
 router.patch('/:id', authorize('ADMIN', 'ANALYST'), c.update);
 router.post('/:id/verify', authorize('ADMIN', 'ANALYST'), c.verify);

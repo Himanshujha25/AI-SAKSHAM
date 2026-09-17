@@ -19,11 +19,53 @@ body {
 
 ::selection { background: rgba(34, 211, 238, 0.35); }
 
-/* Slim techy scrollbars */
-* { scrollbar-width: thin; scrollbar-color: rgba(100, 116, 139, 0.5) transparent; }
-*::-webkit-scrollbar { width: 8px; height: 8px; }
-*::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.45); border-radius: 8px; }
-*::-webkit-scrollbar-track { background: transparent; }
+/* Slim techy scrollbars - Vertical only */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 116, 139, 0.5) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 0px !important;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.45);
+  border-radius: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* =================================================================
+   GLOBAL: Completely eliminate horizontal (left-right) scrollbars
+   ================================================================= */
+*::-webkit-scrollbar:horizontal,
+::-webkit-scrollbar:horizontal {
+  display: none !important;
+  height: 0px !important;
+  width: 0px !important;
+  background: transparent !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Hide scrollbars on all horizontal overflow containers & tables */
+.overflow-x-auto,
+div[class*="overflow-x-auto"],
+table,
+.no-scrollbar {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.overflow-x-auto::-webkit-scrollbar,
+div[class*="overflow-x-auto"]::-webkit-scrollbar,
+table::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0px !important;
+  height: 0px !important;
+}
 
 /* Blueprint grid texture for hero / command panels */
 @utility bg-grid {

@@ -19,6 +19,7 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const activityRoutes = require('./routes/activityRoutes');
 const toolsRoutes = require('./routes/toolsRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const aiRoutes = require('./routes/aiRoutes');
 
 const app = express();
 app.set('io', null);
@@ -82,6 +83,7 @@ app.use('/api/v1/reports', reportRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/activity', activityRoutes);
 app.use('/api/v1/tools', toolsRoutes);
+app.use('/api/v1/ai', aiRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
