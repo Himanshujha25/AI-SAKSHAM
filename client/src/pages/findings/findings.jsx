@@ -373,6 +373,29 @@ export function Findings() {
     return map;
   }, [projectsQuery.data]);
 
+  // Dynamic 24-hour trends based on real finding timestamps
+  const oneDayAgo = useMemo(() => Date.now() - 24 * 60 * 60 * 1000, []);
+  const todayTotal = useMemo(
+    () => findingsList.filter((f) => new Date(f.detectedDate).getTime() >= oneDayAgo).length,
+    [findingsList, oneDayAgo]
+  );
+  const todayCritical = useMemo(
+    () => findingsList.filter((f) => f.severity === 'Critical' && new Date(f.detectedDate).getTime() >= oneDayAgo).length,
+    [findingsList, oneDayAgo]
+  );
+  const todayHigh = useMemo(
+    () => findingsList.filter((f) => f.severity === 'High' && new Date(f.detectedDate).getTime() >= oneDayAgo).length,
+    [findingsList, oneDayAgo]
+  );
+  const todayMedium = useMemo(
+    () => findingsList.filter((f) => f.severity === 'Medium' && new Date(f.detectedDate).getTime() >= oneDayAgo).length,
+    [findingsList, oneDayAgo]
+  );
+  const todayLow = useMemo(
+    () => findingsList.filter((f) => f.severity === 'Low' && new Date(f.detectedDate).getTime() >= oneDayAgo).length,
+    [findingsList, oneDayAgo]
+  );
+
   return (
     <div className="relative min-h-screen pb-16 space-y-6">
       {/* Page Header with Interactive Date Range Selector */}
@@ -391,7 +414,7 @@ export function Findings() {
               }}
               options={[
                 { value: 'all', label: 'All time' },
-                { value: '7d', label: 'Sep 6, 2026 – Sep 12, 2026 (7d)' },
+                { value: '7d', label: 'Last 7 days' },
                 { value: '30d', label: 'Last 30 days' },
               ]}
             />
@@ -404,7 +427,7 @@ export function Findings() {
         <MetricCard
           title="Total findings"
           value={totalCount}
-          trend="+2 today"
+          trend={todayTotal > 0 ? `+${todayTotal} today` : 'No change'}
           icon={Shield}
           color="cyan"
           active={!filters.severity && !filters.status}
@@ -417,7 +440,7 @@ export function Findings() {
         <MetricCard
           title="Critical"
           value={criticalCount}
-          trend="+1"
+          trend={todayCritical > 0 ? `+${todayCritical} today` : '0 today'}
           icon={AlertOctagon}
           color="red"
           badgeColor="bg-red-500"
@@ -431,7 +454,7 @@ export function Findings() {
         <MetricCard
           title="High"
           value={highCount}
-          trend="+1"
+          trend={todayHigh > 0 ? `+${todayHigh} today` : '0 today'}
           icon={AlertTriangle}
           color="orange"
           badgeColor="bg-orange-500"
@@ -445,7 +468,7 @@ export function Findings() {
         <MetricCard
           title="Medium"
           value={mediumCount}
-          trend="+1"
+          trend={todayMedium > 0 ? `+${todayMedium} today` : '0 today'}
           icon={Activity}
           color="amber"
           badgeColor="bg-amber-500"
@@ -459,7 +482,7 @@ export function Findings() {
         <MetricCard
           title="Low"
           value={lowCount}
-          trend="-1"
+          trend={todayLow > 0 ? `+${todayLow} today` : '0 today'}
           icon={Info}
           color="green"
           badgeColor="bg-emerald-500"
@@ -545,7 +568,7 @@ export function Findings() {
         </Card>
 
         {/* 2. Findings Trend (Last 7 Days) */}
-        <FindingsTrendChart />
+        <FindingsTrendChart findings={findingsList} />
 
         {/* 3. Donut Ring Distribution Chart */}
         <SeverityDistributionChart
@@ -1296,28 +1319,90 @@ function SeverityProgressBar({ label, count, total, color, text, onClick }) {
   );
 }
 
-// Interactive Findings Trend Sparkline Chart
-function FindingsTrendChart() {
+// Interactive Dynamic Findings Trend Sparkline Chart
+function FindingsTrendChart({ findings = [] }) {
   const [activePoint, setActivePoint] = useState(null);
-  const trendData = [
-    { date: 'Sep 6', count: 4, desc: 'Initial baseline scan' },
-    { date: 'Sep 7', count: 7, desc: '+3 vulnerabilities detected' },
-    { date: 'Sep 8', count: 3, desc: '2 findings resolved' },
-    { date: 'Sep 9', count: 12, desc: 'Full API surface scan' },
-    { date: 'Sep 10', count: 8, desc: '4 findings verified fixed' },
-    { date: 'Sep 11', count: 15, desc: 'New endpoint registered' },
-    { date: 'Sep 12', count: 10, desc: 'Current active count' },
-  ];
 
-  const points = [
-    { x: 10, y: 70 },
-    { x: 55, y: 60 },
-    { x: 100, y: 75 },
-    { x: 150, y: 45 },
-    { x: 195, y: 55 },
-    { x: 245, y: 30 },
-    { x: 290, y: 40 },
-  ];
+  // Compute past 7 days dynamically ending on the current day
+  const trendData = useMemo(() => {
+    const days = [];
+    const now = new Date();
+
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const startOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0).getTime();
+      const endOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999).getTime();
+
+      const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+      // Findings detected on or prior to this day
+      const activeOnDay = findings.filter((f) => {
+        const detectedTime = new Date(f.detectedDate || f.createdAt).getTime();
+        return !isNaN(detectedTime) && detectedTime <= endOfDay;
+      });
+
+      // Findings newly logged specifically on this day
+      const addedOnDay = findings.filter((f) => {
+        const detectedTime = new Date(f.detectedDate || f.createdAt).getTime();
+        return !isNaN(detectedTime) && detectedTime >= startOfDay && detectedTime <= endOfDay;
+      });
+
+      let desc = '';
+      if (activeOnDay.length === 0) {
+        desc = 'Zero vulnerabilities recorded';
+      } else if (i === 0) {
+        desc = `${activeOnDay.length} active flaw${activeOnDay.length === 1 ? '' : 's'} currently`;
+      } else if (addedOnDay.length > 0) {
+        desc = `+${addedOnDay.length} flaw${addedOnDay.length === 1 ? '' : 's'} logged on this date`;
+      } else {
+        desc = `${activeOnDay.length} active flaw${activeOnDay.length === 1 ? '' : 's'} recorded`;
+      }
+
+      days.push({
+        date: label,
+        count: activeOnDay.length,
+        added: addedOnDay.length,
+        desc,
+      });
+    }
+    return days;
+  }, [findings]);
+
+  // Dynamically calculate SVG coordinate points based on real counts
+  const { points, pathD, polygonPoints } = useMemo(() => {
+    const maxVal = Math.max(...trendData.map((d) => d.count), 1);
+    const width = 300;
+    const paddingX = 18;
+    const stepX = (width - paddingX * 2) / Math.max(trendData.length - 1, 1);
+    const bottomY = 75;
+    const topY = 20;
+
+    const pts = trendData.map((d, idx) => {
+      const x = Math.round(paddingX + idx * stepX);
+      const y = d.count === 0 ? bottomY : Math.round(bottomY - (d.count / (maxVal * 1.18)) * (bottomY - topY));
+      return { x, y };
+    });
+
+    // Build cubic bezier curve
+    let d = `M ${pts[0].x},${pts[0].y}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i];
+      const p1 = pts[i + 1];
+      const cp1x = Math.round(p0.x + (p1.x - p0.x) * 0.5);
+      const cp1y = p0.y;
+      const cp2x = Math.round(p0.x + (p1.x - p0.x) * 0.5);
+      const cp2y = p1.y;
+      d += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${p1.x},${p1.y}`;
+    }
+
+    // Closed polygon for gradient fill
+    const poly = `${pts[0].x},${pts[0].y} ` +
+      pts.map((p) => `${p.x},${p.y}`).join(' ') +
+      ` ${pts[pts.length - 1].x},${bottomY + 10} ${pts[0].x},${bottomY + 10}`;
+
+    return { points: pts, pathD: d, polygonPoints: poly };
+  }, [trendData]);
 
   return (
     <Card className="border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 p-4 relative">
@@ -1328,16 +1413,18 @@ function FindingsTrendChart() {
 
       <div className="relative mt-3 h-32 w-full">
         {/* Interactive Hover Tooltip Box */}
-        {activePoint !== null && (
+        {activePoint !== null && points[activePoint] && (
           <div
             className="absolute z-30 pointer-events-none rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 p-2 shadow-xl text-xs font-mono transition duration-150 animate-in fade-in"
             style={{
-              left: `${Math.min(Math.max(points[activePoint].x - 40, 0), 200)}px`,
-              top: `${points[activePoint].y - 35}px`,
+              left: `${Math.min(Math.max(points[activePoint].x - 60, 0), 180)}px`,
+              top: `${Math.max(points[activePoint].y - 45, 0)}px`,
             }}
           >
             <span className="text-blue-600 dark:text-cyan-400 font-bold block">{trendData[activePoint].date}</span>
-            <span className="text-[#0f1f3d] dark:text-white font-semibold">{trendData[activePoint].count} Active Findings</span>
+            <span className="text-[#0f1f3d] dark:text-white font-semibold">
+              {trendData[activePoint].count} Active Finding{trendData[activePoint].count === 1 ? '' : 's'}
+            </span>
             <span className="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5">{trendData[activePoint].desc}</span>
           </div>
         )}
@@ -1349,13 +1436,13 @@ function FindingsTrendChart() {
               <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.0" />
             </linearGradient>
           </defs>
-          <line x1="0" y1="20" x2="300" y2="20" stroke="#1e293b" strokeDasharray="3 3" />
-          <line x1="0" y1="50" x2="300" y2="50" stroke="#1e293b" strokeDasharray="3 3" />
-          <line x1="0" y1="80" x2="300" y2="80" stroke="#1e293b" strokeDasharray="3 3" />
+          <line x1="0" y1="20" x2="300" y2="20" stroke="#1e293b" strokeDasharray="3 3" opacity="0.3" />
+          <line x1="0" y1="50" x2="300" y2="50" stroke="#1e293b" strokeDasharray="3 3" opacity="0.3" />
+          <line x1="0" y1="75" x2="300" y2="75" stroke="#1e293b" strokeDasharray="3 3" opacity="0.3" />
 
-          <polygon points="10,70 55,60 100,75 150,45 195,55 245,30 290,40 290,90 10,90" fill="url(#trendGradient)" />
+          <polygon points={polygonPoints} fill="url(#trendGradient)" />
           <path
-            d="M 10,70 Q 32,65 55,60 T 100,75 T 150,45 T 195,55 T 245,30 T 290,40"
+            d={pathD}
             fill="none"
             stroke="#38bdf8"
             strokeWidth="2.5"

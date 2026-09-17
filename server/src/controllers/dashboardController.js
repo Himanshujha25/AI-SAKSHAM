@@ -24,10 +24,21 @@ const overview = asyncHandler(async (req, res) => {
   allCounts.forEach((c) => { if (severity[c._id] !== undefined) severity[c._id] = c.count; });
   const verified = await Finding.countDocuments({ projectId: { $in: projectIds }, status: 'Verified' });
   const total = Object.values(severity).reduce((a, b) => a + b, 0);
-  const latestScore = assessments.find((a) => a.summary?.securityScore != null)?.summary?.securityScore ?? null;
+  const latestAssessmentWithScore = assessments.find((a) => a.summary?.securityScore != null);
+  const latestScore = latestAssessmentWithScore?.summary?.securityScore ?? null;
+  const isScanning = assessments.some((a) => a.status === 'RUNNING' || a.status === 'QUEUED');
 
   res.json({
     securityScore: latestScore,
+    scoreMetadata: latestAssessmentWithScore ? {
+      assessmentId: latestAssessmentWithScore._id,
+      status: latestAssessmentWithScore.status,
+      type: latestAssessmentWithScore.type,
+      completedAt: latestAssessmentWithScore.completedAt || latestAssessmentWithScore.updatedAt || latestAssessmentWithScore.createdAt,
+      createdAt: latestAssessmentWithScore.createdAt,
+      isPrevious: true,
+      hasActiveScan: isScanning,
+    } : null,
     totalFindings: total,
     severity,
     verifiedFindings: verified,

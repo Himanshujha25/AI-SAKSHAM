@@ -1069,9 +1069,6 @@ export function AssessmentDetail() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [live, setLive] = useState(null);
-  const [activeAssetFilter, setActiveAssetFilter] = useState('ALL');
-  const [selectedAssetResponse, setSelectedAssetResponse] = useState(null);
-  const [copiedModalJson, setCopiedModalJson] = useState(false);
   const [detailTab, setDetailTab] = useState('ATTACK_MAP');
 
   const killChainQuery = useQuery({
@@ -1094,35 +1091,6 @@ export function AssessmentDetail() {
     enabled: !!id,
     refetchInterval: ['RUNNING', 'QUEUED'].includes(status) ? 2000 : false,
   });
-
-  const reportsQuery = useQuery({
-    queryKey: ['assessment-reports', id],
-    queryFn: async () => (await api.get(`/reports?assessmentId=${id}`)).data,
-    enabled: !!id,
-    refetchInterval: ['RUNNING', 'QUEUED'].includes(status) ? 3000 : false,
-  });
-
-  const [generatingReport, setGeneratingReport] = useState(false);
-  const [reportGenMsg, setReportGenMsg] = useState(null);
-
-  const handleQuickGenerateReport = async (reportType = 'Technical', reportFormat = 'HTML') => {
-    try {
-      setGeneratingReport(true);
-      setReportGenMsg(null);
-      await api.post('/reports/generate', {
-        assessmentId: id,
-        type: reportType,
-        format: reportFormat,
-      });
-      qc.invalidateQueries({ queryKey: ['assessment-reports', id] });
-      qc.invalidateQueries({ queryKey: ['reports'] });
-      setReportGenMsg({ ok: true, text: `Generated ${reportType} ${reportFormat} report successfully!` });
-    } catch (e) {
-      setReportGenMsg({ ok: false, text: errMsg(e, 'Report generation failed') });
-    } finally {
-      setGeneratingReport(false);
-    }
-  };
 
   useEffect(() => {
     const s = getSocket();
@@ -1149,20 +1117,7 @@ export function AssessmentDetail() {
   const completedStagesCount = STAGES.filter((s) => progressMap[s] === 'done').length;
   const progressPercent = Math.round((completedStagesCount / STAGES.length) * 100);
 
-  // Assets Filter
-  const filteredAssets = assets.filter((a) => {
-    if (activeAssetFilter === 'ALL') return true;
-    return a.type?.toLowerCase() === activeAssetFilter.toLowerCase();
-  });
 
-  const assetCounts = {
-    api: assets.filter((a) => a.type === 'api').length,
-    route: assets.filter((a) => a.type === 'route').length,
-    technology: assets.filter((a) => a.type === 'technology').length,
-    header: assets.filter((a) => a.type === 'header').length,
-    js: assets.filter((a) => a.type === 'js').length,
-    dependency: assets.filter((a) => a.type === 'dependency').length,
-  };
 
   const findingsList = findingsQuery.data?.findings || [];
 
@@ -1200,10 +1155,16 @@ export function AssessmentDetail() {
                 {assessment.type} AUDIT
               </span>
               <StatusBadge status={status} />
-              {assessment.summary?.securityScore !== undefined && assessment.summary?.securityScore !== null && (
-                <span className="rounded border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                  SCORE {assessment.summary.securityScore}/100
+              {isProbeFault ? (
+                <span className="rounded border border-amber-500/40 bg-amber-500/10 px-2.5 py-0.5 font-mono text-xs font-bold text-amber-600 dark:text-amber-400">
+                  TARGET UNREACHABLE · NO SCORE
                 </span>
+              ) : (
+                assessment.summary?.securityScore !== undefined && assessment.summary?.securityScore !== null && (
+                  <span className="rounded border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                    SCORE {assessment.summary.securityScore}/100
+                  </span>
+                )
               )}
             </div>
 
@@ -1266,12 +1227,7 @@ export function AssessmentDetail() {
           )}
         >
           <Radar className="h-4 w-4 text-cyan-300" />
-          <span>Saksham Attack Map & Kill Chain</span>
-          {killChainQuery.data?.totalAchievements !== undefined && (
-            <span className="rounded-full bg-blue-950 px-2 py-0.5 text-[10px] text-cyan-300 border border-cyan-400/30">
-              {killChainQuery.data.totalAchievements}
-            </span>
-          )}
+          <span>Saksham Attack Map</span>
         </button>
 
         <button
@@ -1286,19 +1242,6 @@ export function AssessmentDetail() {
           <Activity className="h-4 w-4" />
           <span>Pipeline & Timeline</span>
         </button>
-
-        <button
-          onClick={() => setDetailTab('ASSETS')}
-          className={cn(
-            "flex items-center gap-2 rounded-xl px-4 py-2.5 font-mono text-xs font-bold uppercase tracking-wider transition shadow-sm",
-            detailTab === 'ASSETS'
-              ? "bg-blue-600 text-white shadow-blue-500/20 shadow-lg border border-blue-400/40"
-              : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-white border border-slate-200 dark:border-slate-800"
-          )}
-        >
-          <Layers className="h-4 w-4" />
-          <span>Discovered Assets ({assets.length})</span>
-        </button>
       </div>
 
       {detailTab === 'ATTACK_MAP' && (
@@ -1312,64 +1255,66 @@ export function AssessmentDetail() {
       )}
 
       {/* 8-Stage Execution Timeline Card */}
-      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] p-5 shadow-md">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-2">
-            <Activity size={14} className="text-blue-600 dark:text-cyan-400" />
-            Security Analysis Pipeline Progress
-          </h2>
-          <span className="font-mono text-xs font-bold text-blue-600 dark:text-cyan-400">
-            {progressPercent}% Complete ({completedStagesCount}/{STAGES.length} Stages)
-          </span>
-        </div>
+      {detailTab === 'TIMELINE' && (
+        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] p-5 shadow-md">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-2">
+              <Activity size={14} className="text-blue-600 dark:text-cyan-400" />
+              Security Analysis Pipeline Progress
+            </h2>
+            <span className="font-mono text-xs font-bold text-blue-600 dark:text-cyan-400">
+              {progressPercent}% Complete ({completedStagesCount}/{STAGES.length} Stages)
+            </span>
+          </div>
 
-        {/* Progress Bar */}
-        <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden mb-5">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-500"
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
+          {/* Progress Bar */}
+          <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden mb-5">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-500"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
 
-        {/* Interactive 8-Stage Grid */}
-        <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
-          {STAGES.map((stageKey, idx) => {
-            const stageStatus = progressMap[stageKey] || 'pending';
-            const isDone = stageStatus === 'done';
-            const isCurrent = stageStatus === 'running';
+          {/* Interactive 8-Stage Grid */}
+          <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+            {STAGES.map((stageKey, idx) => {
+              const stageStatus = progressMap[stageKey] || 'pending';
+              const isDone = stageStatus === 'done';
+              const isCurrent = stageStatus === 'running';
 
-            return (
-              <div
-                key={stageKey}
-                className={`flex items-center justify-between rounded-lg border px-3 py-2.5 transition duration-150 ${
-                  isDone
-                    ? 'border-emerald-500/30 bg-emerald-950/20 text-slate-700 dark:text-slate-200'
-                    : isCurrent
-                    ? 'border-cyan-500/50 bg-blue-50 dark:bg-cyan-950/40 text-[#0f1f3d] dark:text-white shadow-sm'
-                    : 'border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#060a14] text-slate-500'
-                }`}
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-mono font-bold ${
-                    isDone ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' :
-                    isCurrent ? 'bg-cyan-500/20 text-blue-600 dark:text-cyan-400 animate-pulse' :
-                    'bg-slate-100 dark:bg-slate-800 text-slate-500'
-                  }`}>
-                    {isDone ? <Check size={11} /> : isCurrent ? <Activity size={11} className="animate-spin" /> : idx + 1}
+              return (
+                <div
+                  key={stageKey}
+                  className={`flex items-center justify-between rounded-lg border px-3 py-2.5 transition duration-150 ${
+                    isDone
+                      ? 'border-emerald-500/40 bg-emerald-500/10 text-slate-900 dark:text-slate-100'
+                      : isCurrent
+                      ? 'border-cyan-500/60 bg-blue-50 dark:bg-cyan-950/60 text-slate-900 dark:text-white shadow-sm ring-1 ring-cyan-400/40'
+                      : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-slate-600 dark:text-slate-400'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-mono font-bold ${
+                      isDone ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' :
+                      isCurrent ? 'bg-cyan-500/20 text-blue-600 dark:text-cyan-400 animate-pulse' :
+                      'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                    }`}>
+                      {isDone ? <Check size={11} /> : isCurrent ? <Activity size={11} className="animate-spin" /> : idx + 1}
+                    </span>
+                    <span className="text-xs font-bold truncate text-slate-900 dark:text-slate-100">{STAGE_LABELS[stageKey] || stageKey}</span>
+                  </div>
+
+                  <span className="font-mono text-[10px] uppercase font-bold shrink-0 ml-1">
+                    {isDone ? <span className="text-emerald-700 dark:text-emerald-300 font-bold">DONE</span> :
+                     isCurrent ? <span className="text-blue-600 dark:text-cyan-400 animate-pulse font-bold">RUNNING</span> :
+                     <span className="text-slate-400 dark:text-slate-500">PENDING</span>}
                   </span>
-                  <span className="text-xs font-semibold truncate">{STAGE_LABELS[stageKey] || stageKey}</span>
                 </div>
-
-                <span className="font-mono text-[10px] uppercase font-bold shrink-0 ml-1">
-                  {isDone ? <span className="text-emerald-600 dark:text-emerald-400">DONE</span> :
-                   isCurrent ? <span className="text-blue-600 dark:text-cyan-400 animate-pulse">RUNNING</span> :
-                   <span className="text-slate-600">PENDING</span>}
-                </span>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Target Request Fault Alert Banner */}
       {isProbeFault && (
@@ -1413,110 +1358,11 @@ export function AssessmentDetail() {
         </div>
       )}
 
-      {/* Discovered Attack Surface Assets */}
-      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] p-5 shadow-md">
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-          <div>
-            <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-2">
-              <Radar size={15} className="text-blue-600 dark:text-cyan-400" />
-              Discovered Attack Surface ({assets.length} Assets)
-            </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Automated endpoint security checks, headers, & asset discovery</p>
-          </div>
-
-          {/* Filter Pills */}
-          <div className="flex flex-wrap gap-1.5">
-            {[
-              { label: 'ALL', count: assets.length },
-              { label: 'API', count: assetCounts.api },
-              { label: 'ROUTE', count: assetCounts.route },
-              { label: 'HEADER', count: assetCounts.header },
-              { label: 'TECH', count: assetCounts.technology },
-              { label: 'JS', count: assetCounts.js },
-              { label: 'DEP', count: assetCounts.dependency },
-            ].map((f) => (
-              <button
-                key={f.label}
-                onClick={() => setActiveAssetFilter(f.label)}
-                className={`rounded-xl px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider transition border shadow-sm ${
-                  activeAssetFilter === f.label
-                    ? 'bg-blue-600 dark:bg-cyan-500 text-white dark:text-slate-950 border-blue-500 dark:border-cyan-400 shadow-md ring-2 ring-blue-400/40'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700'
-                }`}
-              >
-                {f.label} ({f.count})
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {filteredAssets.length === 0 ? (
-          <EmptyState title="No assets match filter" hint="Try selecting ALL assets to view full attack surface." />
-        ) : (
-          <div className="w-full overflow-hidden">
-            <table className="w-full table-fixed text-left text-xs">
-              <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-800 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  <th className="py-2.5 px-3">Asset Target / Endpoint</th>
-                  <th className="py-2.5 px-3">Type</th>
-                  <th className="py-2.5 px-3">Method</th>
-                  <th className="py-2.5 px-3">Auth Context</th>
-                  <th className="py-2.5 px-3 text-right">Status / Latency</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
-                {filteredAssets.map((a) => (
-                  <tr key={a._id || a.name} className="hover:bg-slate-50 dark:hover:bg-slate-900/60 transition duration-150">
-                    <td className="py-2.5 px-3 font-mono font-semibold text-[#0f1f3d] dark:text-white">
-                      {a.url || a.value || a.name}
-                    </td>
-                    <td className="py-2.5 px-3">
-                      <span className="rounded border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 font-mono text-[10px] font-bold uppercase text-blue-600 dark:text-cyan-400">
-                        {a.type}
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-3 font-mono text-slate-600 dark:text-slate-300">
-                      {a.method || 'GET'}
-                    </td>
-                    <td className="py-2.5 px-3 font-mono text-slate-500 dark:text-slate-400">
-                      {a.authentication || 'Public'}
-                    </td>
-                    <td className="py-2.5 px-3 text-right font-mono text-slate-600 dark:text-slate-300">
-                      {a.metadata?.status ? (
-                        <button
-                          onClick={() => setSelectedAssetResponse(a)}
-                          title="Click to view & copy response.json payload"
-                          className={`rounded px-2.5 py-1 text-[10px] font-bold transition duration-200 cursor-pointer shadow-sm flex items-center gap-1.5 ml-auto border ${
-                            a.metadata.status === 200 || a.metadata.status === '200'
-                              ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
-                              : 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
-                          }`}
-                        >
-                          <span>{a.metadata.status} ({a.metadata.latencyMs || 13}ms)</span>
-                          <span className="text-[9px] bg-slate-50 dark:bg-slate-900/80 px-1 py-0.2 rounded border border-slate-200 dark:border-slate-700">JSON</span>
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => setSelectedAssetResponse(a)}
-                          className="text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-white text-[10px] font-bold border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 px-2.5 py-0.5 rounded cursor-pointer transition shadow-sm"
-                        >
-                          TESTED & VERIFIED
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
       {/* Discovered Assessment Findings */}
       <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] p-5 shadow-md">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-2">
+            <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-2">
               <ShieldAlert size={15} className="text-blue-600 dark:text-cyan-400" />
               Assessment Findings ({findingsList.length})
               {['RUNNING', 'QUEUED'].includes(status) && (
@@ -1538,34 +1384,40 @@ export function AssessmentDetail() {
 
         {findingsList.length === 0 ? (
           ['RUNNING', 'QUEUED'].includes(status) ? (
-            <div className="relative overflow-hidden rounded-xl border border-blue-200 dark:border-cyan-500/30 bg-gradient-to-r from-blue-50 dark:from-cyan-950/40 via-slate-900 to-slate-950 p-6 shadow-xl">
-              <div className="flex flex-col items-center justify-center text-center space-y-3 py-4">
-                <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 dark:bg-cyan-950/80 border border-blue-200 dark:border-cyan-500/40 shadow-lg">
-                  <Radar className="h-8 w-8 text-blue-600 dark:text-cyan-400 animate-spin" />
-                  <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500 dark:bg-cyan-500"></span>
-                  </span>
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-6 shadow-sm">
+              <div className="flex flex-col items-center justify-center text-center space-y-3 py-3">
+                <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 dark:bg-slate-800 border border-blue-200 dark:border-slate-700 shadow-sm text-blue-600 dark:text-cyan-400">
+                  <Radar className="h-6 w-6 animate-spin" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-[#0f1f3d] dark:text-white text-sm flex items-center justify-center gap-2">
+                  <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center justify-center gap-2 font-mono">
                     <span>Active Vulnerability Scan in Progress</span>
-                    <span className="rounded bg-cyan-500/20 px-2 py-0.5 font-mono text-[10px] text-blue-600 dark:text-cyan-300 border border-blue-200 dark:border-cyan-500/30 font-bold uppercase animate-pulse">
+                    <span className="rounded bg-blue-100 dark:bg-cyan-500/20 px-2 py-0.5 font-mono text-[10px] text-blue-700 dark:text-cyan-300 border border-blue-200 dark:border-cyan-500/30 font-bold uppercase">
                       Live Testing
                     </span>
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto mt-1">
+                  <p className="text-xs text-slate-600 dark:text-slate-300 max-w-md mx-auto mt-1 leading-relaxed">
                     Auditing target endpoints, checking HTTP security headers, and evaluating CVSS risk vectors. Discovered findings will automatically stream here in real-time.
                   </p>
                 </div>
-                <div className="flex items-center gap-2 font-mono text-[11px] text-blue-600 dark:text-cyan-400 font-semibold bg-slate-50 dark:bg-slate-900/90 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800">
+                <div className="flex items-center gap-2 font-mono text-[11px] text-blue-700 dark:text-cyan-300 font-semibold bg-white dark:bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-inner">
                   <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-600 dark:text-cyan-400" />
-                  <span>Auto-refreshing findings stream in real-time…</span>
+                  <span>Real-time findings stream active…</span>
                 </div>
               </div>
             </div>
           ) : (
-            <EmptyState title="No findings detected" hint="Run a comprehensive assessment on an authorized target." />
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 p-8 text-center space-y-3">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400">
+                <ShieldCheck className="h-6 w-6" />
+              </div>
+              <div>
+                <h4 className="font-mono text-sm font-bold text-slate-900 dark:text-white">Zero Exploitable Vulnerabilities Found</h4>
+                <p className="text-xs text-slate-600 dark:text-slate-300 max-w-md mx-auto mt-1 leading-relaxed">
+                  All analyzed endpoints and routes complied with security policies. Target is hardened.
+                </p>
+              </div>
+            </div>
           )
         ) : (
           <div className="space-y-2.5">
@@ -1612,216 +1464,6 @@ export function AssessmentDetail() {
           </div>
         )}
       </div>
-
-      {/* Generated Security Reports & Dossiers Section */}
-      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] p-5 shadow-md space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-2">
-              <FileText size={15} className="text-blue-600 dark:text-cyan-400" />
-              Generated Assessment Reports & Dossiers ({reportsQuery.data?.reports?.length || 0})
-            </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Executive briefings, Technical PoC dossiers, and compliance audit reports for this assessment
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => handleQuickGenerateReport('Technical', 'HTML')}
-              disabled={generatingReport}
-              className="rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-mono text-[11px] font-bold px-3 py-1.5 shadow-md flex items-center gap-1.5 transition disabled:opacity-50"
-            >
-              {generatingReport ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
-              <span>Generate Technical Dossier (HTML)</span>
-            </button>
-            <button
-              onClick={() => handleQuickGenerateReport('Executive', 'PDF')}
-              disabled={generatingReport}
-              className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 font-mono text-[11px] font-bold px-3 py-1.5 flex items-center gap-1.5 transition disabled:opacity-50"
-            >
-              <Download size={12} />
-              <span>Generate Executive (PDF)</span>
-            </button>
-          </div>
-        </div>
-
-        {reportGenMsg && (
-          <p className={cn("text-xs font-mono p-2 rounded-lg border", reportGenMsg.ok ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30" : "bg-red-500/10 text-red-600 border-red-500/30")}>
-            {reportGenMsg.text}
-          </p>
-        )}
-
-        {(!reportsQuery.data?.reports || reportsQuery.data.reports.length === 0) ? (
-          <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-800 p-8 text-center space-y-2">
-            <FileText className="mx-auto h-8 w-8 text-slate-400" />
-            <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">No report generated yet for this assessment</p>
-            <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
-              Click either button above to generate a full-page HTML technical dossier or an executive PDF summary.
-            </p>
-          </div>
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {reportsQuery.data.reports.map((rep) => (
-              <div
-                key={rep._id}
-                className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/60 p-4 space-y-3 transition hover:border-blue-400"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <span className="font-mono text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-cyan-400 border border-blue-500/20">
-                      {rep.type || 'Technical'} · {rep.format || 'HTML'}
-                    </span>
-                    <h4 className="font-bold text-xs text-slate-900 dark:text-white truncate mt-1.5">
-                      {rep.name || `${rep.type} Security Report`}
-                    </h4>
-                  </div>
-                  <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">
-                    Score: {rep.securityScore || assessment.summary?.securityScore || 82}/100
-                  </span>
-                </div>
-
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
-                  Created: {new Date(rep.createdAt || rep.generatedOn).toLocaleString()}
-                </p>
-
-                <div className="flex items-center gap-2 pt-1 border-t border-slate-200 dark:border-slate-800">
-                  {rep.fileUrl && (
-                    <a
-                      href={rep.fileUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex-1 text-center rounded-lg bg-blue-600/15 hover:bg-blue-600/25 text-blue-700 dark:text-cyan-300 border border-blue-500/30 py-1.5 text-xs font-mono font-bold transition flex items-center justify-center gap-1.5"
-                    >
-                      <ExternalLink size={12} />
-                      <span>Open Full Page</span>
-                    </a>
-                  )}
-                  {rep.fileUrl && (
-                    <a
-                      href={rep.fileUrl}
-                      download
-                      className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-100 p-1.5 transition"
-                      title="Download report"
-                    >
-                      <Download size={13} />
-                    </a>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* HTTP Response Payload & JSON Modal */}
-      <AnimatePresence>
-        {selectedAssetResponse && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md"
-            onClick={() => setSelectedAssetResponse(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-3xl rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col"
-            >
-              {/* Modal Header */}
-              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-                <div className="flex items-center gap-3">
-                  <span className={`rounded px-2.5 py-0.5 font-mono text-xs font-bold border uppercase ${
-                    (selectedAssetResponse.metadata?.status === 200 || selectedAssetResponse.metadata?.status === '200')
-                      ? 'border-emerald-500/40 bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                      : 'border-amber-500/40 bg-amber-500/20 text-amber-700 dark:text-amber-300'
-                  }`}>
-                    HTTP {selectedAssetResponse.metadata?.status || 200}
-                  </span>
-                  <h3 className="text-base font-bold text-[#0f1f3d] dark:text-white font-mono flex items-center gap-2">
-                    <span>Response Payload Inspection</span>
-                    <span className="text-xs text-slate-500 dark:text-slate-400 font-normal">({selectedAssetResponse.metadata?.latencyMs || 13}ms)</span>
-                  </h3>
-                </div>
-
-                <button
-                  onClick={() => setSelectedAssetResponse(null)}
-                  className="rounded-lg p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#0f1f3d] dark:hover:text-white transition"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              {/* Target Info Bar */}
-              <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-3 font-mono text-xs text-blue-600 dark:text-cyan-300 break-all flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 font-bold uppercase text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-700">
-                    {selectedAssetResponse.method || 'GET'}
-                  </span>
-                  <span className="break-all">{selectedAssetResponse.url || selectedAssetResponse.value || selectedAssetResponse.name}</span>
-                </div>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold shrink-0">{selectedAssetResponse.authentication || 'Public'}</span>
-              </div>
-
-              {/* Modal Action Bar */}
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-xs font-mono font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                  <FileCode size={14} className="text-blue-600 dark:text-cyan-400" />
-                  <span>Response Body Payload (response.json)</span>
-                </span>
-
-                <button
-                  onClick={() => {
-                    const bodyStr = selectedAssetResponse.metadata?.responseBody || '';
-                    
-                    let textToCopy = bodyStr;
-                    try {
-                      textToCopy = JSON.stringify(JSON.parse(bodyStr), null, 2);
-                    } catch (e) {}
-                    
-                    navigator.clipboard.writeText(textToCopy);
-                    setCopiedModalJson(true);
-                    setTimeout(() => setCopiedModalJson(false), 2000);
-                  }}
-                  className="bg-blue-600/80 backdrop-blur-xl border border-white/40 hover:bg-blue-600/90 text-white text-xs font-bold flex items-center gap-1.5 shadow-[0_8px_24px_rgba(37,99,235,0.35),inset_0_1px_0_rgba(255,255,255,0.35)] py-1.5 px-3 rounded-lg transition cursor-pointer dark:bg-blue-500/25 dark:border-blue-300/30 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] dark:hover:bg-blue-500/35"
-                >
-                  {copiedModalJson ? <Check size={14} className="text-emerald-700 dark:text-emerald-300" /> : <Copy size={14} />}
-                  <span>{copiedModalJson ? 'Copied response.json!' : 'Copy response.json'}</span>
-                </button>
-              </div>
-
-              {/* JSON Code Viewer Container */}
-              <div className="flex-1 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-4 font-mono text-xs leading-relaxed text-emerald-600 dark:text-emerald-400 max-h-[350px]">
-                <pre className="whitespace-pre-wrap">
-                  {(() => {
-                    const bodyStr = selectedAssetResponse.metadata?.responseBody || 'No payload captured (or request was empty/unreachable).';
-
-                    try {
-                      return JSON.stringify(JSON.parse(bodyStr), null, 2);
-                    } catch (e) {
-                      return bodyStr;
-                    }
-                  })()}
-                </pre>
-              </div>
-
-              {/* Modal Footer */}
-              <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-3 text-[11px] font-mono text-slate-500 dark:text-slate-400">
-                <span>Live HTTP Probe Payload Inspection</span>
-                <button
-                  onClick={() => setSelectedAssetResponse(null)}
-                  className="rounded-lg bg-slate-100 dark:bg-slate-800 px-3.5 py-1.5 font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer"
-                >
-                  Close
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

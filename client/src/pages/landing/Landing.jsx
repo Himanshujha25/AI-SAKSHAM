@@ -117,7 +117,7 @@ function MockVideoPlayer() {
     {
       title: 'AI Remediation & PDF Export',
       duration: '3:05',
-      log: 'Gemini AI generating developer code fix & executive PDF report...',
+      log: 'Neural Threat Engine synthesizing AST remediation patch & executive PDF report...',
       code: 'GENERATE REPORT -> World_Monitor_Security_Assessment_2026.pdf (Downloaded)'
     }
   ];

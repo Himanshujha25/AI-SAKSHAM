@@ -16,6 +16,8 @@ import { parseCurlCommand } from '../../lib/utils';
 import { PageHeader, LoadingState, ErrorState, EmptyState, StatusBadge, SeverityBadge, MicroLabel, PremiumIcon } from '../../components/shared/shared';
 import { CustomSelect } from '../../components/ui/CustomSelect';
 import { useAuth } from '../../store/auth';
+import { OnboardingTour } from '../../components/shared/OnboardingTour';
+import { Compass } from 'lucide-react';
 
 const SEVERITY_COLORS = ['#ef4444', '#f97316', '#f59e0b', '#10b981', '#64748b'];
 
@@ -38,7 +40,7 @@ const RIGHT_ITEMS_SEV = [
 ];
 
 // Professional Security Analysis Pipeline Node
-function SecurityAnalysisHub({ value, score, isScanning, activeStage, orbRef }) {
+function SecurityAnalysisHub({ value, score, isScanning, activeStage, orbRef, scoreMetadata }) {
   return (
     <div ref={orbRef} className="relative mx-auto flex h-52 w-52 items-center justify-center md:h-60 md:w-60">
       {/* Structural Dual Rings */}
@@ -58,14 +60,31 @@ function SecurityAnalysisHub({ value, score, isScanning, activeStage, orbRef }) 
               {activeStage || 'ANALYSIS IN PROGRESS'}
             </span>
             <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Processing Pipeline...</span>
+            {score != null && (
+              <div className="mt-1 inline-flex items-center gap-1 rounded border border-amber-300 bg-amber-50 dark:border-amber-500/30 dark:bg-amber-950/40 px-2 py-0.5 text-[9px] font-mono font-bold text-amber-700 dark:text-amber-300">
+                <span>PREV RUN: {score}/100</span>
+              </div>
+            )}
           </div>
         ) : (
           <div>
             <span className="text-3xl font-extrabold tracking-tight text-[#0f1f3d] dark:text-white block">{value}</span>
             <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Tracked Findings</span>
-            <div className="mt-2 inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-blue-600 dark:border-cyan-500/30 dark:bg-cyan-950/60 dark:text-cyan-300">
-              SCORE {score ?? '—'}/100
-            </div>
+            {score != null ? (
+              <div className="mt-2 flex flex-col items-center">
+                <div className="inline-flex items-center gap-1.5 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-0.5 font-mono text-[10px] font-bold text-blue-700 dark:border-cyan-500/30 dark:bg-cyan-950/60 dark:text-cyan-300 shadow-sm">
+                  <span className="h-1.5 w-1.5 rounded-full bg-blue-500 dark:bg-cyan-400"></span>
+                  LAST SCORE: {score}/100
+                </div>
+                <span className="mt-0.5 text-[9px] font-mono font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                  (Previous Assessment)
+                </span>
+              </div>
+            ) : (
+              <div className="mt-2 inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
+                NO AUDITS YET
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -279,32 +298,38 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
         </div>
 
         {/* 3-Step Progress Indicator */}
-        <div className="mt-3 grid grid-cols-3 gap-2 shrink-0 border-b border-slate-200 dark:border-slate-800/80 pb-3">
+        <div className="mt-3 grid grid-cols-3 gap-2 shrink-0 border-b border-slate-200 dark:border-slate-800 pb-3">
           <div
             onClick={() => step > 1 && setStep(1)}
-            className={`cursor-pointer rounded-lg p-2 transition flex flex-col gap-0.5 border ${
-              step === 1 ? 'border-blue-200 bg-blue-50 text-blue-600 dark:border-cyan-500/40 dark:bg-cyan-950/40 dark:text-cyan-300' : 'border-slate-200 bg-slate-50 text-slate-500 dark:border-slate-800/60 dark:bg-slate-900/40 dark:text-slate-400'
+            className={`cursor-pointer rounded-lg p-2.5 transition flex flex-col gap-0.5 border ${
+              step === 1
+                ? 'border-blue-500 bg-blue-50 text-blue-700 dark:border-cyan-400 dark:bg-cyan-950/60 dark:text-cyan-200 shadow-sm ring-1 ring-blue-400/30 dark:ring-cyan-400/30'
+                : 'border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
             <span className="font-mono text-[9px] font-bold uppercase tracking-wider">Step 1</span>
-            <span className="text-xs font-semibold truncate">Target & Project</span>
+            <span className="text-xs font-bold truncate">Target & Project</span>
           </div>
           <div
             onClick={() => step > 2 && setStep(2)}
-            className={`cursor-pointer rounded-lg p-2 transition flex flex-col gap-0.5 border ${
-              step === 2 ? 'border-blue-200 bg-blue-50 text-blue-600 dark:border-cyan-500/40 dark:bg-cyan-950/40 dark:text-cyan-300' : 'border-slate-200 bg-slate-50 text-slate-500 dark:border-slate-800/60 dark:bg-slate-900/40 dark:text-slate-400'
+            className={`cursor-pointer rounded-lg p-2.5 transition flex flex-col gap-0.5 border ${
+              step === 2
+                ? 'border-blue-500 bg-blue-50 text-blue-700 dark:border-cyan-400 dark:bg-cyan-950/60 dark:text-cyan-200 shadow-sm ring-1 ring-blue-400/30 dark:ring-cyan-400/30'
+                : 'border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
             <span className="font-mono text-[9px] font-bold uppercase tracking-wider">Step 2</span>
-            <span className="text-xs font-semibold truncate">Auth & Payload</span>
+            <span className="text-xs font-bold truncate">Auth & Payload</span>
           </div>
           <div
-            className={`rounded-lg p-2 transition flex flex-col gap-0.5 border ${
-              step === 3 ? 'border-blue-200 bg-blue-50 text-blue-600 dark:border-cyan-500/40 dark:bg-cyan-950/40 dark:text-cyan-300' : 'border-slate-200 bg-slate-50 text-slate-500 dark:border-slate-800/60 dark:bg-slate-900/40 dark:text-slate-400'
+            className={`rounded-lg p-2.5 transition flex flex-col gap-0.5 border ${
+              step === 3
+                ? 'border-blue-500 bg-blue-50 text-blue-700 dark:border-cyan-400 dark:bg-cyan-950/60 dark:text-cyan-200 shadow-sm ring-1 ring-blue-400/30 dark:ring-cyan-400/30'
+                : 'border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300'
             }`}
           >
             <span className="font-mono text-[9px] font-bold uppercase tracking-wider">Step 3</span>
-            <span className="text-xs font-semibold truncate">Scope & Launch</span>
+            <span className="text-xs font-bold truncate">Scope & Launch</span>
           </div>
         </div>
 
@@ -330,16 +355,16 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
           {step === 1 && (
             <form onSubmit={handleNextStep1} className="space-y-4">
               {/* Rapid cURL Auto-Importer */}
-              <div className="rounded-xl border border-blue-200 bg-blue-50 dark:border-cyan-500/30 dark:bg-gradient-to-r dark:from-cyan-950/30 dark:to-slate-900/80 p-3.5 space-y-2">
+              <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3.5 space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-cyan-400">
-                    <Terminal size={14} /> Fast cURL CLI Auto-Importer
+                  <label className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 font-mono">
+                    <Terminal size={14} className="text-blue-600 dark:text-cyan-400" /> Fast cURL CLI Auto-Importer
                   </label>
                   {curlInput && (
                     <button
                       type="button"
                       onClick={handleParseCurl}
-                      className="rounded-md bg-cyan-500/20 border border-cyan-500/40 px-2.5 py-1 font-mono text-[10px] font-bold text-blue-600 dark:text-cyan-300 hover:bg-cyan-500/30 transition"
+                      className="rounded-md bg-blue-600 hover:bg-blue-500 dark:bg-cyan-500 dark:hover:bg-cyan-400 px-2.5 py-1 font-mono text-[10px] font-bold text-white dark:text-slate-950 transition shadow-sm"
                     >
                       ⚡ Auto-Parse cURL
                     </button>
@@ -350,18 +375,18 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
                   placeholder='curl -X POST "http://localhost:3001/api/ask" -H "Authorization: Bearer <token>" -d "{\"query\": \"test\"}"'
                   value={curlInput}
                   onChange={(e) => setCurlInput(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-2.5 font-mono text-[11px] text-slate-900 dark:text-slate-300 placeholder-slate-400 dark:placeholder-slate-600 focus:border-cyan-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 p-2.5 font-mono text-[11px] text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
                 />
                 {curlInput && (
-                  <p className="text-[10px] text-blue-600 dark:text-cyan-400/80 font-mono">
-                    Auto-parses URL, Method, Bearer Token, API Key & Body across all 3 steps!
+                  <p className="text-[10px] text-blue-600 dark:text-cyan-400 font-mono font-medium">
+                    ✓ Auto-parsed URL, Method, Bearer Token, API Key & Body across all 3 steps!
                   </p>
                 )}
               </div>
 
               {/* Project Selection / Creation */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1 font-mono">
                   Workspace / Project Selection
                 </label>
                 <div className="grid gap-2 sm:grid-cols-2">
@@ -379,7 +404,7 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
                       placeholder="Enter New Project Name"
                       value={projectName}
                       onChange={(e) => setProjectName(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none"
+                      className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-xs font-medium text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none"
                       required
                     />
                   )}
@@ -388,14 +413,14 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
 
               {/* Target Endpoint & Method */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1 font-mono">
                   Target Method & URL Endpoint
                 </label>
                 <div className="flex gap-2">
                   <select
                     value={method}
                     onChange={(e) => setMethod(e.target.value)}
-                    className={`rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-bold font-mono focus:border-cyan-500 focus:outline-none ${
+                    className={`rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-xs font-bold font-mono focus:border-cyan-500 focus:outline-none ${
                       method === 'GET' ? 'text-emerald-600 dark:text-emerald-400' :
                       method === 'POST' ? 'text-amber-600 dark:text-amber-400' :
                       method === 'PUT' ? 'text-blue-600 dark:text-cyan-400' :
@@ -414,7 +439,7 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
                       type="text"
                       value={targetUrl}
                       onChange={(e) => setTargetUrl(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 pl-9 pr-3.5 py-2 font-mono text-xs text-blue-600 dark:text-cyan-300 focus:border-cyan-500 focus:outline-none"
+                      className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 pl-9 pr-3.5 py-2 font-mono text-xs font-semibold text-blue-700 dark:text-cyan-300 focus:border-cyan-500 focus:outline-none"
                       required
                     />
                   </div>
@@ -423,12 +448,12 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
 
               {/* Target Name */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Target Name</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1 font-mono">Target Name</label>
                 <input
                   type="text"
                   value={targetName}
                   onChange={(e) => setTargetName(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-xs font-medium text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none"
                   required
                 />
               </div>
@@ -436,7 +461,7 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
               <div className="flex justify-end pt-2">
                 <button
                   type="submit"
-                  className="flex items-center gap-1.5 rounded-xl bg-blue-50 border border-blue-200 px-5 py-2 font-mono text-xs font-bold uppercase text-blue-600 hover:bg-blue-100 transition dark:bg-cyan-600/30 dark:border-cyan-500/50 dark:text-cyan-300 dark:hover:bg-cyan-600/50"
+                  className="flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 px-5 py-2 font-mono text-xs font-bold uppercase tracking-wider text-white shadow-md transition"
                 >
                   <span>Next: Auth & Headers</span>
                   <ChevronRight size={14} />
@@ -448,7 +473,7 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
           {/* STEP 2: Authentication & Custom Headers */}
           {step === 2 && (
             <form onSubmit={handleNextStep2} className="space-y-4">
-              <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-cyan-500/20 dark:bg-cyan-950/20 p-3 text-xs text-blue-600 dark:text-cyan-300 flex items-center gap-2">
+              <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-blue-50/60 dark:bg-slate-900 p-3 text-xs text-slate-700 dark:text-slate-200 flex items-center gap-2">
                 <Key size={16} className="text-blue-600 dark:text-cyan-400 shrink-0" />
                 <span>Configure dedicated Bearer JWT session tokens, API keys, and request payload below.</span>
               </div>
@@ -456,13 +481,13 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
               {/* Dedicated Bearer JWT Input Box */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 font-mono">
                     Bearer JWT Token
                   </label>
                   <button
                     type="button"
                     onClick={() => setBearerToken('eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyXzJ0ZXN0MTIzNDU2Nzg5Iiwib3JnX3Rlc3QxMjMiLCJyb2xlIjoicHJvIn0.xyz')}
-                    className="rounded bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 font-mono text-[10px] text-blue-600 dark:text-cyan-300 hover:bg-cyan-500/20"
+                    className="rounded bg-blue-100 hover:bg-blue-200 dark:bg-cyan-500/20 dark:hover:bg-cyan-500/30 border border-blue-300 dark:border-cyan-500/40 px-2 py-0.5 font-mono text-[10px] text-blue-700 dark:text-cyan-300 font-bold"
                   >
                     + Sample JWT
                   </button>
@@ -472,20 +497,20 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
                   placeholder="Paste raw JWT or Bearer eyJhbG..."
                   value={bearerToken}
                   onChange={(e) => setBearerToken(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 px-3.5 py-2 font-mono text-xs text-blue-600 dark:text-cyan-300 focus:border-cyan-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 font-mono text-xs font-semibold text-slate-900 dark:text-slate-100 focus:border-cyan-500 focus:outline-none"
                 />
               </div>
 
               {/* Dedicated X-API-Key Input Box */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 font-mono">
                     Developer API Key (X-API-Key)
                   </label>
                   <button
                     type="button"
                     onClick={() => setApiKey('wm_31dcd74f349ac77b44f9e91c951af9b5151cc4a3')}
-                    className="rounded bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 font-mono text-[10px] text-amber-700 dark:text-amber-300 hover:bg-amber-500/20"
+                    className="rounded bg-amber-100 hover:bg-amber-200 dark:bg-amber-500/20 dark:hover:bg-amber-500/30 border border-amber-300 dark:border-amber-500/40 px-2 py-0.5 font-mono text-[10px] text-amber-800 dark:text-amber-300 font-bold"
                   >
                     + Sample Key
                   </button>
@@ -495,13 +520,13 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
                   placeholder="Paste API Key e.g. wm_31dcd74f349ac77b44f9e91c951af9b5151cc4a3"
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 px-3.5 py-2 font-mono text-xs text-amber-700 dark:text-amber-300 focus:border-amber-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 font-mono text-xs font-semibold text-slate-900 dark:text-slate-100 focus:border-amber-500 focus:outline-none"
                 />
               </div>
 
               {/* Additional Headers / Cookies Box */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1 font-mono">
                   Additional HTTP Headers / Cookies (Optional)
                 </label>
                 <textarea
@@ -509,22 +534,22 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
                   placeholder="Cookie: session=xyz123&#10;X-Custom-Header: value"
                   value={additionalHeaders}
                   onChange={(e) => setAdditionalHeaders(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-3 font-mono text-xs leading-relaxed text-slate-600 dark:text-slate-300 placeholder-slate-400 dark:placeholder-slate-600 focus:border-cyan-500 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 p-2.5 font-mono text-xs leading-relaxed text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
                 />
               </div>
 
               {/* JSON Request Body Payload */}
               {method !== 'GET' && (
                 <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
-                      JSON Request Body Payload
-                    </label>
-                    <textarea
-                      rows={3}
-                      placeholder='{ "query": "What are active vectors?", "variant": "full" }'
-                      value={requestBody}
-                      onChange={(e) => setRequestBody(e.target.value)}
-                      className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-3 font-mono text-xs leading-relaxed text-amber-700 dark:text-amber-300 placeholder-slate-400 dark:placeholder-slate-600 focus:border-amber-500 focus:outline-none"
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1 font-mono">
+                    JSON Request Body Payload
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder='{ "query": "What are active vectors?", "variant": "full" }'
+                    value={requestBody}
+                    onChange={(e) => setRequestBody(e.target.value)}
+                    className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 p-2.5 font-mono text-xs leading-relaxed text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
                   />
                 </div>
               )}
@@ -533,13 +558,13 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="rounded-lg bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                  className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200"
                 >
                   ← Back
                 </button>
                 <button
                   type="submit"
-                  className="flex items-center gap-1.5 rounded-xl bg-blue-50 border border-blue-200 px-5 py-2 font-mono text-xs font-bold uppercase text-blue-600 hover:bg-blue-100 transition dark:bg-cyan-600/30 dark:border-cyan-500/50 dark:text-cyan-300 dark:hover:bg-cyan-600/50"
+                  className="flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 px-5 py-2 font-mono text-xs font-bold uppercase tracking-wider text-white shadow-md transition"
                 >
                   <span>Next: Scope & Profile</span>
                   <ChevronRight size={14} />
@@ -553,7 +578,7 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Environment</label>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1 font-mono">Environment</label>
                   <CustomSelect
                     value={environment}
                     onChange={(e) => setEnvironment(e.target.value)}
@@ -561,7 +586,7 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Audit Profile</label>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1 font-mono">Audit Profile</label>
                   <CustomSelect
                     value={scanType}
                     onChange={(e) => setScanType(e.target.value)}
@@ -575,41 +600,41 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
               </div>
 
               {/* Configuration Summary Card */}
-              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/70 p-3.5 space-y-2">
-                <div className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+              <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3.5 space-y-2">
+                <div className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5 font-mono">
                   <ShieldCheck size={14} className="text-blue-600 dark:text-cyan-400" /> Target Assessment Summary
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-                  <div className="bg-white dark:bg-slate-950/60 p-2 rounded border border-slate-200 dark:border-slate-800/80">
-                    <span className="text-slate-500 block text-[10px]">Project</span>
-                    <span className="text-[#0f1f3d] dark:text-white font-semibold truncate block">{projectName}</span>
+                  <div className="bg-white dark:bg-slate-950 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800">
+                    <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">Project</span>
+                    <span className="text-slate-900 dark:text-white font-bold truncate block">{projectName}</span>
                   </div>
-                  <div className="bg-white dark:bg-slate-950/60 p-2 rounded border border-slate-200 dark:border-slate-800/80">
-                    <span className="text-slate-500 block text-[10px]">Endpoint</span>
-                    <span className="text-blue-600 dark:text-cyan-300 font-semibold truncate block">{method} {targetUrl}</span>
+                  <div className="bg-white dark:bg-slate-950 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800">
+                    <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">Endpoint</span>
+                    <span className="text-blue-700 dark:text-cyan-300 font-bold truncate block">{method} {targetUrl}</span>
                   </div>
-                  <div className="bg-white dark:bg-slate-950/60 p-2 rounded border border-slate-200 dark:border-slate-800/80">
-                    <span className="text-slate-500 block text-[10px]">Auth Credentials</span>
-                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold block">
+                  <div className="bg-white dark:bg-slate-950 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800">
+                    <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">Auth Credentials</span>
+                    <span className="text-emerald-700 dark:text-emerald-400 font-bold block">
                       {bearerToken ? 'Bearer JWT' : ''} {apiKey ? 'X-API-Key' : ''} {!bearerToken && !apiKey ? 'Public/None' : ''}
                     </span>
                   </div>
-                  <div className="bg-white dark:bg-slate-950/60 p-2 rounded border border-slate-200 dark:border-slate-800/80">
-                    <span className="text-slate-500 block text-[10px]">Scope</span>
-                    <span className="text-amber-700 dark:text-amber-300 font-semibold block">{scanType} ({environment})</span>
+                  <div className="bg-white dark:bg-slate-950 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800">
+                    <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">Scope</span>
+                    <span className="text-amber-700 dark:text-amber-300 font-bold block">{scanType} ({environment})</span>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-3">
+              <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-3">
                 <label className="flex items-start gap-2.5 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={authorizationConfirmed}
                     onChange={(e) => setAuthorizationConfirmed(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-cyan-500 focus:ring-cyan-500"
+                    className="mt-0.5 h-4 w-4 rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-blue-600 focus:ring-blue-500"
                   />
-                  <span className="text-xs text-slate-600 dark:text-slate-300 leading-normal">
+                  <span className="text-xs text-slate-700 dark:text-slate-200 leading-normal font-medium">
                     I explicitly confirm authorization to assess this target URL.
                   </span>
                 </label>
@@ -619,14 +644,14 @@ function StartScanModal({ isOpen, onClose, onLaunched }) {
                 <button
                   type="button"
                   onClick={() => setStep(2)}
-                  className="rounded-lg bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                  className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200"
                 >
                   ← Back
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex items-center gap-1.5 rounded-xl bg-blue-600/80 backdrop-blur-xl border border-white/40 px-6 py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-white shadow-[0_8px_24px_rgba(37,99,235,0.35),inset_0_1px_0_rgba(255,255,255,0.35)] transition hover:bg-blue-600/90 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-500/25 dark:border-blue-300/30 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] dark:hover:bg-blue-500/35"
+                  className="flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 px-6 py-2.5 font-mono text-xs font-bold uppercase tracking-wider text-white shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? <Cpu size={14} className="animate-spin text-white" /> : <Play size={14} className="fill-current" />}
                   {isSubmitting ? 'Starting...' : '🚀 Launch Assessment'}
@@ -646,8 +671,20 @@ export function Dashboard() {
   const isViewer = user?.role === 'VIEWER';
   const qc = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isTourOpen, setIsTourOpen] = useState(false);
   const [activeAssessmentId, setActiveAssessmentId] = useState(null);
   const [liveSocketProgress, setLiveSocketProgress] = useState(null);
+
+  useEffect(() => {
+    const handleTourTrigger = () => setIsTourOpen(true);
+    const handleOpenScan = () => setIsModalOpen(true);
+    window.addEventListener('saksham:start-tour', handleTourTrigger);
+    window.addEventListener('saksham:open-scan-modal', handleOpenScan);
+    return () => {
+      window.removeEventListener('saksham:start-tour', handleTourTrigger);
+      window.removeEventListener('saksham:open-scan-modal', handleOpenScan);
+    };
+  }, []);
 
   const panelRef = useRef(null);
   const orbRef = useRef(null);
@@ -844,12 +881,40 @@ export function Dashboard() {
             )}
             <button
               type="button"
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 rounded-xl min-h-[44px] px-4 py-2.5 font-mono text-[11px] font-bold uppercase tracking-wider bg-blue-600/80 backdrop-blur-xl border border-white/40 hover:bg-blue-600/90 text-white shadow-[0_8px_24px_rgba(37,99,235,0.35),inset_0_1px_0_rgba(255,255,255,0.35)] transition dark:bg-blue-500/25 dark:border-blue-300/30 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] dark:hover:bg-blue-500/35"
+              onClick={() => setIsTourOpen(true)}
+              className="flex items-center gap-1.5 rounded-xl min-h-[44px] px-3.5 py-2 font-mono text-[11px] font-bold uppercase tracking-wider border border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 hover:bg-cyan-500/20 transition shadow-sm"
+              title="Start interactive guided tour with voice assistant"
             >
-              <Zap size={14} className="fill-current text-white" />
-              <span>Start Assessment</span>
+              <Compass size={14} className="text-cyan-600 dark:text-cyan-400 animate-spin-slow" />
+              <span>Guide Tour</span>
             </button>
+
+            <div className="relative inline-flex items-center">
+              {((data.recentAssessments?.length ?? 0) === 0 && !isScanning) && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: [0, -6, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.2, ease: 'easeInOut' }}
+                  className="absolute -top-9 right-2 flex items-center gap-1 px-2.5 py-1 rounded-full border border-cyan-400/80 bg-cyan-950/95 text-cyan-300 font-mono text-[11px] font-bold shadow-[0_0_15px_rgba(6,182,212,0.6)] whitespace-nowrap z-20 pointer-events-none"
+                >
+                  <span className="animate-pulse">Click here</span>
+                  <span className="text-sm">👇</span>
+                </motion.div>
+              )}
+              <button
+                type="button"
+                data-tour="start-scan"
+                onClick={() => setIsModalOpen(true)}
+                className={`flex items-center gap-2 rounded-xl min-h-[44px] px-4 py-2.5 font-mono text-[11px] font-bold uppercase tracking-wider transition ${
+                  (data.recentAssessments?.length ?? 0) === 0 && !isScanning
+                    ? 'bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-600 bg-[length:200%_auto] text-white shadow-[0_0_24px_rgba(6,182,212,0.8)] animate-pulse ring-2 ring-cyan-400 ring-offset-2 ring-offset-white dark:ring-offset-[#070c18]'
+                    : 'bg-blue-600/80 backdrop-blur-xl border border-white/40 hover:bg-blue-600/90 text-white shadow-[0_8px_24px_rgba(37,99,235,0.35),inset_0_1px_0_rgba(255,255,255,0.35)] dark:bg-blue-500/25 dark:border-blue-300/30 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] dark:hover:bg-blue-500/35'
+                }`}
+              >
+                <Zap size={14} className="fill-current text-white animate-bounce" />
+                <span>Start Assessment</span>
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -861,6 +926,11 @@ export function Dashboard() {
           setActiveAssessmentId(assessment._id);
           refetch();
         }}
+      />
+
+      <OnboardingTour
+        forceOpen={isTourOpen}
+        onClose={() => setIsTourOpen(false)}
       />
 
       {/* Active Scan Progress Banner */}
@@ -886,46 +956,65 @@ export function Dashboard() {
       {/* ——— Main Attack Surface & Pipeline Routing Hub ——— */}
       <motion.div
         ref={panelRef}
+        data-tour="analysis-hub"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
         className="relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#090f1f] p-6 shadow-xl"
       >
-        {/* Subtle Restrained Pipeline Connectors SVG */}
+        {/* Bold High-Contrast Pipeline Connectors SVG */}
         {wireData.width > 0 && (
           <svg className="pointer-events-none absolute inset-0 z-0 h-full w-full" width={wireData.width} height={wireData.height}>
             <defs>
+              <filter id="wireGlowLeft" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="0" stdDeviation="2.5" floodColor="#0284c7" floodOpacity="0.4" />
+              </filter>
+              <filter id="wireGlowRight" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="0" stdDeviation="2.5" floodColor="#f59e0b" floodOpacity="0.35" />
+              </filter>
               <style>{`
-                @keyframes subtleStream {
-                  from { stroke-dashoffset: 24; }
+                @keyframes vibrantStream {
+                  from { stroke-dashoffset: 32; }
                   to { stroke-dashoffset: 0; }
                 }
-                .pipeline-stream {
-                  stroke-dasharray: 4 8;
-                  animation: subtleStream ${isScanning ? '0.8s' : '1.8s'} linear infinite;
+                .pipeline-stream-left {
+                  stroke-dasharray: 6 10;
+                  animation: vibrantStream ${isScanning ? '0.7s' : '1.4s'} linear infinite;
+                }
+                .pipeline-stream-right {
+                  stroke-dasharray: 6 10;
+                  animation: vibrantStream ${isScanning ? '0.7s' : '1.4s'} linear infinite;
                 }
               `}</style>
             </defs>
 
-            {/* Left Source Paths */}
+            {/* Left Source Paths (Attack Surface to Central Hub) */}
             {wireData.leftPaths.map((path) => (
               <g key={path.id}>
-                <path d={path.d} fill="none" stroke="#cbd5e1" strokeWidth="2.5" strokeLinecap="round" />
-                <path d={path.d} fill="none" stroke="#0ea5e9" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
-                <path d={path.d} fill="none" stroke="#38bdf8" strokeWidth="1.5" strokeLinecap="round" className="pipeline-stream" opacity="0.8" />
-                <circle cx={path.startX} cy={path.startY} r="3" fill="#0ea5e9" />
-                <circle cx={path.endX} cy={path.endY} r="3" fill="#0ea5e9" />
+                {/* 1. Base Wire Guide Track */}
+                <path d={path.d} fill="none" stroke="#94a3b8" strokeWidth="3" strokeLinecap="round" className="dark:stroke-slate-700 opacity-50 dark:opacity-60" />
+                {/* 2. Bold Vibrant Sky/Cyan Wire */}
+                <path d={path.d} fill="none" stroke="#0284c7" strokeWidth="2.5" strokeLinecap="round" className="dark:stroke-cyan-400 opacity-95" filter="url(#wireGlowLeft)" />
+                {/* 3. Animated High-Speed Data Stream */}
+                <path d={path.d} fill="none" stroke="#0369a1" strokeWidth="2.5" strokeLinecap="round" className="pipeline-stream-left dark:stroke-white opacity-90" />
+                {/* Connector Port Dots */}
+                <circle cx={path.startX} cy={path.startY} r="4.5" fill="#0284c7" stroke="#ffffff" strokeWidth="1.5" className="dark:fill-cyan-400 dark:stroke-slate-900" />
+                <circle cx={path.endX} cy={path.endY} r="4.5" fill="#0284c7" stroke="#ffffff" strokeWidth="1.5" className="dark:fill-cyan-400 dark:stroke-slate-900" />
               </g>
             ))}
 
-            {/* Right Result Paths */}
+            {/* Right Result Paths (Central Hub to Severity Cases) */}
             {wireData.rightPaths.map((path) => (
               <g key={path.id}>
-                <path d={path.d} fill="none" stroke="#cbd5e1" strokeWidth="2.5" strokeLinecap="round" />
-                <path d={path.d} fill="none" stroke={path.color} strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
-                <path d={path.d} fill="none" stroke="#ffffff" strokeWidth="1.2" strokeLinecap="round" className="pipeline-stream" opacity="0.7" />
-                <circle cx={path.startX} cy={path.startY} r="3" fill={path.color} />
-                <circle cx={path.endX} cy={path.endY} r="3" fill={path.color} />
+                {/* 1. Base Wire Guide Track */}
+                <path d={path.d} fill="none" stroke="#94a3b8" strokeWidth="3" strokeLinecap="round" className="dark:stroke-slate-700 opacity-50 dark:opacity-60" />
+                {/* 2. Bold Severity Color Wire */}
+                <path d={path.d} fill="none" stroke={path.color} strokeWidth="2.5" strokeLinecap="round" opacity="0.95" filter="url(#wireGlowRight)" />
+                {/* 3. Animated High-Speed Data Stream */}
+                <path d={path.d} fill="none" stroke={path.color} strokeWidth="2" strokeLinecap="round" className="pipeline-stream-right opacity-100" />
+                {/* Connector Port Dots */}
+                <circle cx={path.startX} cy={path.startY} r="4.5" fill={path.color} stroke="#ffffff" strokeWidth="1.5" className="dark:stroke-slate-900" />
+                <circle cx={path.endX} cy={path.endY} r="4.5" fill={path.color} stroke="#ffffff" strokeWidth="1.5" className="dark:stroke-slate-900" />
               </g>
             ))}
           </svg>
@@ -971,6 +1060,7 @@ export function Dashboard() {
               score={data.securityScore}
               isScanning={isScanning}
               activeStage={activeStage}
+              scoreMetadata={data.scoreMetadata}
             />
           </motion.div>
 
@@ -1024,16 +1114,62 @@ export function Dashboard() {
 
       {/* ——— Compact Metric Cards ——— */}
       <motion.div
+        data-tour="metric-cards"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.18, duration: 0.35 }}
         className="grid grid-cols-2 gap-3 lg:grid-cols-5"
       >
-        <StatCardWithSparkline label="SECURITY SCORE" value={`${data.securityScore ?? '78'}/100`} badge="+12%" icon={ShieldCheck} stroke="#0ea5e9" />
-        <StatCardWithSparkline label="TOTAL FINDINGS" value={data.totalFindings} badge="+2 new" icon={Radar} stroke="#0ea5e9" />
-        <StatCardWithSparkline label="ASSESSMENTS" value={data.recentAssessments?.length ?? 0} badge="+1 today" icon={FlaskConical} stroke="#0ea5e9" />
-        <StatCardWithSparkline label="UNDER REVIEW" value={(data.recentFindings || []).filter((f) => f.status === 'Under Review').length} badge="-50%" icon={SearchCheck} stroke="#f59e0b" />
-        <StatCardWithSparkline label="VERIFIED" value={data.verifiedFindings} badge="100%" icon={BadgeCheck} stroke="#10b981" />
+        <StatCardWithSparkline
+          label="SECURITY SCORE"
+          value={data?.securityScore != null ? `${data.securityScore}/100` : '—'}
+          badge={
+            data?.securityScore != null
+              ? (isScanning
+                  ? 'Active Scan'
+                  : `${data.securityScore >= 80 ? 'Optimal' : data.securityScore >= 50 ? 'Moderate' : 'At Risk'} (Last Run)`)
+              : 'No Scans Yet'
+          }
+          subtext={
+            data?.securityScore != null
+              ? (isScanning
+                  ? '⚡ Previous Score (Scan Active)'
+                  : (data?.scoreMetadata?.completedAt
+                      ? `From Last Run (${new Date(data.scoreMetadata.completedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})`
+                      : 'From Previous Assessment'))
+              : 'Run scan to calculate'
+          }
+          icon={ShieldCheck}
+          stroke="#0ea5e9"
+        />
+        <StatCardWithSparkline
+          label="TOTAL FINDINGS"
+          value={data.totalFindings ?? 0}
+          badge={data.totalFindings > 0 ? `${data.totalFindings} Active` : 'Zero Flaws'}
+          icon={Radar}
+          stroke="#0ea5e9"
+        />
+        <StatCardWithSparkline
+          label="ASSESSMENTS"
+          value={data.recentAssessments?.length ?? 0}
+          badge={(data.recentAssessments?.length ?? 0) > 0 ? `${data.recentAssessments.length} Total` : 'None'}
+          icon={FlaskConical}
+          stroke="#0ea5e9"
+        />
+        <StatCardWithSparkline
+          label="UNDER REVIEW"
+          value={(data.recentFindings || []).filter((f) => f.status === 'Under Review').length}
+          badge={(data.recentFindings || []).filter((f) => f.status === 'Under Review').length > 0 ? 'Pending' : 'None'}
+          icon={SearchCheck}
+          stroke="#f59e0b"
+        />
+        <StatCardWithSparkline
+          label="VERIFIED"
+          value={data.verifiedFindings ?? 0}
+          badge={(data.verifiedFindings ?? 0) > 0 ? 'Confirmed' : 'None'}
+          icon={BadgeCheck}
+          stroke="#10b981"
+        />
       </motion.div>
 
       {/* ——— Distribution and Activity Grid ——— */}
@@ -1357,20 +1493,28 @@ function SeverityDistributionSection({ pie, sev, activeTotal }) {
 }
 
 // Clean Enterprise Stat Card with Sparkline
-function StatCardWithSparkline({ label, value, badge, icon: Icon, stroke }) {
+function StatCardWithSparkline({ label, value, badge, icon: Icon, stroke, subtext }) {
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#090f1f] p-3.5 shadow-sm transition hover:border-slate-300 dark:hover:border-slate-700">
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{label}</span>
-        {badge && (
-          <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-slate-600 dark:text-slate-300">
-            {badge}
-          </span>
+    <div className="rounded-xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#090f1f] p-3.5 shadow-sm transition hover:border-slate-300 dark:hover:border-slate-700 flex flex-col justify-between">
+      <div>
+        <div className="flex items-center justify-between gap-1">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 truncate">{label}</span>
+          {badge && (
+            <span className="shrink-0 rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-slate-600 dark:text-slate-300">
+              {badge}
+            </span>
+          )}
+        </div>
+        <div className="mt-2 flex items-baseline justify-between">
+          <span className="text-2xl font-bold tracking-tight text-[#0f1f3d] dark:text-white">{value}</span>
+          <Icon size={15} className="text-slate-500 shrink-0" />
+        </div>
+        {subtext && (
+          <div className="mt-1.5 flex items-center gap-1 font-mono text-[10px] text-blue-600 dark:text-cyan-400 font-medium">
+            <span className="h-1.5 w-1.5 rounded-full bg-blue-500 dark:bg-cyan-400 shrink-0"></span>
+            <span className="truncate">{subtext}</span>
+          </div>
         )}
-      </div>
-      <div className="mt-2 flex items-baseline justify-between">
-        <span className="text-2xl font-bold tracking-tight text-[#0f1f3d] dark:text-white">{value}</span>
-        <Icon size={15} className="text-slate-500" />
       </div>
 
       <svg className="mt-2 h-5 w-full opacity-50" viewBox="0 0 100 24">

@@ -117,6 +117,9 @@ const findingSchema = new mongoose.Schema(
 );
 
 findingSchema.index({ projectId: 1, findingId: 1 }, { unique: true });
+findingSchema.index({ projectId: 1, cvssScore: -1, updatedAt: -1 });
+findingSchema.index({ projectId: 1, createdAt: -1 });
+findingSchema.index({ projectId: 1, severity: 1, status: 1 });
 
 module.exports = mongoose.model('Finding', findingSchema);
 module.exports.SEVERITIES = SEVERITIES;

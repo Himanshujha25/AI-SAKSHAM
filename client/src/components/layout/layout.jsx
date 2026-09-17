@@ -14,8 +14,6 @@ import {
   HelpCircle,
   Zap,
   Shield,
-  Eye,
-  Lock,
   ChevronRight,
   User,
 } from 'lucide-react';
@@ -259,48 +257,31 @@ export function TopNavbar({ onOpenMobileMenu }) {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-200 dark:border-white/10 bg-white/70 backdrop-blur-xl dark:bg-[#090d16]/90 shadow-[0_1px_12px_rgba(15,31,61,0.06)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
       <div className="flex h-14 w-full items-center justify-between px-3 sm:px-6">
-        <div className="flex items-center gap-4 lg:gap-8">
+        {/* Left: Brand */}
+        <div className="flex items-center min-w-0 xl:w-[220px] shrink-0">
           <Brand />
-          {/* Desktop Navigation Links */}
-          <nav className="hidden items-center gap-1 xl:flex" aria-label="Primary Navigation">
-            {primaryLinks.map(({ to, label, icon: Icon }) => (
-              <NavLink key={to} to={to} className={({ isActive }) => desktopPill(isActive)}>
-                {({ isActive }) => (
-                  <>
-                    <NavIcon Icon={Icon} active={isActive} />
-                    <span>{label}</span>
-                  </>
-                )}
-              </NavLink>
-            ))}
-          </nav>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Role Indicator — Professional cybersecurity badge with standard icon */}
-          {user && (
-            <div
-              title={`Role: ${user.role || 'ANALYST'}`}
-              className={cn(
-                'hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border font-mono text-xs font-bold uppercase tracking-wider',
-                user.role === 'ADMIN'
-                  ? 'border-purple-500/40 bg-purple-500/10 text-purple-700 dark:text-purple-300'
-                  : user.role === 'VIEWER'
-                  ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
-                  : 'border-cyan-500/40 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300'
+        {/* Center: Desktop Navigation Links */}
+        <nav
+          data-tour="nav-tabs"
+          className="hidden items-center justify-center gap-1 xl:flex flex-1"
+          aria-label="Primary Navigation"
+        >
+          {primaryLinks.map(({ to, label, icon: Icon }) => (
+            <NavLink key={to} to={to} className={({ isActive }) => desktopPill(isActive)}>
+              {({ isActive }) => (
+                <>
+                  <NavIcon Icon={Icon} active={isActive} />
+                  <span>{label}</span>
+                </>
               )}
-            >
-              {user.role === 'ADMIN' ? (
-                <Lock size={12} className="text-purple-600 dark:text-purple-400" />
-              ) : user.role === 'VIEWER' ? (
-                <Eye size={12} className="text-emerald-600 dark:text-emerald-400" />
-              ) : (
-                <Shield size={12} className="text-blue-600 dark:text-cyan-400" />
-              )}
-              <span>{user.role === 'ADMIN' ? 'Admin' : user.role === 'VIEWER' ? 'Auditor' : 'Analyst'}</span>
-            </div>
-          )}
+            </NavLink>
+          ))}
+        </nav>
 
+        {/* Right: Actions */}
+        <div className="flex items-center justify-end gap-2 sm:gap-3 xl:w-[220px] shrink-0">
           {user?.role !== 'VIEWER' && <NotificationCenter />}
 
           <AccountMenu

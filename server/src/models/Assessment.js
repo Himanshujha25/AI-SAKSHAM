@@ -50,5 +50,8 @@ const assessmentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+assessmentSchema.index({ projectId: 1, createdAt: -1 });
+assessmentSchema.index({ projectId: 1, status: 1 });
+
 module.exports = mongoose.model('Assessment', assessmentSchema);
 module.exports.STAGES = STAGES;

@@ -53,7 +53,6 @@ export function PenteraAttackMap({
   onSelectFinding,
   className,
 }) {
-  const [activeTab, setActiveTab] = useState('attack-map'); // 'attack-map' | 'achievements' | 'vulnerabilities'
   const [adversaryLevel, setAdversaryLevel] = useState('ALL');
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   const [zoomLevel, setZoomLevel] = useState(1);
@@ -96,14 +95,10 @@ export function PenteraAttackMap({
     return nodes.filter(n => (n.adversaryLevel || '').toUpperCase() === adversaryLevel.toUpperCase());
   }, [nodes, adversaryLevel]);
 
-  const achievements = useMemo(() => {
-    return [...filteredNodes].sort((a, b) => b.score - a.score);
-  }, [filteredNodes]);
-
   const selectedNode = useMemo(() => {
-    if (!selectedNodeId) return achievements[0] || null;
-    return nodes.find(n => n.id === selectedNodeId) || achievements[0] || null;
-  }, [nodes, selectedNodeId, achievements]);
+    if (!selectedNodeId) return filteredNodes[0] || null;
+    return nodes.find(n => n.id === selectedNodeId) || filteredNodes[0] || null;
+  }, [nodes, selectedNodeId, filteredNodes]);
 
   const getScoreBadgeColor = (score) => {
     if (score >= 9.0) return 'bg-red-600 text-white shadow-red-500/30';
@@ -128,44 +123,18 @@ export function PenteraAttackMap({
     <Card className={cn("overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#070c18] p-0 shadow-xl backdrop-blur-2xl transition-colors duration-200", className)}>
       {/* Top Pentera Navigation Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-950/80 px-6 py-3.5">
-        {/* Left Tabs */}
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={() => setActiveTab('attack-map')}
-            className={cn(
-              "rounded-lg px-3.5 py-1.5 font-mono text-xs font-bold uppercase tracking-wider transition",
-              activeTab === 'attack-map'
-                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                : "text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-slate-200"
-            )}
-          >
-            Attack Map
-          </button>
-          <button
-            onClick={() => setActiveTab('achievements')}
-            className={cn(
-              "rounded-lg px-3.5 py-1.5 font-mono text-xs font-bold uppercase tracking-wider transition",
-              activeTab === 'achievements'
-                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                : "text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-slate-200"
-            )}
-          >
-            Achievements ({achievements.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('vulnerabilities')}
-            className={cn(
-              "rounded-lg px-3.5 py-1.5 font-mono text-xs font-bold uppercase tracking-wider transition",
-              activeTab === 'vulnerabilities'
-                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                : "text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-900 hover:text-slate-900 dark:hover:text-slate-200"
-            )}
-          >
-            Kill Chain Vectors
-          </button>
+        {/* Title Header */}
+        <div className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+          <Radar className="h-4 w-4 text-blue-600 dark:text-cyan-400" />
+          <span>Saksham Attack Map</span>
+          {filteredNodes.length > 0 && (
+            <span className="rounded-full bg-blue-100 dark:bg-cyan-950 px-2.5 py-0.5 text-[10px] font-bold text-blue-700 dark:text-cyan-300 border border-blue-300 dark:border-cyan-500/30">
+              {filteredNodes.length} Threat Vectors
+            </span>
+          )}
         </div>
 
-        {/* Center / Right Controls */}
+        {/* Controls */}
         <div className="flex items-center gap-3">
           {/* Adversary Level Filter */}
           <div className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 px-3 py-1 text-xs shadow-sm">
@@ -213,12 +182,12 @@ export function PenteraAttackMap({
         </div>
       </div>
 
-      {/* Main Layout: Dynamic Pipeline Progress / Hardened State when empty OR Flowchart Canvas when findings exist */}
-      {achievements.length === 0 ? (
-        <div className="p-8 sm:p-12 min-h-[520px] flex flex-col items-center justify-center text-center">
-          {['RUNNING', 'QUEUED'].includes(assessment?.status) ? (
-            <div className="w-full max-w-3xl space-y-6">
-              <div className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-500/10 border border-blue-500/30">
+      {/* Main Layout: Dynamic Attack Map State / Hardened State when empty OR Full-Width Flowchart Canvas when findings exist */}
+      {filteredNodes.length === 0 ? (
+        <div className="p-8 sm:p-12 min-h-[420px] flex flex-col items-center justify-center text-center">
+          {(['RUNNING', 'QUEUED'].includes(assessment?.status) && !PIPELINE_STAGES.every((st) => progressMap[st.key] === 'done')) ? (
+            <div className="w-full max-w-xl space-y-4 py-6">
+              <div className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 dark:bg-cyan-950 border border-blue-200 dark:border-cyan-500/40 shadow-md">
                 <Radar className="h-8 w-8 text-blue-600 dark:text-cyan-400 animate-spin" />
                 <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
@@ -228,59 +197,22 @@ export function PenteraAttackMap({
 
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white font-mono flex items-center justify-center gap-2">
-                  <span>Saksham Security Pipeline Actively Executing</span>
-                  <span className="rounded bg-cyan-500/20 px-2 py-0.5 font-mono text-[10px] text-blue-600 dark:text-cyan-300 border border-blue-200 dark:border-cyan-500/30 font-bold uppercase animate-pulse">
-                    Live Stage
+                  <span>Attack Surface Mapping Active</span>
+                  <span className="rounded bg-blue-100 dark:bg-cyan-500/20 px-2 py-0.5 font-mono text-[10px] text-blue-700 dark:text-cyan-300 border border-blue-200 dark:border-cyan-500/30 font-bold uppercase">
+                    Live Telemetry
                   </span>
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-lg mx-auto leading-relaxed">
-                  Target: <span className="font-mono text-blue-600 dark:text-cyan-300 font-semibold">{assessment?.targetId?.url || assessment?.customTarget || 'Target Asset'}</span>. Real-time reconnaissance, automated endpoint scans, and vulnerability detection in progress.
+                <p className="text-xs text-slate-700 dark:text-slate-200 font-mono font-semibold mt-1">
+                  Target: {assessment?.targetId?.url || assessment?.customTarget || 'Target Asset'}
+                </p>
+                <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 max-w-md mx-auto leading-relaxed">
+                  Autonomous attack analysis engine is probing routes for authorization bypass, privilege escalation, and injection flaws. Threat chain nodes plot on this canvas as findings are confirmed.
                 </p>
               </div>
 
-              {/* Dynamic 8-stage pipeline visualization */}
-              <div className="grid gap-2.5 sm:grid-cols-2 text-left">
-                {PIPELINE_STAGES.map((st, i) => {
-                  const sStatus = progressMap[st.key] || 'pending';
-                  const isDone = sStatus === 'done';
-                  const isRun = sStatus === 'running';
-
-                  return (
-                    <div
-                      key={st.key}
-                      className={cn(
-                        "flex items-center justify-between rounded-xl border p-3 font-mono text-xs transition",
-                        isDone
-                          ? "border-emerald-500/30 bg-emerald-500/10 text-slate-800 dark:text-slate-200"
-                          : isRun
-                          ? "border-cyan-500/50 bg-blue-50 dark:bg-cyan-950/40 text-blue-700 dark:text-cyan-300 ring-1 ring-cyan-400/40 shadow-sm"
-                          : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-slate-400"
-                      )}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <span className={cn(
-                          "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold",
-                          isDone ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400" :
-                          isRun ? "bg-cyan-500/20 text-blue-600 dark:text-cyan-400 animate-pulse" :
-                          "bg-slate-100 dark:bg-slate-800 text-slate-400"
-                        )}>
-                          {isDone ? <Check size={11} /> : isRun ? <Activity size={11} className="animate-spin" /> : i + 1}
-                        </span>
-                        <span className="truncate font-semibold">{st.label}</span>
-                      </div>
-                      <span className="text-[10px] uppercase font-bold shrink-0 ml-1">
-                        {isDone ? <span className="text-emerald-600 dark:text-emerald-400">DONE</span> :
-                         isRun ? <span className="text-blue-600 dark:text-cyan-400 animate-pulse">RUNNING</span> :
-                         <span className="text-slate-400">QUEUED</span>}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="flex items-center justify-center gap-2 font-mono text-[11px] text-blue-600 dark:text-cyan-400">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                <span>Discovered threat vectors will immediately appear on the attack map upon verification...</span>
+              <div className="inline-flex items-center gap-2 font-mono text-xs text-blue-700 dark:text-cyan-300 font-semibold bg-white dark:bg-slate-900 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                <Loader2 className="h-4 w-4 animate-spin text-blue-600 dark:text-cyan-400" />
+                <span>Monitoring attack map telemetry stream…</span>
               </div>
             </div>
           ) : (
@@ -292,8 +224,8 @@ export function PenteraAttackMap({
                 <h3 className="text-base font-bold text-slate-900 dark:text-white font-mono">
                   Target Hardened: Zero Threat Vectors Detected
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
-                  Saksham AI verified all target endpoints against authorization bypass, injection, and security headers. No exploitable attack chains could be constructed.
+                <p className="text-xs text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed">
+                  Saksham AI verified all target endpoints against authorization bypass, injection, and security headers. No exploitable attack vectors could be constructed.
                 </p>
               </div>
               <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 text-xs font-mono font-bold text-emerald-700 dark:text-emerald-300">
@@ -303,76 +235,19 @@ export function PenteraAttackMap({
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[640px]">
-          {/* Left Achievements Sidebar */}
-          <div className="lg:col-span-4 border-r border-slate-200 dark:border-slate-800/80 bg-slate-50/60 dark:bg-slate-950/60 p-4 space-y-3 overflow-y-auto max-h-[750px]">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800/80">
-            <h4 className="font-mono text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center gap-2">
-              <Trophy className="h-4 w-4 text-amber-500 dark:text-amber-400" />
-              <span>Test Achievements ({achievements.length})</span>
-            </h4>
-            <span className="text-[10px] font-mono text-blue-700 dark:text-cyan-400 font-bold bg-blue-50 dark:bg-cyan-950/60 px-2 py-0.5 rounded border border-blue-200 dark:border-cyan-500/20">
-              Max {achievements[0]?.score || 10}
-            </span>
-          </div>
-
-          <div className="space-y-2">
-            {achievements.map((item) => {
-              const isSelected = selectedNodeId === item.id;
-              return (
-                <div
-                  key={item.id}
-                  onClick={() => {
-                    setSelectedNodeId(item.id);
-                    setShowDrawer(true);
-                  }}
-                  className={cn(
-                    "group flex items-start gap-3 rounded-xl border p-3 transition duration-150 cursor-pointer shadow-sm",
-                    isSelected
-                      ? "border-blue-500 bg-blue-50/80 dark:bg-blue-950/40 ring-1 ring-blue-500/50"
-                      : "border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-900/40 hover:border-blue-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900/80"
-                  )}
-                >
-                  {/* Score Pill */}
-                  <div className={cn("flex h-7 w-9 shrink-0 items-center justify-center rounded-lg font-mono text-xs font-black shadow-md", getScoreBadgeColor(item.score))}>
-                    {item.score}
-                  </div>
-
-                  <div className="flex-1 min-w-0 space-y-1">
-                    <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-white transition">
-                      {item.achievementTitle || item.title}
-                    </p>
-                    <div className="flex flex-wrap items-center gap-2 text-[10px]">
-                      <span className="font-mono text-slate-500 dark:text-slate-400">
-                        {item.targetAsset || 'Target Host'}
-                      </span>
-                      <span className={cn("rounded px-1.5 py-0.2 border font-mono font-bold uppercase", getPhaseColor(item.phase))}>
-                        {item.phase}
-                      </span>
-                    </div>
-                  </div>
-
-                  <ChevronRight className="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0 self-center group-hover:text-blue-600 dark:group-hover:text-cyan-400 transition-transform group-hover:translate-x-0.5" />
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Central Attack Map Canvas */}
-        <div className="lg:col-span-8 relative bg-slate-100/60 dark:bg-[#040813] overflow-hidden flex flex-col justify-between">
+        <div className="w-full relative bg-slate-50/50 dark:bg-[#040813] min-h-[500px] overflow-hidden flex flex-col items-center justify-center p-6 sm:p-8">
           {/* Subtle Grid Background */}
           <div
-            className="absolute inset-0 opacity-30 dark:opacity-20 pointer-events-none"
+            className="absolute inset-0 opacity-25 dark:opacity-20 pointer-events-none"
             style={{
               backgroundImage: 'radial-gradient(circle at 1px 1px, #3b82f6 1px, transparent 0)',
               backgroundSize: '24px 24px',
             }}
           />
 
-          {/* Canvas Viewport */}
+          {/* Full-Width Canvas Viewport */}
           <div
-            className="flex-1 p-8 overflow-y-auto flex flex-col items-center space-y-6 transition-transform duration-200"
+            className="w-full max-w-2xl py-4 overflow-y-auto flex flex-col items-center space-y-5 transition-transform duration-200"
             style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'top center' }}
           >
             {filteredNodes.map((node, idx) => {
@@ -389,7 +264,7 @@ export function PenteraAttackMap({
                       setShowDrawer(true);
                     }}
                     className={cn(
-                      "group relative w-full max-w-md rounded-2xl border p-4 transition-all duration-200 cursor-pointer shadow-md dark:shadow-xl",
+                      "group relative w-full rounded-2xl border p-4.5 transition-all duration-200 cursor-pointer shadow-md dark:shadow-xl",
                       isSelected
                         ? "border-blue-500 dark:border-cyan-400 bg-white dark:bg-slate-900 ring-2 ring-blue-500/30 dark:ring-cyan-400/40 shadow-blue-500/10 dark:shadow-cyan-500/10"
                         : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/90 hover:border-blue-400 dark:hover:border-slate-700 hover:bg-slate-50/80 dark:hover:bg-slate-900/90 hover:scale-[1.01]"
@@ -404,16 +279,16 @@ export function PenteraAttackMap({
                           <span className={cn("rounded-md px-2 py-0.5 text-[10px] font-mono font-bold uppercase border", getPhaseColor(node.phase))}>
                             {node.phase}
                           </span>
-                          <span className="font-mono text-[11px] text-slate-500 dark:text-slate-400 ml-2">
+                          <span className="font-mono text-[11px] text-slate-600 dark:text-slate-300 ml-2">
                             {node.targetAsset}
                           </span>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-slate-500 uppercase">
-                        {isRoot && <span className="text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/60 px-2 py-0.5 rounded border border-amber-300 dark:border-amber-500/20">Initial Access</span>}
-                        {isLast && <span className="text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-950/60 px-2 py-0.5 rounded border border-red-300 dark:border-red-500/20">Impact</span>}
-                        <Trophy className={cn("h-4 w-4", node.score >= 9.0 ? "text-red-500" : node.score >= 7.0 ? "text-amber-500" : "text-blue-500")} />
+                        {isRoot && <span className="text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60 px-2 py-0.5 rounded border border-amber-300 dark:border-amber-500/20">Initial Access</span>}
+                        {isLast && <span className="text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-950/60 px-2 py-0.5 rounded border border-red-300 dark:border-red-500/20">Impact</span>}
+                        <ShieldAlert className={cn("h-4 w-4", node.score >= 9.0 ? "text-red-500" : node.score >= 7.0 ? "text-amber-500" : "text-blue-500")} />
                       </div>
                     </div>
 
@@ -443,26 +318,8 @@ export function PenteraAttackMap({
               );
             })}
           </div>
-
-          {/* Bottom Live Breadcrumb / Vector Footer */}
-          <div className="border-t border-slate-200 dark:border-slate-800/80 bg-white/90 dark:bg-slate-950/90 px-6 py-3 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
-            <div className="flex items-center gap-2 font-mono text-[11px]">
-              <span className="text-blue-600 dark:text-cyan-400 font-bold">Kill Chain:</span>
-              <span>Initial Access</span>
-              <span>→</span>
-              <span>Credential Access</span>
-              <span>→</span>
-              <span>Lateral Movement</span>
-              <span>→</span>
-              <span className="text-red-600 dark:text-red-400 font-bold">Domain Compromise</span>
-            </div>
-            <span className="text-[11px] text-slate-500">
-              Click any node to view configuration hardening playbook
-            </span>
-          </div>
         </div>
-      </div>
-    )}
+      )}
 
       {/* Slide-out / Modal Drawer for Selected Node Details & Remediation Navigation */}
       <AnimatePresence>
@@ -532,24 +389,25 @@ export function PenteraAttackMap({
 
               {/* Action Buttons */}
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
-                <Button
-                  variant="outline"
+                <button
+                  type="button"
                   onClick={() => setShowDrawer(false)}
-                  className="border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs"
+                  className="rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-4 py-2 text-xs font-mono font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
                 >
                   Close
-                </Button>
+                </button>
                 {onSelectFinding && selectedNode.id && (
-                  <Button
+                  <button
+                    type="button"
                     onClick={() => {
                       setShowDrawer(false);
                       onSelectFinding(selectedNode.id);
                     }}
-                    className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs gap-1.5 shadow-lg shadow-blue-600/30"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-mono font-bold text-xs px-4 py-2 shadow-lg shadow-blue-600/30 transition active:scale-95"
                   >
-                    <BookOpen className="h-4 w-4" />
-                    <span>Open Remediation Wiki & Config</span>
-                  </Button>
+                    <BookOpen className="h-4 w-4 text-white shrink-0" />
+                    <span className="text-white">Open Remediation Wiki & Config</span>
+                  </button>
                 )}
               </div>
             </motion.div>

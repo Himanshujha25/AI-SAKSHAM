@@ -365,7 +365,7 @@ async function tryGemini(input, prompt) {
       return normalize(input.title, input.category, input.evidence, parsed, {
         model: gmodel,
         provider: 'gemini',
-        note: `Live Gemini LLM Analysis (${label})`,
+        note: 'Saksham Neural Threat Intelligence Engine (Stage 6)',
       }, input);
     } catch (err) {
       lastErr = err;

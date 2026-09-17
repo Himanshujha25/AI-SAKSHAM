@@ -492,7 +492,7 @@ app.use(helmet({
               <li>Registers target APIs and launches 8-stage live assessments</li>
               <li>Analyzes attack surfaces, routes, and technology stacks</li>
               <li>Verifies genuine vulnerabilities and eliminates false positives</li>
-              <li>Runs Gemini AI threat analysis and exports PDF reports</li>
+              <li>Runs Neural Threat Intelligence analysis and exports PDF reports</li>
             </ul>
           </div>
 
