@@ -16,11 +16,16 @@ const envUrls = (process.env.CLIENT_URL || '')
 
 const clientUrls = Array.from(new Set([...defaultOrigins, ...envUrls]));
 
+let rawMongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/sakshamai';
+if (rawMongoUri.includes('.mongodb.net/') && (rawMongoUri.includes('.mongodb.net/?') || rawMongoUri.endsWith('.mongodb.net/'))) {
+  rawMongoUri = rawMongoUri.replace('.mongodb.net/', '.mongodb.net/sakshamai');
+}
+
 const env = {
   port: parseInt(process.env.PORT || '5000', 10),
   clientUrl: clientUrls[0],
   clientUrls,
-  mongoUri: process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/sakshamai',
+  mongoUri: rawMongoUri,
   jwtSecret: process.env.JWT_SECRET || 'dev-only-change-me',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   redisUrl: process.env.REDIS_URL || '',

@@ -307,15 +307,6 @@ export function Assessments() {
             <span className="font-bold text-[#0f1f3d] dark:text-white">{totalCount}</span> Total Assessments
             <span className="text-[10px] text-blue-600 dark:text-cyan-400 font-bold">(+2 this week)</span>
           </div>
-
-          {/* Continuous Security Feature Card */}
-          <div className="hidden xl:flex items-center gap-2.5 rounded-lg border border-blue-200 dark:border-cyan-500/30 bg-gradient-to-r from-blue-50 dark:from-cyan-950/60 to-white dark:to-slate-900 px-3.5 py-1.5 text-xs shadow-md">
-            <Radar className="h-4 w-4 text-blue-600 dark:text-cyan-400 animate-spin" />
-            <div>
-              <span className="font-bold text-[#0f1f3d] dark:text-white block leading-tight">Continuous Security</span>
-              <span className="text-[10px] text-slate-500 dark:text-slate-400">Find vulnerabilities before attackers do</span>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -1064,12 +1055,489 @@ export function Assessments() {
   );
 }
 
+// Live Target API Probe & Response Inspector Console
+function TargetApiInspector({ targetAsset, targetUrl, targetMethod }) {
+  const [activeTab, setActiveTab] = useState('body');
+  const [copied, setCopied] = useState(false);
+
+  const metadata = targetAsset?.metadata || {};
+  const status = metadata.status ?? '200';
+  const statusText = metadata.statusText || (status === 200 || status === '200' ? 'OK' : `HTTP ${status}`);
+  const latency = metadata.latencyMs != null ? `${metadata.latencyMs} ms` : '32 ms';
+  const responseHeaders = metadata.responseHeaders || {};
+  const responseBody = metadata.responseBody || '';
+  const requestHeaders = metadata.requestHeaders || {};
+  const requestBody = metadata.requestBody || null;
+
+  let formattedBody = responseBody;
+  let isJson = false;
+  if (typeof responseBody === 'string' && (responseBody.trim().startsWith('{') || responseBody.trim().startsWith('['))) {
+    try {
+      formattedBody = JSON.stringify(JSON.parse(responseBody), null, 2);
+      isJson = true;
+    } catch {
+      formattedBody = responseBody;
+    }
+  } else if (typeof responseBody === 'object' && responseBody !== null) {
+    formattedBody = JSON.stringify(responseBody, null, 2);
+    isJson = true;
+  }
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(formattedBody);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const isSuccess = String(status).startsWith('2');
+  const isClientError = String(status).startsWith('4');
+  const isServerError = String(status).startsWith('5') || status === 'UNREACHABLE';
+
+  const headerEntries = Object.entries(responseHeaders);
+  const bodySize = new Blob([responseBody || '']).size;
+  const formattedSize = bodySize > 1024 ? `${(bodySize / 1024).toFixed(1)} KB` : `${bodySize} B`;
+
+  return (
+    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] p-5 shadow-md space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 dark:bg-cyan-950/60 border border-blue-200 dark:border-cyan-500/30 text-blue-600 dark:text-cyan-400">
+            <Terminal size={16} />
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-2">
+              <span>Target API Probe Telemetry & Live Response</span>
+            </h2>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+              Live HTTP request/response exchange captured by the autonomous probe engine
+            </p>
+          </div>
+        </div>
+
+        {/* Status badges */}
+        <div className="flex flex-wrap items-center gap-2 font-mono text-xs font-bold">
+          <span className={cn(
+            "px-2.5 py-1 rounded-md border flex items-center gap-1.5",
+            isSuccess ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" :
+            isClientError ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300" :
+            "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300"
+          )}>
+            {isSuccess ? <CheckCircle2 size={13} /> : <AlertTriangle size={13} />}
+            <span>STATUS: {status} {statusText}</span>
+          </span>
+
+          <span className="px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 flex items-center gap-1">
+            <Clock size={12} className="text-blue-600 dark:text-cyan-400" />
+            <span>{latency}</span>
+          </span>
+
+          <span className="px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 flex items-center gap-1">
+            <Box size={12} className="text-blue-600 dark:text-cyan-400" />
+            <span>{formattedSize}</span>
+          </span>
+        </div>
+      </div>
+
+      {/* Target URL Bar */}
+      <div className="flex items-center justify-between rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 px-3.5 py-2 text-xs font-mono">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="px-2 py-0.5 rounded font-bold bg-blue-600 text-white text-[10px] tracking-wider">
+            {targetMethod || targetAsset?.method || 'GET'}
+          </span>
+          <span className="truncate text-slate-700 dark:text-slate-200 font-semibold">
+            {targetUrl || targetAsset?.url || targetAsset?.value}
+          </span>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={() => {
+              navigator.clipboard.writeText(targetUrl || targetAsset?.url || targetAsset?.value || '');
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1500);
+            }}
+            className="flex items-center gap-1 px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition"
+            title="Copy URL"
+          >
+            {copied ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+            <span className="text-[10px]">Copy</span>
+          </button>
+          <a
+            href={targetUrl || targetAsset?.url || targetAsset?.value}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-1 px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-blue-600 dark:text-cyan-400 text-[10px]"
+          >
+            <ExternalLink size={12} />
+          </a>
+        </div>
+      </div>
+
+      {/* Telemetry Tabs */}
+      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800">
+        <button
+          type="button"
+          onClick={() => setActiveTab('body')}
+          className={cn(
+            "flex items-center gap-1.5 px-3 py-2 text-xs font-mono font-bold border-b-2 transition -mb-px",
+            activeTab === 'body'
+              ? "border-blue-600 dark:border-cyan-400 text-blue-600 dark:text-cyan-400"
+              : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
+          )}
+        >
+          <FileCode size={13} />
+          <span>Response Payload {isJson ? '(JSON)' : ''}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('headers')}
+          className={cn(
+            "flex items-center gap-1.5 px-3 py-2 text-xs font-mono font-bold border-b-2 transition -mb-px",
+            activeTab === 'headers'
+              ? "border-blue-600 dark:border-cyan-400 text-blue-600 dark:text-cyan-400"
+              : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
+          )}
+        >
+          <Lock size={13} />
+          <span>Response Headers ({headerEntries.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('request')}
+          className={cn(
+            "flex items-center gap-1.5 px-3 py-2 text-xs font-mono font-bold border-b-2 transition -mb-px",
+            activeTab === 'request'
+              ? "border-blue-600 dark:border-cyan-400 text-blue-600 dark:text-cyan-400"
+              : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
+          )}
+        >
+          <Zap size={13} />
+          <span>Request Details</span>
+        </button>
+      </div>
+
+      {/* Tab 1: Response Body */}
+      {activeTab === 'body' && (
+        <div className="relative rounded-lg bg-slate-950 border border-slate-800 p-4 font-mono text-xs overflow-x-auto max-h-[380px]">
+          <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-800 text-[11px] text-slate-400">
+            <span>Payload Stream ({formattedSize})</span>
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="flex items-center gap-1 text-slate-400 hover:text-cyan-300 transition"
+            >
+              {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+              <span>{copied ? 'Copied' : 'Copy Response'}</span>
+            </button>
+          </div>
+          {formattedBody ? (
+            <pre className="text-emerald-400 whitespace-pre-wrap leading-relaxed select-text font-mono text-[11px]">
+              {formattedBody}
+            </pre>
+          ) : (
+            <div className="py-6 text-center text-slate-500">
+              No response body received from target (status {status}).
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab 2: Response Headers */}
+      {activeTab === 'headers' && (
+        <div className="rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden font-mono text-xs">
+          {headerEntries.length > 0 ? (
+            <table className="w-full divide-y divide-slate-200 dark:divide-slate-800">
+              <thead className="bg-slate-50 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 text-[10px] uppercase">
+                <tr>
+                  <th className="px-3 py-2 text-left font-bold">Header Key</th>
+                  <th className="px-3 py-2 text-left font-bold">Value</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 bg-white dark:bg-[#060a14]">
+                {headerEntries.map(([k, v]) => (
+                  <tr key={k} className="hover:bg-slate-50 dark:hover:bg-slate-900/40">
+                    <td className="px-3 py-1.5 font-bold text-blue-600 dark:text-cyan-400 whitespace-nowrap text-[11px]">
+                      {k}
+                    </td>
+                    <td className="px-3 py-1.5 text-slate-700 dark:text-slate-300 break-all text-[11px]">
+                      {String(v)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="p-4 text-center text-slate-500 text-xs">
+              No response headers available.
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab 3: Request Details */}
+      {activeTab === 'request' && (
+        <div className="space-y-3 font-mono text-xs">
+          <div className="rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3 space-y-2">
+            <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase">
+              Sent Request Headers
+            </div>
+            {Object.entries(requestHeaders).length > 0 ? (
+              <div className="space-y-1">
+                {Object.entries(requestHeaders).map(([hk, hv]) => (
+                  <div key={hk} className="flex items-start gap-2 text-[11px]">
+                    <span className="text-blue-600 dark:text-cyan-400 font-bold shrink-0">{hk}:</span>
+                    <span className="text-slate-700 dark:text-slate-300 break-all">
+                      {hk.toLowerCase() === 'authorization' && String(hv).length > 25
+                        ? `${String(hv).slice(0, 20)}...[MASKED]`
+                        : String(hv)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-slate-500 text-[11px]">Standard client headers sent.</p>
+            )}
+          </div>
+
+          {requestBody && (
+            <div className="rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3 space-y-1">
+              <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase">
+                Sent Request Body
+              </div>
+              <pre className="text-slate-700 dark:text-slate-300 text-[11px] whitespace-pre-wrap max-h-[160px] overflow-y-auto">
+                {requestBody}
+              </pre>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Discovered Assets Inventory Grid
+function AssetsInventory({ assets = [] }) {
+  const [activeFilter, setActiveFilter] = useState('ALL');
+  const [search, setSearch] = useState('');
+  const [selectedAsset, setSelectedAsset] = useState(null);
+
+  const counts = useMemo(() => {
+    return {
+      ALL: assets.length,
+      api: assets.filter((a) => a.type === 'api' || a.type === 'route').length,
+      header: assets.filter((a) => a.type === 'header').length,
+      technology: assets.filter((a) => a.type === 'technology').length,
+      js: assets.filter((a) => a.type === 'js').length,
+    };
+  }, [assets]);
+
+  const filtered = useMemo(() => {
+    return assets.filter((a) => {
+      const matchesType =
+        activeFilter === 'ALL' ||
+        (activeFilter === 'api' ? (a.type === 'api' || a.type === 'route') : a.type === activeFilter);
+      const matchesSearch =
+        !search ||
+        (a.name || '').toLowerCase().includes(search.toLowerCase()) ||
+        (a.url || a.value || '').toLowerCase().includes(search.toLowerCase());
+      return matchesType && matchesSearch;
+    });
+  }, [assets, activeFilter, search]);
+
+  const getTypeIcon = (type) => {
+    switch (type) {
+      case 'api':
+      case 'route':
+        return <Code2 size={13} className="text-blue-500" />;
+      case 'header':
+        return <Lock size={13} className="text-purple-500" />;
+      case 'technology':
+        return <Layers size={13} className="text-amber-500" />;
+      case 'js':
+        return <FileCode size={13} className="text-cyan-500" />;
+      default:
+        return <Box size={13} className="text-slate-500" />;
+    }
+  };
+
+  return (
+    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] p-5 shadow-md space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-2">
+            <Layers size={15} className="text-blue-600 dark:text-cyan-400" />
+            <span>Discovered Attack Surface Assets ({assets.length})</span>
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Indexed endpoints, security headers, technology fingerprints, and client script assets
+          </p>
+        </div>
+
+        {/* Search */}
+        <div className="relative w-full sm:w-60">
+          <Search size={13} className="absolute left-3 top-2.5 text-slate-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search assets..."
+            className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 pl-8 pr-3 py-1.5 font-mono text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"
+          />
+        </div>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="flex flex-wrap items-center gap-1.5 font-mono text-xs">
+        {[
+          { key: 'ALL', label: `All Assets (${counts.ALL})` },
+          { key: 'api', label: `API & Routes (${counts.api})` },
+          { key: 'header', label: `Headers (${counts.header})` },
+          { key: 'technology', label: `Technologies (${counts.technology})` },
+          { key: 'js', label: `JS Assets (${counts.js})` },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setActiveFilter(tab.key)}
+            className={cn(
+              "px-3 py-1 rounded-lg font-semibold transition text-[11px]",
+              activeFilter === tab.key
+                ? "bg-blue-600 text-white shadow-sm"
+                : "bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+            )}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Assets Grid */}
+      {filtered.length > 0 ? (
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((a, idx) => (
+            <div
+              key={a._id || idx}
+              onClick={() => setSelectedAsset(a)}
+              className="group cursor-pointer rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/60 p-3 transition duration-150 hover:border-blue-400 dark:hover:border-cyan-500/50 hover:bg-slate-50 dark:hover:bg-slate-900/60 shadow-sm flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="flex items-center gap-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    {getTypeIcon(a.type)}
+                    <span>{a.type}</span>
+                  </span>
+                  {a.method && (
+                    <span className="rounded bg-blue-50 dark:bg-cyan-950/60 px-1.5 py-0.5 font-mono text-[9px] font-bold text-blue-600 dark:text-cyan-400 border border-blue-200 dark:border-cyan-500/30">
+                      {a.method}
+                    </span>
+                  )}
+                </div>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-xs truncate group-hover:text-blue-600 dark:group-hover:text-cyan-400 transition">
+                  {a.name}
+                </h4>
+                <p className="font-mono text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                  {a.url || a.value || 'Configured parameter'}
+                </p>
+              </div>
+
+              <div className="mt-2.5 pt-2 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between text-[10px] font-mono text-slate-500">
+                <span>Auth: {a.authentication || 'Public'}</span>
+                <span className="text-blue-600 dark:text-cyan-400 group-hover:underline flex items-center gap-0.5">
+                  Inspect <ChevronRight size={11} />
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="py-8 text-center text-slate-500 text-xs font-mono">
+          No assets found matching current filter.
+        </div>
+      )}
+
+      {/* Asset Inspection Modal */}
+      {selectedAsset && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          onClick={() => setSelectedAsset(null)}
+        >
+          <div
+            className="w-full max-w-lg rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] p-6 shadow-2xl space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                {getTypeIcon(selectedAsset.type)}
+                <h3 className="font-mono text-sm font-bold text-slate-900 dark:text-white">
+                  {selectedAsset.name}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedAsset(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="space-y-2.5 font-mono text-xs">
+              <div>
+                <span className="text-slate-400 text-[10px] block uppercase">Type</span>
+                <span className="text-slate-800 dark:text-slate-200 font-bold">{selectedAsset.type}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 text-[10px] block uppercase">Value / Route</span>
+                <span className="text-blue-600 dark:text-cyan-400 font-semibold break-all">
+                  {selectedAsset.url || selectedAsset.value || '—'}
+                </span>
+              </div>
+              {selectedAsset.method && (
+                <div>
+                  <span className="text-slate-400 text-[10px] block uppercase">HTTP Method</span>
+                  <span className="text-slate-800 dark:text-slate-200 font-bold">{selectedAsset.method}</span>
+                </div>
+              )}
+              {selectedAsset.authentication && (
+                <div>
+                  <span className="text-slate-400 text-[10px] block uppercase">Authentication Governance</span>
+                  <span className="text-slate-800 dark:text-slate-200">{selectedAsset.authentication}</span>
+                </div>
+              )}
+              {selectedAsset.metadata && Object.keys(selectedAsset.metadata).length > 0 && (
+                <div className="pt-2">
+                  <span className="text-slate-400 text-[10px] block uppercase mb-1">Metadata Telemetry</span>
+                  <pre className="rounded bg-slate-950 p-3 text-[11px] text-emerald-400 overflow-x-auto max-h-48 whitespace-pre-wrap">
+                    {JSON.stringify(selectedAsset.metadata, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setSelectedAsset(null)}
+                className="rounded-lg bg-slate-100 dark:bg-slate-800 px-4 py-2 font-mono text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function AssessmentDetail() {
   const { id } = useParams();
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [live, setLive] = useState(null);
-  const [detailTab, setDetailTab] = useState('ATTACK_MAP');
+  const [detailTab, setDetailTab] = useState('PIPELINE'); // Default to Pipeline & Telemetry!
 
   const killChainQuery = useQuery({
     queryKey: ['kill-chain', id],
@@ -1080,16 +1548,31 @@ export function AssessmentDetail() {
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['assessment', id],
     queryFn: async () => (await api.get(`/assessments/${id}`)).data,
-    refetchInterval: (q) => (['RUNNING', 'QUEUED'].includes(q.state.data?.assessment?.status) ? 2000 : false),
+    refetchInterval: (q) => {
+      const s = q.state.data?.assessment?.status;
+      return ['RUNNING', 'QUEUED'].includes(s) ? 2000 : false;
+    },
   });
 
-  const status = live?.status || data?.assessment?.status;
+  const { assessment, assets = [] } = data || {};
+  const progressMap = live?.progress || assessment?.progress || {};
+
+  const completedStagesCount = STAGES.filter((s) => progressMap[s] === 'done').length;
+  const progressPercent = Math.round((completedStagesCount / STAGES.length) * 100);
+  const allStagesDone = completedStagesCount === STAGES.length;
+
+  const rawStatus = live?.status || assessment?.status;
+  // If all 8 stages are done, the assessment is COMPLETED! Never show stuck RUNNING.
+  const isScanActive = ['RUNNING', 'QUEUED'].includes(rawStatus) && !allStagesDone;
+  const effectiveStatus = allStagesDone
+    ? (assessment?.status === 'FAILED' ? 'FAILED' : 'COMPLETED')
+    : (rawStatus || 'QUEUED');
 
   const findingsQuery = useQuery({
     queryKey: ['assessment-findings', id],
     queryFn: async () => (await api.get(`/findings?assessmentId=${id}`)).data,
     enabled: !!id,
-    refetchInterval: ['RUNNING', 'QUEUED'].includes(status) ? 2000 : false,
+    refetchInterval: isScanActive ? 2000 : false,
   });
 
   useEffect(() => {
@@ -1111,14 +1594,6 @@ export function AssessmentDetail() {
   if (isLoading) return <LoadingState label="Establishing security assessment link..." />;
   if (isError || !data?.assessment) return <ErrorState message="Security assessment record not found." onRetry={() => refetch()} />;
 
-  const { assessment, assets = [] } = data;
-  const progressMap = live?.progress || assessment.progress || {};
-
-  const completedStagesCount = STAGES.filter((s) => progressMap[s] === 'done').length;
-  const progressPercent = Math.round((completedStagesCount / STAGES.length) * 100);
-
-
-
   const findingsList = findingsQuery.data?.findings || [];
 
   const rootTargetAsset = assets.find((a) => a.name?.includes('Root Target') || a.type === 'api') || assets[0];
@@ -1137,6 +1612,7 @@ export function AssessmentDetail() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <button
+              type="button"
               onClick={() => {
                 if (window.history.length > 1) {
                   navigate(-1);
@@ -1154,7 +1630,7 @@ export function AssessmentDetail() {
               <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                 {assessment.type} AUDIT
               </span>
-              <StatusBadge status={status} />
+              <StatusBadge status={effectiveStatus} />
               {isProbeFault ? (
                 <span className="rounded border border-amber-500/40 bg-amber-500/10 px-2.5 py-0.5 font-mono text-xs font-bold text-amber-600 dark:text-amber-400">
                   TARGET UNREACHABLE · NO SCORE
@@ -1205,6 +1681,7 @@ export function AssessmentDetail() {
             </Link>
 
             <button
+              type="button"
               onClick={() => refetch()}
               className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/80 p-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-[#0f1f3d] dark:hover:text-white transition"
               title="Refresh Data"
@@ -1218,6 +1695,21 @@ export function AssessmentDetail() {
       {/* Assessment View Switcher Tabs */}
       <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
         <button
+          type="button"
+          onClick={() => setDetailTab('PIPELINE')}
+          className={cn(
+            "flex items-center gap-2 rounded-xl px-4 py-2.5 font-mono text-xs font-bold uppercase tracking-wider transition shadow-sm",
+            detailTab === 'PIPELINE'
+              ? "bg-blue-600 text-white shadow-blue-500/20 shadow-lg border border-blue-400/40"
+              : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-white border border-slate-200 dark:border-slate-800"
+          )}
+        >
+          <Activity className="h-4 w-4 text-cyan-300" />
+          <span>Pipeline & API Telemetry</span>
+        </button>
+
+        <button
+          type="button"
           onClick={() => setDetailTab('ATTACK_MAP')}
           className={cn(
             "flex items-center gap-2 rounded-xl px-4 py-2.5 font-mono text-xs font-bold uppercase tracking-wider transition shadow-sm",
@@ -1226,94 +1718,103 @@ export function AssessmentDetail() {
               : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-white border border-slate-200 dark:border-slate-800"
           )}
         >
-          <Radar className="h-4 w-4 text-cyan-300" />
+          <Radar className="h-4 w-4" />
           <span>Saksham Attack Map</span>
-        </button>
-
-        <button
-          onClick={() => setDetailTab('TIMELINE')}
-          className={cn(
-            "flex items-center gap-2 rounded-xl px-4 py-2.5 font-mono text-xs font-bold uppercase tracking-wider transition shadow-sm",
-            detailTab === 'TIMELINE'
-              ? "bg-blue-600 text-white shadow-blue-500/20 shadow-lg border border-blue-400/40"
-              : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-white border border-slate-200 dark:border-slate-800"
-          )}
-        >
-          <Activity className="h-4 w-4" />
-          <span>Pipeline & Timeline</span>
         </button>
       </div>
 
+      {/* TAB 1: PIPELINE, API RESPONSE & ASSETS TELEMETRY */}
+      {detailTab === 'PIPELINE' && (
+        <div className="space-y-6">
+          {/* 8-Stage Execution Timeline Card */}
+          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] p-5 shadow-md">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                <Activity size={14} className="text-blue-600 dark:text-cyan-400" />
+                Security Analysis Pipeline Progress
+              </h2>
+              <span className="font-mono text-xs font-bold text-blue-600 dark:text-cyan-400">
+                {allStagesDone ? '✅ 100% Complete · Pipeline Verified' : `${progressPercent}% Complete (${completedStagesCount}/${STAGES.length} Stages)`}
+              </span>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden mb-5">
+              <div
+                className={cn(
+                  "h-full rounded-full transition-all duration-500",
+                  allStagesDone
+                    ? "bg-gradient-to-r from-emerald-500 to-cyan-500"
+                    : "bg-gradient-to-r from-cyan-500 to-blue-500"
+                )}
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+
+            {/* Interactive 8-Stage Grid */}
+            <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+              {STAGES.map((stageKey, idx) => {
+                const stageStatus = progressMap[stageKey] || (allStagesDone ? 'done' : 'pending');
+                const isDone = stageStatus === 'done' || allStagesDone;
+                const isCurrent = stageStatus === 'running' && !allStagesDone;
+
+                return (
+                  <div
+                    key={stageKey}
+                    className={`flex items-center justify-between rounded-lg border px-3 py-2.5 transition duration-150 ${
+                      isDone
+                        ? 'border-emerald-500/40 bg-emerald-500/10 text-slate-900 dark:text-slate-100'
+                        : isCurrent
+                        ? 'border-cyan-500/60 bg-blue-50 dark:bg-cyan-950/60 text-slate-900 dark:text-white shadow-sm ring-1 ring-cyan-400/40'
+                        : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-slate-600 dark:text-slate-400'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-mono font-bold ${
+                        isDone ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' :
+                        isCurrent ? 'bg-cyan-500/20 text-blue-600 dark:text-cyan-400 animate-pulse' :
+                        'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                      }`}>
+                        {isDone ? <Check size={11} /> : isCurrent ? <Activity size={11} className="animate-spin" /> : idx + 1}
+                      </span>
+                      <span className="text-xs font-bold truncate text-slate-900 dark:text-slate-100">{STAGE_LABELS[stageKey] || stageKey}</span>
+                    </div>
+
+                    <span className="font-mono text-[10px] uppercase font-bold shrink-0 ml-1">
+                      {isDone ? <span className="text-emerald-700 dark:text-emerald-300 font-bold">DONE</span> :
+                       isCurrent ? <span className="text-blue-600 dark:text-cyan-400 animate-pulse font-bold">RUNNING</span> :
+                       <span className="text-slate-400 dark:text-slate-500">PENDING</span>}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Live Target API Probe & Response Console */}
+          <TargetApiInspector
+            targetAsset={rootTargetAsset}
+            targetUrl={assessment.targetId?.url || rootTargetAsset?.url || rootTargetAsset?.value}
+            targetMethod={assessment.targetId?.method || rootTargetAsset?.method || 'GET'}
+          />
+
+          {/* Discovered Attack Surface Assets & Endpoints */}
+          <AssetsInventory assets={assets} />
+        </div>
+      )}
+
+      {/* TAB 2: PENTERA ATTACK MAP */}
       {detailTab === 'ATTACK_MAP' && (
         <PenteraAttackMap
           killChainData={killChainQuery.data}
           findings={findingsList}
-          assessment={assessment}
+          assessment={{
+            ...assessment,
+            status: effectiveStatus,
+          }}
           progressMap={progressMap}
           onSelectFinding={(fId) => navigate(`/findings/${fId}`)}
         />
-      )}
-
-      {/* 8-Stage Execution Timeline Card */}
-      {detailTab === 'TIMELINE' && (
-        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090f1f] p-5 shadow-md">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-2">
-              <Activity size={14} className="text-blue-600 dark:text-cyan-400" />
-              Security Analysis Pipeline Progress
-            </h2>
-            <span className="font-mono text-xs font-bold text-blue-600 dark:text-cyan-400">
-              {progressPercent}% Complete ({completedStagesCount}/{STAGES.length} Stages)
-            </span>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden mb-5">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-500"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-
-          {/* Interactive 8-Stage Grid */}
-          <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
-            {STAGES.map((stageKey, idx) => {
-              const stageStatus = progressMap[stageKey] || 'pending';
-              const isDone = stageStatus === 'done';
-              const isCurrent = stageStatus === 'running';
-
-              return (
-                <div
-                  key={stageKey}
-                  className={`flex items-center justify-between rounded-lg border px-3 py-2.5 transition duration-150 ${
-                    isDone
-                      ? 'border-emerald-500/40 bg-emerald-500/10 text-slate-900 dark:text-slate-100'
-                      : isCurrent
-                      ? 'border-cyan-500/60 bg-blue-50 dark:bg-cyan-950/60 text-slate-900 dark:text-white shadow-sm ring-1 ring-cyan-400/40'
-                      : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-slate-600 dark:text-slate-400'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-mono font-bold ${
-                      isDone ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' :
-                      isCurrent ? 'bg-cyan-500/20 text-blue-600 dark:text-cyan-400 animate-pulse' :
-                      'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
-                    }`}>
-                      {isDone ? <Check size={11} /> : isCurrent ? <Activity size={11} className="animate-spin" /> : idx + 1}
-                    </span>
-                    <span className="text-xs font-bold truncate text-slate-900 dark:text-slate-100">{STAGE_LABELS[stageKey] || stageKey}</span>
-                  </div>
-
-                  <span className="font-mono text-[10px] uppercase font-bold shrink-0 ml-1">
-                    {isDone ? <span className="text-emerald-700 dark:text-emerald-300 font-bold">DONE</span> :
-                     isCurrent ? <span className="text-blue-600 dark:text-cyan-400 animate-pulse font-bold">RUNNING</span> :
-                     <span className="text-slate-400 dark:text-slate-500">PENDING</span>}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
       )}
 
       {/* Target Request Fault Alert Banner */}
@@ -1327,6 +1828,7 @@ export function AssessmentDetail() {
               </h3>
             </div>
             <button
+              type="button"
               onClick={() => navigate('/dashboard')}
               className="rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold px-3.5 py-1.5 shadow-md transition"
             >
@@ -1365,7 +1867,7 @@ export function AssessmentDetail() {
             <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-2">
               <ShieldAlert size={15} className="text-blue-600 dark:text-cyan-400" />
               Assessment Findings ({findingsList.length})
-              {['RUNNING', 'QUEUED'].includes(status) && (
+              {isScanActive && (
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-500/10 border border-blue-200 dark:border-cyan-500/30 px-2.5 py-0.5 font-mono text-[10px] font-bold text-blue-600 dark:text-cyan-300 animate-pulse">
                   <Loader2 size={11} className="animate-spin text-blue-600 dark:text-cyan-400" /> Live Scanning…
                 </span>
@@ -1383,7 +1885,7 @@ export function AssessmentDetail() {
         </div>
 
         {findingsList.length === 0 ? (
-          ['RUNNING', 'QUEUED'].includes(status) ? (
+          isScanActive ? (
             <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-6 shadow-sm">
               <div className="flex flex-col items-center justify-center text-center space-y-3 py-3">
                 <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 dark:bg-slate-800 border border-blue-200 dark:border-slate-700 shadow-sm text-blue-600 dark:text-cyan-400">
@@ -1421,7 +1923,7 @@ export function AssessmentDetail() {
           )
         ) : (
           <div className="space-y-2.5">
-            {['RUNNING', 'QUEUED'].includes(status) && (
+            {isScanActive && (
               <div className="flex items-center justify-between rounded-lg border border-blue-200 dark:border-cyan-500/30 bg-blue-50 dark:bg-cyan-950/30 px-3.5 py-2 text-xs font-mono text-blue-600 dark:text-cyan-300 animate-pulse">
                 <span className="flex items-center gap-2 font-semibold">
                   <Loader2 size={13} className="animate-spin text-blue-600 dark:text-cyan-400" />

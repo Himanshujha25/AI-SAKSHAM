@@ -2,6 +2,7 @@ const Project = require('../models/Project');
 const Assessment = require('../models/Assessment');
 const Finding = require('../models/Finding');
 const Activity = require('../models/Activity');
+const Report = require('../models/Report');
 const { asyncHandler } = require('../middleware/errors');
 
 const overview = asyncHandler(async (req, res) => {
@@ -10,10 +11,12 @@ const overview = asyncHandler(async (req, res) => {
   const projects = await Project.find(projectFilter).select('_id');
   const projectIds = projects.map((p) => p._id);
 
-  const [assessments, findings, activity] = await Promise.all([
+  const [assessments, findings, activity, totalReports, totalAssessments] = await Promise.all([
     Assessment.find({ projectId: { $in: projectIds } }).sort({ createdAt: -1 }).limit(10),
     Finding.find({ projectId: { $in: projectIds } }).sort({ cvssScore: -1 }).limit(10),
     Activity.find({ projectId: { $in: projectIds } }).sort({ createdAt: -1 }).limit(10),
+    Report.countDocuments(isElevated ? {} : { $or: [{ projectId: { $in: projectIds } }, { generatedBy: req.user._id }] }),
+    Assessment.countDocuments({ projectId: { $in: projectIds } }),
   ]);
 
   const allCounts = await Finding.aggregate([
@@ -40,6 +43,8 @@ const overview = asyncHandler(async (req, res) => {
       hasActiveScan: isScanning,
     } : null,
     totalFindings: total,
+    totalReports,
+    totalAssessments,
     severity,
     verifiedFindings: verified,
     recentFindings: findings,

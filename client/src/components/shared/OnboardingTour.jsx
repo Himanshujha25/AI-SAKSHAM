@@ -134,7 +134,14 @@ const isAmericanOrIndianVoice = (v) => {
   return isUS || isIN;
 };
 
-export function OnboardingTour({ forceOpen = false, onClose }) {
+export function OnboardingTour({
+  forceOpen = false,
+  onClose,
+  reportsCount = 0,
+  assessmentsCount = 0,
+  hasExistingReports = false,
+  isLoadingData = false,
+}) {
   const { user, markTourCompleted } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -233,21 +240,44 @@ export function OnboardingTour({ forceOpen = false, onClose }) {
     }
   }, [loadVoices]);
 
-  // First-time login detection & auto-show
+  // User rule: Only auto-show popup if workspace has < 1 report/audit and user is opening for the first time.
+  // Otherwise, user must explicitly launch the tour via the "Guide Tour" button.
   useEffect(() => {
+    // 1. Explicit user action: "Guide Tour" button was clicked
     if (forceOpen) {
       setIsOpen(true);
       setCurrentStep(0);
       return;
     }
 
-    // Only auto-open if user is loaded and hasn't seen the tour before
+    // 2. Wait until overview telemetry finishes loading before determining auto-open
+    if (isLoadingData) return;
+
+    // 3. Must have an authenticated user identity
     if (!userIdentifier) return;
 
+    // 4. If user already has 1 or more reports, assessments, or audit findings: NEVER auto-open!
+    const hasReportsOrAudits =
+      Number(reportsCount) >= 1 ||
+      Number(assessmentsCount) >= 1 ||
+      Boolean(hasExistingReports);
+
+    if (hasReportsOrAudits) {
+      // Mark as completed locally and remotely so it never bugs returning users
+      if (!localStorage.getItem(storageKey)) {
+        localStorage.setItem(storageKey, 'true');
+      }
+      if (!user?.hasSeenTour && markTourCompleted) {
+        markTourCompleted();
+      }
+      return;
+    }
+
+    // 5. If workspace report count is strictly < 1 (new user):
+    // Only auto-show if user has never seen or dismissed the tour before
     const completedLocal = localStorage.getItem(storageKey);
     const completedServer = user?.hasSeenTour;
 
-    // Only auto-show popup if it is strictly the user's first time
     if (!completedLocal && !completedServer) {
       const timer = setTimeout(() => {
         setIsOpen(true);
@@ -255,7 +285,17 @@ export function OnboardingTour({ forceOpen = false, onClose }) {
       }, 700);
       return () => clearTimeout(timer);
     }
-  }, [userIdentifier, user?.hasSeenTour, storageKey, forceOpen]);
+  }, [
+    userIdentifier,
+    user?.hasSeenTour,
+    storageKey,
+    forceOpen,
+    isLoadingData,
+    reportsCount,
+    assessmentsCount,
+    hasExistingReports,
+    markTourCompleted,
+  ]);
 
   // Clean, audible voice narration with instant cancellation guard
   const speakText = useCallback(
@@ -483,7 +523,14 @@ export function OnboardingTour({ forceOpen = false, onClose }) {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[99999] pointer-events-auto">
+      <div
+        className="fixed inset-0 z-[99999] pointer-events-auto"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            handleClose();
+          }
+        }}
+      >
         {/* Dark Dimmed Mask with SVG Cutout */}
         <svg className="absolute inset-0 h-full w-full pointer-events-none transition-all duration-300">
           <defs>
@@ -534,9 +581,14 @@ export function OnboardingTour({ forceOpen = false, onClose }) {
 
         {/* Smart Docking Container: Step 0 is Center Modal; Steps 1-4 are Docked Bottom-Right so Central Hub is 100% UNBLOCKED! */}
         <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              handleClose();
+            }
+          }}
           className={
             step.isCenterModal
-              ? 'fixed inset-0 flex items-center justify-center p-3 sm:p-4 pointer-events-none z-[100000]'
+              ? 'fixed inset-0 flex items-center justify-center p-3 sm:p-4 pointer-events-auto z-[100000]'
               : 'fixed bottom-5 right-5 z-[100000] max-w-lg w-full p-2 sm:p-0 pointer-events-none'
           }
         >

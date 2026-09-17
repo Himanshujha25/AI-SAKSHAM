@@ -153,13 +153,20 @@ async function scanTarget(targetUrl, customHeadersString = '', profile = 'Standa
   assets.push({
     name: `${hostname} (Root Target)`,
     type: 'api',
+    url: normalizedUrl,
     value: normalizedUrl,
     method: effectiveMethod,
-    authentication: reqHeaders.Authorization || reqHeaders.authorization || reqHeaders.Cookie ? 'Authenticated' : 'Public',
+    authentication: reqHeaders.Authorization || reqHeaders.authorization || reqHeaders.Cookie ? 'Required' : 'Public',
     metadata: {
       status: response ? response.status : 'UNREACHABLE',
+      statusText: response ? (response.statusText || 'OK') : (errorMsg || 'Connection Failed'),
       latencyMs: responseTimeMs,
       error: errorMsg,
+      requestMethod: effectiveMethod,
+      requestHeaders: reqHeaders,
+      requestBody: hasBody ? requestBodyString : null,
+      responseHeaders: {},
+      responseBody: '',
     },
   });
 
@@ -190,6 +197,8 @@ async function scanTarget(targetUrl, customHeadersString = '', profile = 'Standa
 
   // Attach response payload and headers to Root Target asset metadata for modal inspection
   if (assets.length > 0) {
+    assets[0].metadata.status = status;
+    assets[0].metadata.statusText = response.statusText || (status === 200 ? 'OK' : `HTTP ${status}`);
     assets[0].metadata.responseBody = body;
     assets[0].metadata.responseHeaders = headers;
   }

@@ -1,16 +1,18 @@
-const mongoose = require('mongoose');
 const dns = require('dns');
-const env = require('./env');
 
-// Fix for Windows ISP DNS SRV lookup failures on mongodb+srv://
+// Fix for Windows / ISP DNS SRV lookup failures on mongodb+srv://
 try {
-  dns.setServers(['8.8.8.8', '1.1.1.1']);
+  dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1', '1.0.0.1']);
 } catch (e) {
   // Fallback if setServers is restricted
 }
 
+const mongoose = require('mongoose');
+const env = require('./env');
+
 let isConnecting = false;
 let reconnectTimer = null;
+let hasConnectedOnce = false;
 
 // If an ISP or Windows firewall blocks local UDP SRV queries on port 53,
 // automatically resolve the MongoDB Atlas SRV & TXT records over HTTPS.
@@ -44,10 +46,32 @@ async function resolveSrvFallback(uri) {
     const creds = auth ? `${auth}@` : '';
     const db = dbName || 'sakshamai';
     const fallbackUri = `mongodb://${creds}${hosts}/${db}?${options.join('&')}`;
-    console.log('[db] Resolved SRV via secure DoH fallback');
+    console.log('[db] Resolved MongoDB Atlas cluster via secure DoH fallback');
     return fallbackUri;
   } catch (e) {
     return uri;
+  }
+}
+
+async function prepareMongoUri(uri) {
+  if (!uri || !uri.startsWith('mongodb+srv://')) return uri;
+  try {
+    const withoutPrefix = uri.replace('mongodb+srv://', '');
+    const [authAndHost] = withoutPrefix.split('?');
+    const atIdx = authAndHost.lastIndexOf('@');
+    const hostPath = atIdx !== -1 ? authAndHost.slice(atIdx + 1) : authAndHost;
+    const [hostname] = hostPath.split('/');
+
+    await new Promise((resolve, reject) => {
+      dns.resolveSrv(`_mongodb._tcp.${hostname}`, (err, addresses) => {
+        if (err || !addresses || !addresses.length) reject(err || new Error('No SRV records'));
+        else resolve(addresses);
+      });
+    });
+    return uri;
+  } catch (e) {
+    console.warn('[db] UDP DNS query failed for Atlas SRV. Switching to HTTPS DoH resolution...');
+    return await resolveSrvFallback(uri);
   }
 }
 
@@ -58,8 +82,8 @@ async function connectDB(retryCount = 0) {
   isConnecting = true;
   mongoose.set('strictQuery', true);
 
-  let targetUri = env.mongoUri;
   try {
+    const targetUri = await prepareMongoUri(env.mongoUri);
     await mongoose.connect(targetUri, {
       serverSelectionTimeoutMS: 15000,
       connectTimeoutMS: 15000,
@@ -68,14 +92,14 @@ async function connectDB(retryCount = 0) {
       minPoolSize: 2,
     });
     isConnecting = false;
+    hasConnectedOnce = true;
     console.log('[db] MongoDB connected successfully');
   } catch (err) {
-    // If SRV ECONNREFUSED occurs, attempt instant DoH resolution fallback
-    if (targetUri.startsWith('mongodb+srv://') && /ECONNREFUSED/i.test(err.message)) {
+    // If standard connect fails with ECONNREFUSED on SRV, attempt DoH fallback
+    if (env.mongoUri.startsWith('mongodb+srv://') && /ECONNREFUSED/i.test(err.message)) {
       try {
-        console.warn('[db] SRV query blocked by ISP/firewall. Attempting DoH fallback...');
-        const resolvedUri = await resolveSrvFallback(targetUri);
-        if (resolvedUri !== targetUri) {
+        const resolvedUri = await resolveSrvFallback(env.mongoUri);
+        if (resolvedUri !== env.mongoUri) {
           await mongoose.connect(resolvedUri, {
             serverSelectionTimeoutMS: 15000,
             connectTimeoutMS: 15000,
@@ -84,6 +108,7 @@ async function connectDB(retryCount = 0) {
             minPoolSize: 2,
           });
           isConnecting = false;
+          hasConnectedOnce = true;
           console.log('[db] MongoDB connected successfully via DoH fallback');
           return mongoose.connection;
         }
@@ -106,6 +131,7 @@ async function connectDB(retryCount = 0) {
 }
 
 mongoose.connection.on('disconnected', () => {
+  if (!hasConnectedOnce || isConnecting) return;
   console.warn('[db] MongoDB disconnected. Attempting reconnection in 5s...');
   if (!reconnectTimer) {
     reconnectTimer = setTimeout(() => {
@@ -116,6 +142,7 @@ mongoose.connection.on('disconnected', () => {
 });
 
 mongoose.connection.on('error', (err) => {
+  if (isConnecting) return;
   console.error('[db] MongoDB connection error:', err.message);
 });
 

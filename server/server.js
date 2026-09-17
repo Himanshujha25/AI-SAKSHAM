@@ -1,8 +1,17 @@
+const dns = require('dns');
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1', '1.0.0.1']);
+} catch (e) {
+  // Fallback if setServers is restricted
+}
+
 const http = require('http');
 const { Server } = require('socket.io');
 const app = require('./src/app');
 const env = require('./src/config/env');
 const { connectDB } = require('./src/config/db');
+
+let serverInstance = null;
 
 async function main() {
   await connectDB();
@@ -22,6 +31,7 @@ async function main() {
     console.warn('[server] recovery skipped:', e.message);
   }
   const server = http.createServer(app);
+  serverInstance = server;
   const io = new Server(server, {
     cors: {
       origin: (origin, cb) => {
@@ -80,11 +90,23 @@ process.on('exit', (code) => {
 });
 
 process.on('SIGTERM', () => {
-  console.log('[server] Received SIGTERM');
+  console.log('[server] Received SIGTERM, shutting down...');
+  if (serverInstance) {
+    serverInstance.close(() => process.exit(0));
+  } else {
+    process.exit(0);
+  }
+  setTimeout(() => process.exit(0), 1000).unref();
 });
 
 process.on('SIGINT', () => {
-  console.log('[server] Received SIGINT');
+  console.log('[server] Received SIGINT (Ctrl+C), shutting down...');
+  if (serverInstance) {
+    serverInstance.close(() => process.exit(0));
+  } else {
+    process.exit(0);
+  }
+  setTimeout(() => process.exit(0), 1000).unref();
 });
 
 main().catch((e) => {

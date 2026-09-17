@@ -920,6 +920,16 @@ export function Dashboard() {
       <OnboardingTour
         forceOpen={isTourOpen}
         onClose={() => setIsTourOpen(false)}
+        reportsCount={data?.totalReports ?? 0}
+        assessmentsCount={data?.totalAssessments ?? (data?.recentAssessments?.length ?? 0)}
+        hasExistingReports={
+          (data?.totalReports ?? 0) > 0 ||
+          (data?.totalAssessments ?? 0) > 0 ||
+          (data?.recentAssessments?.length ?? 0) > 0 ||
+          data?.securityScore != null ||
+          (data?.totalFindings ?? 0) > 0
+        }
+        isLoadingData={isLoading}
       />
 
       {/* Active Scan Progress Banner */}

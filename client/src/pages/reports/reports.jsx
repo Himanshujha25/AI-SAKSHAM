@@ -44,7 +44,10 @@ import {
   X,
   Sun,
   Moon,
+  ArrowRight,
+  Compass,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import api from '../../lib/api';
 import { useAuth } from '../../store/auth';
 import { useTheme } from '../../store/theme';
@@ -124,6 +127,16 @@ export function Reports() {
   // Queries
   const assessments = useQuery({ queryKey: ['assessments-mini'], queryFn: async () => (await api.get('/assessments')).data });
   const list = useQuery({ queryKey: ['reports'], queryFn: async () => (await api.get('/reports')).data });
+
+  // Auto-select latest completed assessment if not already selected
+  useEffect(() => {
+    if (!form.assessmentId && assessments.data?.assessments?.length > 0) {
+      const completed = assessments.data.assessments.find((a) => a.status === 'COMPLETED') || assessments.data.assessments[0];
+      if (completed) {
+        setForm((prev) => ({ ...prev, assessmentId: completed._id }));
+      }
+    }
+  }, [assessments.data, form.assessmentId]);
 
   const generateMutation = useMutation({
     mutationFn: async () => {
@@ -412,8 +425,104 @@ export function Reports() {
         </Card>
       </div>
 
+      {/* First-Time Report Generation Guide Banner (Shown when 0 reports exist) */}
+      {totalCount === 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative overflow-hidden rounded-2xl border border-cyan-500/30 bg-gradient-to-r from-blue-950/40 via-cyan-950/30 to-[#070d1e] p-5 shadow-2xl backdrop-blur-xl"
+        >
+          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="space-y-1.5 max-w-2xl">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-md border border-cyan-500/40 bg-cyan-500/15 px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-cyan-700 dark:text-cyan-300">
+                  <Sparkles size={11} className="text-cyan-400 animate-pulse" />
+                  Quick-Start Guide · 0 Reports Generated Yet
+                </span>
+                <span className="text-[11px] font-mono text-slate-400">Step 1 of 3</span>
+              </div>
+              <h3 className="text-base font-extrabold tracking-tight text-[#0f1f3d] dark:text-white">
+                How to Generate Your First Security Audit Dossier
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                Security dossiers combine live vulnerability scanner results with our AI neural threat model to produce board-ready PDF, HTML, or JSON dossiers.
+              </p>
+            </div>
+
+            {/* Quick Action Button */}
+            <div className="flex items-center gap-2 shrink-0">
+              {assessments.data?.assessments?.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const studioEl = document.getElementById('report-generation-studio');
+                    if (studioEl) studioEl.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 font-mono text-xs font-bold uppercase tracking-wider shadow-lg shadow-blue-500/20 transition"
+                >
+                  <Sparkles size={14} />
+                  <span>Configure & Generate First Report</span>
+                  <ArrowRight size={14} />
+                </button>
+              ) : (
+                <Link
+                  to="/assessments"
+                  className="flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 font-mono text-xs font-bold uppercase tracking-wider shadow-lg shadow-blue-500/20 transition"
+                >
+                  <Plus size={14} />
+                  <span>Run First Assessment Scan</span>
+                  <ArrowRight size={14} />
+                </Link>
+              )}
+            </div>
+          </div>
+
+          {/* 3 Steps Visual Flow */}
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3 border-t border-slate-200/50 dark:border-white/10 pt-4">
+            <div className="flex items-start gap-3 rounded-xl bg-white/50 dark:bg-white/[0.03] p-3 border border-slate-200 dark:border-white/5">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-500/20 text-blue-600 dark:text-cyan-300 font-mono text-xs font-bold">
+                1
+              </div>
+              <div className="text-xs">
+                <strong className="block font-bold text-[#0f1f3d] dark:text-white">1. Select Scope</strong>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                  {assessments.data?.assessments?.length > 0
+                    ? `Found ${assessments.data.assessments.length} assessment(s) ready in your scope.`
+                    : 'Run a fast scan on any API or web endpoint first.'}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 rounded-xl bg-white/50 dark:bg-white/[0.03] p-3 border border-slate-200 dark:border-white/5">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 font-mono text-xs font-bold">
+                2
+              </div>
+              <div className="text-xs">
+                <strong className="block font-bold text-[#0f1f3d] dark:text-white">2. Choose Archetype</strong>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Technical (dev PoCs), Executive (CISO metrics), Remediation, or Compliance.
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 rounded-xl bg-white/50 dark:bg-white/[0.03] p-3 border border-slate-200 dark:border-white/5">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-purple-500/20 text-purple-600 dark:text-purple-300 font-mono text-xs font-bold">
+                3
+              </div>
+              <div className="text-xs">
+                <strong className="block font-bold text-[#0f1f3d] dark:text-white">3. Synthesize & Export</strong>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Pick PDF, HTML, or JSON. AI writes the conclusion with zero hallucination.
+                </span>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Report Generation Studio */}
-      <Card className="relative z-30 border-slate-200 dark:border-slate-800 bg-white dark:bg-gradient-to-b dark:from-[#0b1328] dark:to-[#070c1a] p-5 shadow-xl">
+      <Card id="report-generation-studio" className="relative z-30 border-slate-200 dark:border-slate-800 bg-white dark:bg-gradient-to-b dark:from-[#0b1328] dark:to-[#070c1a] p-5 shadow-xl">
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 dark:border-slate-800/80 pb-3.5">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-blue-200 dark:border-cyan-500/30 bg-blue-50 dark:bg-cyan-500/10 text-blue-600 dark:text-cyan-400">
@@ -685,9 +794,34 @@ export function Reports() {
             {/* Mobile View: Compact Report Cards (< 768px) */}
             <div className="divide-y divide-slate-200 dark:divide-slate-800/70 md:hidden">
               {paginatedReports.length === 0 ? (
-                <div className="py-12 text-center text-slate-500 dark:text-slate-400">
-                  <FileText className="mx-auto h-8 w-8 text-slate-600 mb-2" />
-                  <p className="font-semibold text-sm text-slate-600 dark:text-slate-300">No security reports found</p>
+                <div className="py-12 px-4 text-center text-slate-500 dark:text-slate-400">
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-500/20 bg-cyan-500/10 text-cyan-400">
+                    <FileText className="h-6 w-6" />
+                  </div>
+                  <h4 className="text-sm font-bold text-[#0f1f3d] dark:text-white">No Security Reports Generated Yet</h4>
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+                    Select any completed scan in the Studio above and click &ldquo;Generate Report&rdquo; to create your first dossier.
+                  </p>
+                  <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const el = document.getElementById('report-generation-studio');
+                        if (el) el.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 font-mono text-[11px] font-bold text-white shadow-sm hover:bg-blue-500 transition"
+                    >
+                      <Sparkles size={12} />
+                      <span>Use Report Studio</span>
+                    </button>
+                    <Link
+                      to="/assessments"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 font-mono text-[11px] font-bold text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition"
+                    >
+                      <Plus size={12} />
+                      <span>New Assessment</span>
+                    </Link>
+                  </div>
                 </div>
               ) : (
                 paginatedReports.map((item) => (
@@ -773,10 +907,34 @@ export function Reports() {
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
                   {paginatedReports.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="py-12 text-center text-slate-500 dark:text-slate-400">
-                        <FileText className="mx-auto h-8 w-8 text-slate-600 mb-2" />
-                        <p className="font-semibold text-sm text-slate-600 dark:text-slate-300">No security reports matching your filters</p>
-                        <p className="text-xs text-slate-500 mt-1">Try selecting another filter tab or generate a new report.</p>
+                      <td colSpan={9} className="py-14 text-center text-slate-500 dark:text-slate-400">
+                        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-500/20 bg-cyan-500/10 text-cyan-400">
+                          <FileText className="h-7 w-7" />
+                        </div>
+                        <p className="font-bold text-base text-[#0f1f3d] dark:text-white">No Security Reports Generated Yet</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
+                          Synthesize your first technical or executive dossier using any completed assessment scope in the Report Studio above.
+                        </p>
+                        <div className="mt-4 flex items-center justify-center gap-2.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const el = document.getElementById('report-generation-studio');
+                              if (el) el.scrollIntoView({ behavior: 'smooth' });
+                            }}
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-1.5 font-mono text-[11px] font-bold text-white shadow-sm hover:bg-blue-500 transition"
+                          >
+                            <Sparkles size={13} />
+                            <span>Go to Report Studio</span>
+                          </button>
+                          <Link
+                            to="/assessments"
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-1.5 font-mono text-[11px] font-bold text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition"
+                          >
+                            <Plus size={13} />
+                            <span>Start Assessment</span>
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   ) : (

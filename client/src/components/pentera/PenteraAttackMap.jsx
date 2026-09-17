@@ -119,6 +119,9 @@ export function PenteraAttackMap({
     }
   };
 
+  const allStagesCompleted = PIPELINE_STAGES.every((st) => progressMap[st.key] === 'done');
+  const isActivelyScanning = ['RUNNING', 'QUEUED'].includes(assessment?.status) && !allStagesCompleted;
+
   return (
     <Card className={cn("overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#070c18] p-0 shadow-xl backdrop-blur-2xl transition-colors duration-200", className)}>
       {/* Top Pentera Navigation Toolbar */}
@@ -185,7 +188,7 @@ export function PenteraAttackMap({
       {/* Main Layout: Dynamic Attack Map State / Hardened State when empty OR Full-Width Flowchart Canvas when findings exist */}
       {filteredNodes.length === 0 ? (
         <div className="p-8 sm:p-12 min-h-[420px] flex flex-col items-center justify-center text-center">
-          {(['RUNNING', 'QUEUED'].includes(assessment?.status) && !PIPELINE_STAGES.every((st) => progressMap[st.key] === 'done')) ? (
+          {isActivelyScanning ? (
             <div className="w-full max-w-xl space-y-4 py-6">
               <div className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 dark:bg-cyan-950 border border-blue-200 dark:border-cyan-500/40 shadow-md">
                 <Radar className="h-8 w-8 text-blue-600 dark:text-cyan-400 animate-spin" />
