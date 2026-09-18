@@ -43,10 +43,8 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '1mb' }));
 app.use(mongoSanitize());
-app.use(xss());
-app.use('/uploads/reports', (req, res) => {
-  res.status(403).json({ message: 'Direct access to security reports is prohibited. Use authenticated /api/v1/reports/:id/download' });
-});
+const { protect } = require('./middleware/auth');
+app.use('/uploads/reports', protect, express.static(path.join(__dirname, '..', 'uploads', 'reports')));
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 const { mongoose, connectDB } = require('./config/db');

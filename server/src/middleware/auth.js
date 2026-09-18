@@ -19,7 +19,10 @@ function signToken(user) {
 async function protect(req, res, next) {
   try {
     const header = req.headers.authorization || '';
-    const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+    let token = header.startsWith('Bearer ') ? header.slice(7) : null;
+    if (!token && req.query?.token) {
+      token = String(req.query.token);
+    }
     if (!token) return res.status(401).json({ message: 'Not authorized, token missing' });
     if (revokedTokens.has(token)) return res.status(401).json({ message: 'Not authorized, token revoked' });
     const decoded = jwt.verify(token, env.jwtSecret);

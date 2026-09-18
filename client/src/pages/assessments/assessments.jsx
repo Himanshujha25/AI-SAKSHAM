@@ -80,10 +80,10 @@ export function Assessments() {
     projectName: 'World Monitor Project',
     targetName: 'World Monitor API',
     targetUrl: 'http://localhost:3001/api/ask',
-    method: 'POST',
+    method: 'GET',
     type: 'Standard',
-    customHeaders: 'Authorization: Bearer <paste_jwt_token_here>',
-    requestBody: '{\n  "query": "What are current active military flight vectors?",\n  "variant": "full"\n}',
+    customHeaders: '',
+    requestBody: '',
     authorizationConfirmed: true,
   });
 

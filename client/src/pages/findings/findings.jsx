@@ -1645,15 +1645,16 @@ export function FindingDetail() {
   const handleDownloadPdf = async () => {
     try {
       setIsDownloadingPdf(true);
-      const res = await api.get(`/findings/${id}/pdf`);
-      if (res.data?.fileUrl) {
-        const link = document.createElement('a');
-        link.href = res.data.fileUrl;
-        link.download = res.data.fileName || `vulnerability-${id}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
+      const res = await api.get(`/findings/${id}/pdf`, { responseType: 'blob' });
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `vulnerability-${v?.findingId || id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(link);
     } catch (err) {
       console.error('Failed to download finding PDF:', err);
     } finally {
@@ -1723,14 +1724,15 @@ export function FindingDetail() {
         </button>
 
         {/* Download PDF Button */}
-        <Button
+        <button
+          type="button"
           onClick={handleDownloadPdf}
           disabled={isDownloadingPdf}
-          className="bg-blue-600/80 backdrop-blur-xl border border-white/40 hover:bg-blue-600/90 text-white text-xs font-bold flex items-center gap-2 shadow-[0_8px_24px_rgba(37,99,235,0.35),inset_0_1px_0_rgba(255,255,255,0.35)] dark:bg-blue-500/25 dark:border-blue-300/30 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] dark:hover:bg-blue-500/35"
+          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-3.5 py-2 text-xs font-semibold shadow-sm transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           <Download className={cn("h-4 w-4", isDownloadingPdf && "animate-bounce")} />
           <span>{isDownloadingPdf ? 'Generating PDF Report…' : 'Download Vulnerability PDF'}</span>
-        </Button>
+        </button>
       </div>
 
       {/* Main Vulnerability Header */}

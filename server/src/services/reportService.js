@@ -743,117 +743,237 @@ async function generateReportFile({ project, target, assessment, findings = [], 
     );
     fs.writeFileSync(abs, jsonContent, 'utf8');
   } else {
-    // PDF Generation via PDFKit with professional layout
+    // PDF Generation via PDFKit with defense-grade executive layout
     await new Promise((resolve, reject) => {
-      const doc = new PDFDocument({ margin: 44, size: 'A4' });
+      const doc = new PDFDocument({ margin: 40, size: 'A4', bufferPages: true });
       const stream = fs.createWriteStream(abs);
       doc.pipe(stream);
 
-      // Top Header Navy Bar
-      doc.rect(0, 0, doc.page.width, 42).fill('#0c1a38');
-      doc.fillColor('#38bdf8').fontSize(9).font('Helvetica-Bold').text('NTRO · SMART INDIA HACKATHON 2026 // PS-26163', 44, 16);
-      doc.fillColor('#f87171').fontSize(9).font('Helvetica-Bold').text('RESTRICTED // SECURITY AUDIT', doc.page.width - 240, 16, { align: 'right', width: 196 });
+      const leftMargin = 40;
+      const contentWidth = doc.page.width - 80; // 515.28 pt
 
-      doc.moveDown(2);
+      function stripMarkdown(text) {
+        if (!text || typeof text !== 'string') return '';
+        return text
+          .replace(/\*\*(.*?)\*\*/g, '$1')
+          .replace(/__(.*?)__/g, '$1')
+          .replace(/^#+\s+/gm, '')
+          .replace(/^\s*[-*]\s+/gm, '• ')
+          .replace(/[`~]/g, '')
+          .trim();
+      }
 
-      // Main Title
-      doc.fillColor('#0284c7').fontSize(20).font('Helvetica-Bold').text('SAKSHAM-AI SECURITY DOSSIER', 44, 58);
-      doc.fillColor('#475569').fontSize(11).font('Helvetica').text(`Target: ${(project?.name || 'Target Scope').toUpperCase()} · ${type} Audit`);
-      doc.moveDown(1);
+      // Top Full-Bleed Navy Header
+      doc.rect(0, 0, doc.page.width, 38).fill('#091224');
+      doc.fillColor('#38bdf8').fontSize(8.5).font('Helvetica-Bold').text('NTRO · SMART INDIA HACKATHON 2026 // PS-26163', 40, 14);
+      doc.fillColor('#f87171').fontSize(8.5).font('Helvetica-Bold').text('RESTRICTED // SECURITY AUDIT', doc.page.width - 240, 14, { align: 'right', width: 200 });
 
-      // Metadata Table / Box
-      const metaTop = doc.y;
-      doc.roundedRect(44, metaTop, doc.page.width - 88, 54, 4).fillAndStroke('#f8fafc', '#cbd5e1');
-      doc.fillColor('#0f172a').fontSize(9).font('Helvetica-Bold');
-      doc.text(`Security Score: ${securityScore}/100 [Grade ${grade}]`, 56, metaTop + 10);
-      doc.text(`Target URL: ${target?.method || 'POST'} ${target?.url || 'https://target.app'}`, 56, metaTop + 24);
-      doc.text(`Findings: ${findings.length} (${critCount} Critical, ${highCount} High, ${medCount} Med, ${lowCount} Low)`, 56, metaTop + 38);
+      // Title & Target Header
+      doc.y = 54;
+      doc.x = leftMargin;
+      doc.fillColor('#0284c7').fontSize(20).font('Helvetica-Bold').text('SAKSHAM-AI SECURITY DOSSIER', leftMargin, 54);
+      doc.fillColor('#64748b').fontSize(10).font('Helvetica').text(`Target Scope: ${(project?.name || 'Authorized Target').toUpperCase()}  ·  ${type} Assessment Audit`);
+      doc.moveDown(0.6);
 
-      doc.fillColor('#475569').fontSize(9).font('Helvetica');
-      doc.text(`Date: ${new Date().toISOString().slice(0, 10)}`, doc.page.width - 180, metaTop + 10);
-      doc.text(`Env: ${target?.environment || 'Authorized'}`, doc.page.width - 180, metaTop + 24);
-      doc.text(`Status: Certified Complete`, doc.page.width - 180, metaTop + 38);
+      // Executive KPI Dashboard Card (3 Columns: Score, Breakdown, Scope)
+      const cardY = doc.y;
+      doc.roundedRect(leftMargin, cardY, contentWidth, 68, 6).fillAndStroke('#f8fafc', '#cbd5e1');
 
-      doc.y = metaTop + 68;
+      // Col 1: Security Posture Score & Grade
+      const gradeColor = grade === 'A' ? '#059669' : grade === 'B' ? '#0284c7' : grade === 'C' ? '#d97706' : '#dc2626';
+      doc.fillColor('#64748b').fontSize(7.5).font('Helvetica-Bold').text('SECURITY POSTURE', 52, cardY + 10);
+      doc.fillColor('#0f172a').fontSize(18).font('Helvetica-Bold').text(`${securityScore}`, 52, cardY + 22);
+      doc.fillColor('#64748b').fontSize(10).font('Helvetica').text('/100', 78, cardY + 28);
+      doc.roundedRect(52, cardY + 46, 68, 14, 3).fill(gradeColor);
+      doc.fillColor('#ffffff').fontSize(8).font('Helvetica-Bold').text(`GRADE ${grade}`, 52, cardY + 49, { width: 68, align: 'center' });
 
-      // Section 1: Executive Summary
-      doc.fillColor('#0284c7').fontSize(13).font('Helvetica-Bold').text('1. Executive Summary & Risk Narrative');
-      doc.fillColor('#334155').fontSize(9.5).font('Helvetica').text(
-        executiveSummary || 'Security assessment completed successfully against authorized scope. Vulnerabilities and proof-of-concept details are compiled below.',
-        { lineGap: 2 }
-      );
-      doc.moveDown(1);
+      // Col 2: Findings Severity Distribution Badges
+      doc.fillColor('#64748b').fontSize(7.5).font('Helvetica-Bold').text(`FINDINGS (${findings.length} TOTAL)`, 175, cardY + 10);
+      // Critical Badge
+      doc.roundedRect(175, cardY + 22, 75, 18, 4).fillAndStroke('#fef2f2', '#fca5a5');
+      doc.fillColor('#dc2626').fontSize(7.5).font('Helvetica-Bold').text(`${critCount} Critical`, 175, cardY + 27, { width: 75, align: 'center' });
+      // High Badge
+      doc.roundedRect(255, cardY + 22, 75, 18, 4).fillAndStroke('#fff7ed', '#fdba74');
+      doc.fillColor('#ea580c').fontSize(7.5).font('Helvetica-Bold').text(`${highCount} High`, 255, cardY + 27, { width: 75, align: 'center' });
+      // Medium Badge
+      doc.roundedRect(175, cardY + 44, 75, 18, 4).fillAndStroke('#fffbeb', '#fcd34d');
+      doc.fillColor('#d97706').fontSize(7.5).font('Helvetica-Bold').text(`${medCount} Medium`, 175, cardY + 49, { width: 75, align: 'center' });
+      // Low Badge
+      doc.roundedRect(255, cardY + 44, 75, 18, 4).fillAndStroke('#f0fdf4', '#86efac');
+      doc.fillColor('#16a34a').fontSize(7.5).font('Helvetica-Bold').text(`${lowCount} Low`, 255, cardY + 49, { width: 75, align: 'center' });
 
-      // Section 2: Detailed Findings
-      doc.fillColor('#0284c7').fontSize(13).font('Helvetica-Bold').text(`2. Vulnerability Findings & Proof-of-Concept (${findings.length})`);
+      // Col 3: Scope, Environment & Status
+      doc.fillColor('#64748b').fontSize(7.5).font('Helvetica-Bold').text('AUDIT ENVIRONMENT', 355, cardY + 10);
+      doc.fillColor('#0f172a').fontSize(8).font('Helvetica-Bold').text(`Target: ${(target?.url || 'Authorized Target').slice(0, 36)}`, 355, cardY + 23);
+      doc.fillColor('#475569').fontSize(8).font('Helvetica').text(`Method: ${target?.method || 'POST'} · Env: ${target?.environment || 'Testing'}`, 355, cardY + 36);
+      doc.fillColor('#059669').fontSize(8).font('Helvetica-Bold').text(`✔ Certified & Scope Confirmed`, 355, cardY + 49);
+
+      // Reset coordinates to full width
+      doc.x = leftMargin;
+      doc.y = cardY + 80;
+
+      // Section 1: Executive Summary & Risk Narrative
+      doc.fillColor('#0284c7').fontSize(12).font('Helvetica-Bold').text('1. Executive Summary & Risk Narrative', leftMargin, doc.y);
+      doc.moveDown(0.3);
+
+      const summaryText = stripMarkdown(executiveSummary || 'Security assessment completed successfully against authorized scope. Controls were tested across authentication, direct object references, and secure transport configurations.');
+      const summaryBoxY = doc.y;
+      const textHeight = doc.heightOfString(summaryText, { width: contentWidth - 24, lineGap: 2 });
+      const boxHeight = Math.max(48, textHeight + 16);
+
+      doc.roundedRect(leftMargin, summaryBoxY, contentWidth, boxHeight, 5).fillAndStroke('#f0f9ff', '#bae6fd');
+      doc.rect(leftMargin, summaryBoxY, 4, boxHeight).fill('#0284c7');
+      doc.fillColor('#1e293b').fontSize(8.5).font('Helvetica').text(summaryText, leftMargin + 14, summaryBoxY + 8, {
+        width: contentWidth - 24,
+        lineGap: 2,
+      });
+
+      doc.x = leftMargin;
+      doc.y = summaryBoxY + boxHeight + 14;
+
+      // Section 2: Detailed Vulnerability Findings
+      doc.fillColor('#0284c7').fontSize(12).font('Helvetica-Bold').text(`2. Detailed Vulnerability Findings & Proof-of-Concept (${findings.length})`, leftMargin, doc.y);
       doc.moveDown(0.5);
 
       if (findings.length === 0) {
-        doc.fillColor('#15803d').fontSize(10).font('Helvetica').text('✔ No security vulnerabilities detected during this assessment pass.');
+        doc.roundedRect(leftMargin, doc.y, contentWidth, 32, 4).fillAndStroke('#f0fdf4', '#bbf7d0');
+        doc.fillColor('#15803d').fontSize(9.5).font('Helvetica-Bold').text('✔ No exploitable security vulnerabilities detected during this assessment pass.', leftMargin + 12, doc.y + 10);
+        doc.moveDown(2);
       } else {
         findings.forEach((f, i) => {
-          if (doc.y > 680) {
+          if (doc.y > 660) {
             doc.addPage();
+            doc.y = 52;
+            doc.x = leftMargin;
           }
 
-          const cardY = doc.y;
+          const fTop = doc.y;
           const sev = (f.severity || 'HIGH').toUpperCase();
           const sevColor = sev === 'CRITICAL' ? '#dc2626' : sev === 'HIGH' ? '#ea580c' : sev === 'MEDIUM' ? '#d97706' : '#16a34a';
+          const sevBg = sev === 'CRITICAL' ? '#fef2f2' : sev === 'HIGH' ? '#fff7ed' : sev === 'MEDIUM' ? '#fffbeb' : '#f0fdf4';
+          const sevBorder = sev === 'CRITICAL' ? '#fca5a5' : sev === 'HIGH' ? '#fdba74' : sev === 'MEDIUM' ? '#fcd34d' : '#86efac';
 
-          doc.fillColor(sevColor).fontSize(10.5).font('Helvetica-Bold').text(
-            `${i + 1}. [${sev}] ${f.findingId || 'VUL'} — ${f.title} (CVSS ${f.cvssScore || '5.0'})`
+          // Card top bar with severity
+          doc.roundedRect(leftMargin, fTop, contentWidth, 24, 4).fillAndStroke('#f8fafc', '#e2e8f0');
+          doc.rect(leftMargin, fTop, 4, 24).fill(sevColor);
+
+          doc.fillColor(sevColor).fontSize(10).font('Helvetica-Bold').text(
+            `${i + 1}. [${sev}] ${f.findingId || 'VUL'} — ${f.title}`,
+            leftMargin + 10,
+            fTop + 7,
+            { width: contentWidth - 120 }
           );
 
-          doc.fillColor('#475569').fontSize(8.5).font('Helvetica').text(
-            `Category: ${f.category || 'Security Misconfiguration'} | CWE: ${f.cwe || 'CWE-200'} | OWASP: ${f.owasp || 'A05:2021'} | Status: ${f.status || 'Verified'}`
+          // CVSS Pill Badge on Right
+          doc.roundedRect(doc.page.width - leftMargin - 95, fTop + 4, 90, 16, 3).fillAndStroke(sevBg, sevBorder);
+          doc.fillColor(sevColor).fontSize(7.5).font('Helvetica-Bold').text(
+            `CVSS ${f.cvssScore || '5.0'} · ${sev}`,
+            doc.page.width - leftMargin - 95,
+            fTop + 8,
+            { width: 90, align: 'center' }
           );
 
-          doc.fillColor('#0284c7').fontSize(8.5).font('Helvetica-Bold').text(
-            `Affected Asset: ${(f.affectedAssets || []).join(', ') || target?.url || '-'}`
+          doc.x = leftMargin;
+          doc.y = fTop + 28;
+
+          // Finding Metadata Line
+          doc.fillColor('#64748b').fontSize(8).font('Helvetica').text(
+            `Category: ${f.category || 'Security Misconfiguration'}   |   CWE: ${f.cwe || 'CWE-200'}   |   OWASP: ${f.owasp || 'A05:2021'}   |   Status: ${f.status || 'Verified'}`,
+            leftMargin,
+            doc.y
           );
 
+          // Affected Asset
+          doc.fillColor('#0369a1').fontSize(8).font('Helvetica-Bold').text(
+            `Affected Asset: ${(f.affectedAssets || []).join(', ') || target?.url || '-'}`,
+            leftMargin,
+            doc.y + 2
+          );
+
+          // Description
           if (f.description) {
-            doc.fillColor('#334155').fontSize(9).font('Helvetica').text(`Description: ${f.description}`, { lineGap: 1.5 });
-          }
-
-          if (f.evidence) {
-            doc.moveDown(0.3);
-            doc.fillColor('#0f172a').fontSize(8).font('Courier').text(
-              `PoC Evidence:\n${f.evidence.slice(0, 240)}`,
-              { lineGap: 1 }
+            doc.fillColor('#334155').fontSize(8.5).font('Helvetica').text(
+              stripMarkdown(f.description),
+              leftMargin,
+              doc.y + 3,
+              { width: contentWidth, lineGap: 1.5 }
             );
           }
 
-          const remedies = Array.isArray(f.remediation) ? f.remediation : [f.remediation || 'Harden server configuration'];
-          if (remedies.length > 0) {
+          // PoC Evidence Box (Dark Terminal Style)
+          if (f.evidence) {
             doc.moveDown(0.3);
-            doc.fillColor('#15803d').fontSize(8.5).font('Helvetica-Bold').text('Remediation Recommendations:');
-            remedies.forEach(r => {
-              doc.fillColor('#334155').fontSize(8.5).font('Helvetica').text(`• ${r}`);
+            const evText = f.evidence.slice(0, 360);
+            const evHeight = Math.min(65, doc.heightOfString(evText, { width: contentWidth - 16, lineGap: 1 }) + 10);
+            const evBoxY = doc.y;
+
+            doc.roundedRect(leftMargin, evBoxY, contentWidth, evHeight, 3).fill('#0f172a');
+            doc.fillColor('#38bdf8').fontSize(7.5).font('Courier').text(
+              evText,
+              leftMargin + 8,
+              evBoxY + 5,
+              { width: contentWidth - 16, lineGap: 1 }
+            );
+
+            doc.x = leftMargin;
+            doc.y = evBoxY + evHeight + 4;
+          }
+
+          // Remediation Guidance
+          const remedies = Array.isArray(f.remediation) ? f.remediation : [f.remediation || 'Harden server security configuration'];
+          if (remedies.length > 0) {
+            doc.moveDown(0.2);
+            doc.fillColor('#15803d').fontSize(8).font('Helvetica-Bold').text('Remediation Recommendations:', leftMargin, doc.y);
+            remedies.forEach((r) => {
+              doc.fillColor('#334155').fontSize(8).font('Helvetica').text(`  ✔ ${stripMarkdown(r)}`, leftMargin, doc.y + 1.5, { width: contentWidth });
             });
           }
 
-          doc.moveDown(1);
+          // Subtle Divider between findings
+          doc.strokeColor('#e2e8f0').lineWidth(0.5).moveTo(leftMargin, doc.y + 6).lineTo(doc.page.width - leftMargin, doc.y + 6).stroke();
+          doc.x = leftMargin;
+          doc.y = doc.y + 12;
         });
       }
 
       // Section 3: Safe Testing & Legal Rules of Engagement
-      if (doc.y > 700) doc.addPage();
-      doc.fillColor('#0284c7').fontSize(12).font('Helvetica-Bold').text('3. Compliance & Safe Testing Rules of Engagement');
-      doc.fillColor('#475569').fontSize(8.5).font('Helvetica').text('• Testing restricted strictly to authorized IP scopes, endpoints, and parameters.');
-      doc.text('• Exploitation activity was limited to non-destructive proof-of-concept validation.');
-      doc.text('• Zero impact on production customer records, database integrity, or uptime.');
+      if (doc.y > 700) {
+        doc.addPage();
+        doc.y = 52;
+        doc.x = leftMargin;
+      }
 
-      // Page numbers footer
+      doc.fillColor('#0284c7').fontSize(11).font('Helvetica-Bold').text('3. Compliance & Safe Testing Rules of Engagement', leftMargin, doc.y);
+      doc.moveDown(0.3);
+      doc.fillColor('#475569').fontSize(8).font('Helvetica').text('• Testing was performed strictly within authorized host parameters under active scope permissions.');
+      doc.text('• Exploitation methodology was constrained to safe, deterministic, non-destructive proof-of-concept verification.');
+      doc.text('• Zero degradation to production uptime, confidential customer data, or database consistency.');
+
+      // Global Header & Footer on ALL Pages via Buffered Page Range
       const range = doc.bufferedPageRange();
-      for (let i = range.start; i < range.start + range.count; i++) {
+      const totalPages = range.count;
+      for (let i = range.start; i < range.start + totalPages; i++) {
         doc.switchToPage(i);
-        doc.fillColor('#94a3b8').fontSize(8).font('Helvetica').text(
-          `Page ${i + 1} of ${range.count} | Saksham-AI Defense Intelligence Dossier | SIH 2026`,
-          44,
-          doc.page.height - 30,
-          { align: 'center', width: doc.page.width - 88 }
+        const originalBottom = doc.page.margins.bottom;
+        doc.page.margins.bottom = 0; // Crucial: prevent PDFKit auto-page-break on footer!
+
+        // Header for page 2 onwards
+        if (i > 0) {
+          doc.rect(0, 0, doc.page.width, 24).fill('#091224');
+          doc.fillColor('#38bdf8').fontSize(7.5).font('Helvetica-Bold').text('SAKSHAM-AI SECURITY AUDIT DOSSIER', 40, 8, { lineBreak: false });
+          doc.fillColor('#94a3b8').fontSize(7.5).font('Helvetica').text(`Scope: ${(project?.name || 'Authorized Target').toUpperCase()}`, doc.page.width - 240, 8, { align: 'right', width: 200, lineBreak: false });
+        }
+
+        // Bottom Divider line & Page Number
+        doc.strokeColor('#e2e8f0').lineWidth(0.75).moveTo(leftMargin, doc.page.height - 28).lineTo(doc.page.width - leftMargin, doc.page.height - 28).stroke();
+        doc.fillColor('#64748b').fontSize(7.5).font('Helvetica').text(
+          `Page ${i + 1} of ${totalPages}   ·   Restricted Security Audit Dossier   ·   Saksham AI SOC Platform`,
+          leftMargin,
+          doc.page.height - 20,
+          { align: 'center', width: contentWidth, lineBreak: false }
         );
+
+        doc.page.margins.bottom = originalBottom;
       }
 
       doc.end();
@@ -871,79 +991,160 @@ async function generateSingleFindingPdf({ project, finding }) {
   const fileName = `vulnerability-${finding.findingId || 'VUL'}-${Date.now()}.pdf`;
   const abs = path.join(dir, fileName);
 
+  function stripMarkdown(text) {
+    if (!text || typeof text !== 'string') return '';
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/__(.*?)__/g, '$1')
+      .replace(/^#+\s+/gm, '')
+      .replace(/^\s*[-*]\s+/gm, '• ')
+      .replace(/[`~]/g, '')
+      .trim();
+  }
+
   await new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ margin: 48 });
+    const doc = new PDFDocument({ margin: 40, size: 'A4', bufferPages: true });
     const stream = fs.createWriteStream(abs);
     doc.pipe(stream);
 
-    // Document Header
-    doc.fillColor('#0284c7').fontSize(20).text('SAKSHAM AI SECURITY VULNERABILITY REPORT', { align: 'center' });
-    doc.fillColor('#475569').fontSize(11).text(`Project: ${project?.name || 'Authorized Target'} | ID: ${finding.findingId}`, { align: 'center' });
-    doc.moveDown(1.5);
+    const leftMargin = 40;
+    const contentWidth = doc.page.width - 80;
 
-    // 1. Title & Classification
-    doc.fillColor('#0f172a').fontSize(15).text(`${finding.findingId} · ${finding.title}`);
-    doc.fillColor('#dc2626').fontSize(11).text(`Severity: ${finding.severity?.toUpperCase()} (CVSS v3: ${finding.cvssScore}) | Status: ${finding.status}`);
-    doc.fillColor('#475569').fontSize(10).text(`Category: ${finding.category} | CWE: ${finding.cwe || 'CWE-200'} | OWASP: ${finding.owasp || 'A05:2021'}`);
-    doc.moveDown();
+    // Top Full-Bleed Navy Header
+    doc.rect(0, 0, doc.page.width, 38).fill('#091224');
+    doc.fillColor('#38bdf8').fontSize(8.5).font('Helvetica-Bold').text('NTRO · SMART INDIA HACKATHON 2026 // PS-26163', 40, 14);
+    doc.fillColor('#f87171').fontSize(8.5).font('Helvetica-Bold').text('RESTRICTED // VULNERABILITY ADVISORY', doc.page.width - 250, 14, { align: 'right', width: 210 });
 
-    // 2. Affected Component
-    doc.fillColor('#0284c7').fontSize(12).text('AFFECTED COMPONENT / ENDPOINT');
-    doc.fillColor('#0f172a').fontSize(10).text((finding.affectedAssets || []).join(', ') || 'N/A');
-    doc.moveDown();
+    doc.y = 52;
+    doc.x = leftMargin;
 
-    // 3. Description
-    doc.fillColor('#0284c7').fontSize(12).text('VULNERABILITY DESCRIPTION');
-    doc.fillColor('#334155').fontSize(10).text(finding.description || 'Detailed technical vulnerability finding.');
-    doc.moveDown();
+    // Title
+    const sev = (finding.severity || 'HIGH').toUpperCase();
+    const sevColor = sev === 'CRITICAL' ? '#dc2626' : sev === 'HIGH' ? '#ea580c' : sev === 'MEDIUM' ? '#d97706' : '#16a34a';
+    const sevBg = sev === 'CRITICAL' ? '#fef2f2' : sev === 'HIGH' ? '#fff7ed' : sev === 'MEDIUM' ? '#fffbeb' : '#f0fdf4';
+    const sevBorder = sev === 'CRITICAL' ? '#fca5a5' : sev === 'HIGH' ? '#fdba74' : sev === 'MEDIUM' ? '#fcd34d' : '#86efac';
 
-    // 4. Steps to Reproduce
+    doc.fillColor('#0284c7').fontSize(18).font('Helvetica-Bold').text('VULNERABILITY TECHNICAL DOSSIER', leftMargin, 52);
+    doc.fillColor('#64748b').fontSize(9.5).font('Helvetica').text(`Project: ${project?.name || 'Authorized Target'}  ·  Scope: ${finding.findingId || 'VUL'}`);
+    doc.moveDown(0.6);
+
+    // Finding Hero Card
+    const hCardY = doc.y;
+    doc.roundedRect(leftMargin, hCardY, contentWidth, 54, 5).fillAndStroke('#f8fafc', '#cbd5e1');
+    doc.rect(leftMargin, hCardY, 4, 54).fill(sevColor);
+
+    doc.fillColor(sevColor).fontSize(12).font('Helvetica-Bold').text(
+      `${finding.findingId} · ${finding.title}`,
+      leftMargin + 12,
+      hCardY + 8,
+      { width: contentWidth - 120 }
+    );
+
+    // CVSS Badge on Right
+    doc.roundedRect(doc.page.width - leftMargin - 100, hCardY + 8, 95, 20, 3).fillAndStroke(sevBg, sevBorder);
+    doc.fillColor(sevColor).fontSize(8.5).font('Helvetica-Bold').text(
+      `CVSS ${finding.cvssScore || '5.0'} · ${sev}`,
+      doc.page.width - leftMargin - 100,
+      hCardY + 13,
+      { width: 95, align: 'center' }
+    );
+
+    doc.fillColor('#475569').fontSize(8.5).font('Helvetica').text(
+      `Category: ${finding.category}   |   CWE: ${finding.cwe || 'CWE-200'}   |   OWASP: ${finding.owasp || 'A05:2021'}   |   Status: ${finding.status || 'Verified'}`,
+      leftMargin + 12,
+      hCardY + 32
+    );
+
+    doc.x = leftMargin;
+    doc.y = hCardY + 66;
+
+    // Affected Asset
+    doc.fillColor('#0284c7').fontSize(10).font('Helvetica-Bold').text('AFFECTED TARGET ENDPOINT', leftMargin, doc.y);
+    doc.moveDown(0.2);
+    doc.fillColor('#0f172a').fontSize(9).font('Helvetica').text((finding.affectedAssets || []).join(', ') || 'Authorized Scope Target');
+    doc.moveDown(0.8);
+
+    // Description
+    if (finding.description) {
+      doc.fillColor('#0284c7').fontSize(10).font('Helvetica-Bold').text('VULNERABILITY DESCRIPTION', leftMargin, doc.y);
+      doc.moveDown(0.2);
+      doc.fillColor('#334155').fontSize(9).font('Helvetica').text(stripMarkdown(finding.description), { lineGap: 1.5, width: contentWidth });
+      doc.moveDown(0.8);
+    }
+
+    // Steps to Reproduce
     const steps = finding.stepsToReproduce?.length ? finding.stepsToReproduce : finding.aiAnalysis?.stepsToReproduce;
     if (steps && steps.length > 0) {
-      doc.fillColor('#0284c7').fontSize(12).text('STEPS TO REPRODUCE');
+      doc.fillColor('#0284c7').fontSize(10).font('Helvetica-Bold').text('REPRODUCIBLE STEPS', leftMargin, doc.y);
+      doc.moveDown(0.2);
       steps.forEach((step, idx) => {
-        doc.fillColor('#334155').fontSize(10).text(`${idx + 1}. ${step}`);
+        doc.fillColor('#334155').fontSize(8.5).font('Helvetica').text(`  ${idx + 1}. ${stripMarkdown(step)}`, { width: contentWidth });
       });
-      doc.moveDown();
+      doc.moveDown(0.8);
     }
 
-    // 5. Proof of Concept (PoC)
+    // PoC Evidence Box (Dark Terminal Style)
     const poc = finding.proofOfConcept || finding.aiAnalysis?.proofOfConcept || finding.evidence;
     if (poc) {
-      doc.fillColor('#0284c7').fontSize(12).text('PROOF OF CONCEPT (SAFE POC VALIDATION)');
-      doc.fillColor('#0f172a').fontSize(9).text(poc);
-      doc.moveDown();
+      if (doc.y > 670) { doc.addPage(); doc.y = 52; doc.x = leftMargin; }
+      doc.fillColor('#0284c7').fontSize(10).font('Helvetica-Bold').text('DETERMINISTIC HTTP EVIDENCE TRACE', leftMargin, doc.y);
+      doc.moveDown(0.2);
+      const evText = poc.slice(0, 400);
+      const evHeight = Math.min(75, doc.heightOfString(evText, { width: contentWidth - 16, lineGap: 1 }) + 12);
+      const evBoxY = doc.y;
+
+      doc.roundedRect(leftMargin, evBoxY, contentWidth, evHeight, 3).fill('#0f172a');
+      doc.fillColor('#38bdf8').fontSize(7.5).font('Courier').text(
+        evText,
+        leftMargin + 8,
+        evBoxY + 6,
+        { width: contentWidth - 16, lineGap: 1 }
+      );
+
+      doc.x = leftMargin;
+      doc.y = evBoxY + evHeight + 10;
     }
 
-    // 6. Business Impact Assessment
+    // Business Impact Assessment
     const bImpact = finding.businessImpact || finding.aiAnalysis?.businessImpact || finding.impact;
     if (bImpact) {
-      doc.fillColor('#0284c7').fontSize(12).text('BUSINESS IMPACT ASSESSMENT');
-      doc.fillColor('#b91c1c').fontSize(10).text(bImpact);
-      doc.moveDown();
+      if (doc.y > 680) { doc.addPage(); doc.y = 52; doc.x = leftMargin; }
+      doc.fillColor('#0284c7').fontSize(10).font('Helvetica-Bold').text('BUSINESS IMPACT ASSESSMENT', leftMargin, doc.y);
+      doc.moveDown(0.2);
+      doc.fillColor('#b91c1c').fontSize(8.5).font('Helvetica').text(stripMarkdown(bImpact), { lineGap: 1.5, width: contentWidth });
+      doc.moveDown(0.8);
     }
 
-    // 7. Remediation Recommendations
+    // Remediation Recommendations
     const remedies = finding.remediation?.length ? finding.remediation : finding.aiAnalysis?.remediation;
     if (remedies && remedies.length > 0) {
-      doc.fillColor('#0284c7').fontSize(12).text('REMEDIATION RECOMMENDATIONS');
+      if (doc.y > 680) { doc.addPage(); doc.y = 52; doc.x = leftMargin; }
+      doc.fillColor('#059669').fontSize(10).font('Helvetica-Bold').text('REMEDIATION ACTIONS', leftMargin, doc.y);
+      doc.moveDown(0.2);
       remedies.forEach((r) => {
-        doc.fillColor('#15803d').fontSize(10).text(`• ${r}`);
+        doc.fillColor('#15803d').fontSize(8.5).font('Helvetica').text(`  ✔ ${stripMarkdown(r)}`, { width: contentWidth });
       });
-      doc.moveDown();
+      doc.moveDown(0.8);
     }
 
-    // 8. Testing Constraints & Rules of Engagement
-    doc.fillColor('#0284c7').fontSize(12).text('RULES OF ENGAGEMENT & ETHICAL CONSTRAINTS');
-    const constraints = finding.remediationConstraints || [
-      'Testing must be performed only on authorized systems.',
-      'No actions should affect production users or data.',
-      'Exploitation should be limited to proof-of-concept validation.',
-      'Compliance with applicable laws, policies, and ethical hacking guidelines is required.',
-    ];
-    constraints.forEach((c) => {
-      doc.fillColor('#475569').fontSize(9).text(`✔ ${c}`);
-    });
+    // Global Footer on ALL Pages
+    const range = doc.bufferedPageRange();
+    const totalPages = range.count;
+    for (let i = range.start; i < range.start + totalPages; i++) {
+      doc.switchToPage(i);
+      const originalBottom = doc.page.margins.bottom;
+      doc.page.margins.bottom = 0; // Crucial: prevent PDFKit auto-page-break on footer!
+
+      doc.strokeColor('#e2e8f0').lineWidth(0.75).moveTo(leftMargin, doc.page.height - 28).lineTo(doc.page.width - leftMargin, doc.page.height - 28).stroke();
+      doc.fillColor('#64748b').fontSize(7.5).font('Helvetica').text(
+        `Page ${i + 1} of ${totalPages}   ·   Saksham-AI Vulnerability Advisory   ·   Confidential Audit`,
+        leftMargin,
+        doc.page.height - 20,
+        { align: 'center', width: contentWidth, lineBreak: false }
+      );
+
+      doc.page.margins.bottom = originalBottom;
+    }
 
     doc.end();
     stream.on('finish', resolve);

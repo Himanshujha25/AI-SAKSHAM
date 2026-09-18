@@ -284,7 +284,12 @@ const downloadPdf = asyncHandler(async (req, res) => {
 
   const { generateSingleFindingPdf } = require('../services/reportService');
   const { fileName, fileUrl } = await generateSingleFindingPdf({ project, finding });
-  res.json({ fileName, fileUrl });
+  const path = require('path');
+  const filePath = path.join(__dirname, '..', '..', 'uploads', 'reports', fileName);
+  if (req.query?.format === 'json') {
+    return res.json({ fileName, fileUrl });
+  }
+  return res.download(filePath, fileName);
 });
 
 module.exports = { list, get, update, verify, aiAnalysis, getKillChainMap, retest, downloadPdf };

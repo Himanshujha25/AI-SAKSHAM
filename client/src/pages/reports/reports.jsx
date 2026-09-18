@@ -283,6 +283,18 @@ export function Reports() {
     }
   };
 
+  const handleViewReport = async (item) => {
+    try {
+      const res = await api.get(`/reports/${item._id}/download`, { responseType: 'blob' });
+      const mimeType = item.format === 'HTML' ? 'text/html' : item.format === 'JSON' ? 'application/json' : 'application/pdf';
+      const blob = new Blob([res.data], { type: mimeType });
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    } catch (err) {
+      console.error('View report failed:', err);
+    }
+  };
+
   const handleCopyReportLink = (url) => {
     if (!url) return;
     navigator.clipboard.writeText(url);
@@ -430,19 +442,19 @@ export function Reports() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-2xl border border-cyan-500/30 bg-gradient-to-r from-blue-950/40 via-cyan-950/30 to-[#070d1e] p-5 shadow-2xl backdrop-blur-xl"
+          className="relative overflow-hidden rounded-2xl border border-blue-200/80 dark:border-cyan-500/30 bg-gradient-to-r from-blue-50/90 via-sky-50/60 to-slate-50/90 dark:from-blue-950/40 dark:via-cyan-950/30 dark:to-[#070d1e] p-5 shadow-sm dark:shadow-2xl backdrop-blur-xl"
         >
-          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
+          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-blue-400/10 dark:bg-cyan-500/10 blur-3xl pointer-events-none" />
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="space-y-1.5 max-w-2xl">
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-md border border-cyan-500/40 bg-cyan-500/15 px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-cyan-700 dark:text-cyan-300">
-                  <Sparkles size={11} className="text-cyan-400 animate-pulse" />
+                <span className="inline-flex items-center gap-1.5 rounded-md border border-blue-200 dark:border-cyan-500/40 bg-blue-100/60 dark:bg-cyan-500/15 px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-blue-700 dark:text-cyan-300">
+                  <Sparkles size={11} className="text-blue-600 dark:text-cyan-400 animate-pulse" />
                   Quick-Start Guide · 0 Reports Generated Yet
                 </span>
-                <span className="text-[11px] font-mono text-slate-400">Step 1 of 3</span>
+                <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">Step 1 of 3</span>
               </div>
-              <h3 className="text-base font-extrabold tracking-tight text-[#0f1f3d] dark:text-white">
+              <h3 className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
                 How to Generate Your First Security Audit Dossier
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
@@ -459,7 +471,7 @@ export function Reports() {
                     const studioEl = document.getElementById('report-generation-studio');
                     if (studioEl) studioEl.scrollIntoView({ behavior: 'smooth' });
                   }}
-                  className="flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 font-mono text-xs font-bold uppercase tracking-wider shadow-lg shadow-blue-500/20 transition"
+                  className="flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-4 py-2.5 font-mono text-xs font-bold uppercase tracking-wider shadow-md shadow-blue-500/20 transition cursor-pointer"
                 >
                   <Sparkles size={14} />
                   <span>Configure & Generate First Report</span>
@@ -468,7 +480,7 @@ export function Reports() {
               ) : (
                 <Link
                   to="/assessments"
-                  className="flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 font-mono text-xs font-bold uppercase tracking-wider shadow-lg shadow-blue-500/20 transition"
+                  className="flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-4 py-2.5 font-mono text-xs font-bold uppercase tracking-wider shadow-md shadow-blue-500/20 transition cursor-pointer"
                 >
                   <Plus size={14} />
                   <span>Run First Assessment Scan</span>
@@ -479,14 +491,14 @@ export function Reports() {
           </div>
 
           {/* 3 Steps Visual Flow */}
-          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3 border-t border-slate-200/50 dark:border-white/10 pt-4">
-            <div className="flex items-start gap-3 rounded-xl bg-white/50 dark:bg-white/[0.03] p-3 border border-slate-200 dark:border-white/5">
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-500/20 text-blue-600 dark:text-cyan-300 font-mono text-xs font-bold">
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3 border-t border-slate-200/80 dark:border-white/10 pt-4">
+            <div className="flex items-start gap-3 rounded-xl bg-white/80 dark:bg-white/[0.04] p-3 border border-slate-200 dark:border-white/10 shadow-xs">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-cyan-300 font-mono text-xs font-bold border border-blue-200 dark:border-blue-500/30">
                 1
               </div>
               <div className="text-xs">
-                <strong className="block font-bold text-[#0f1f3d] dark:text-white">1. Select Scope</strong>
-                <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                <strong className="block font-bold text-slate-900 dark:text-white">1. Select Scope</strong>
+                <span className="text-[11px] text-slate-600 dark:text-slate-400">
                   {assessments.data?.assessments?.length > 0
                     ? `Found ${assessments.data.assessments.length} assessment(s) ready in your scope.`
                     : 'Run a fast scan on any API or web endpoint first.'}
@@ -494,25 +506,25 @@ export function Reports() {
               </div>
             </div>
 
-            <div className="flex items-start gap-3 rounded-xl bg-white/50 dark:bg-white/[0.03] p-3 border border-slate-200 dark:border-white/5">
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 font-mono text-xs font-bold">
+            <div className="flex items-start gap-3 rounded-xl bg-white/80 dark:bg-white/[0.04] p-3 border border-slate-200 dark:border-white/10 shadow-xs">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-mono text-xs font-bold border border-emerald-200 dark:border-emerald-500/30">
                 2
               </div>
               <div className="text-xs">
-                <strong className="block font-bold text-[#0f1f3d] dark:text-white">2. Choose Archetype</strong>
-                <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                <strong className="block font-bold text-slate-900 dark:text-white">2. Choose Archetype</strong>
+                <span className="text-[11px] text-slate-600 dark:text-slate-400">
                   Technical (dev PoCs), Executive (CISO metrics), Remediation, or Compliance.
                 </span>
               </div>
             </div>
 
-            <div className="flex items-start gap-3 rounded-xl bg-white/50 dark:bg-white/[0.03] p-3 border border-slate-200 dark:border-white/5">
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-purple-500/20 text-purple-600 dark:text-purple-300 font-mono text-xs font-bold">
+            <div className="flex items-start gap-3 rounded-xl bg-white/80 dark:bg-white/[0.04] p-3 border border-slate-200 dark:border-white/10 shadow-xs">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 font-mono text-xs font-bold border border-purple-200 dark:border-purple-500/30">
                 3
               </div>
               <div className="text-xs">
-                <strong className="block font-bold text-[#0f1f3d] dark:text-white">3. Synthesize & Export</strong>
-                <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                <strong className="block font-bold text-slate-900 dark:text-white">3. Synthesize & Export</strong>
+                <span className="text-[11px] text-slate-600 dark:text-slate-400">
                   Pick PDF, HTML, or JSON. AI writes the conclusion with zero hallucination.
                 </span>
               </div>
@@ -1164,26 +1176,26 @@ export function Reports() {
                 {/* Modal Actions */}
                 <div className="flex items-center gap-2">
                   {previewReport.fileUrl && (
-                    <a
-                      href={previewReport.fileUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center gap-1.5 rounded-lg border border-blue-200 dark:border-cyan-500/30 bg-blue-50 dark:bg-cyan-500/10 px-2.5 py-1 text-xs font-mono font-bold text-blue-600 dark:text-cyan-300 hover:bg-blue-50 dark:bg-cyan-500/20 transition"
+                    <button
+                      type="button"
+                      onClick={() => handleViewReport(previewReport)}
+                      className="flex items-center gap-1.5 rounded-lg border border-blue-200 dark:border-cyan-500/30 bg-blue-50 dark:bg-cyan-500/10 px-2.5 py-1 text-xs font-mono font-bold text-blue-600 dark:text-cyan-300 hover:bg-blue-100 dark:hover:bg-cyan-500/20 transition cursor-pointer"
                     >
                       <ExternalLink size={13} />
                       <span>Full View</span>
-                    </a>
+                    </button>
                   )}
 
                   {previewReport.fileUrl && (
-                    <a
-                      href={previewReport.fileUrl}
-                      download
-                      className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white/60 backdrop-blur-xl dark:bg-white/[0.08] px-2.5 py-1 text-xs font-mono font-bold text-[#0f1f3d] dark:text-white hover:bg-white/85 dark:hover:bg-white/15 transition"
+                    <button
+                      type="button"
+                      disabled={downloadingId === previewReport._id}
+                      onClick={() => handleDownloadReport(previewReport)}
+                      className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white/60 backdrop-blur-xl dark:bg-white/[0.08] px-2.5 py-1 text-xs font-mono font-bold text-[#0f1f3d] dark:text-white hover:bg-white/85 dark:hover:bg-white/15 transition cursor-pointer disabled:opacity-50"
                     >
-                      <Download size={13} />
+                      {downloadingId === previewReport._id ? <Loader2 size={13} className="animate-spin text-blue-600 dark:text-cyan-400" /> : <Download size={13} />}
                       <span>Download</span>
-                    </a>
+                    </button>
                   )}
 
                   <button

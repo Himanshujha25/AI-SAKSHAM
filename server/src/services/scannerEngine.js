@@ -427,9 +427,15 @@ async function scanTarget(targetUrl, customHeadersString = '', profile = 'Standa
       clearTimeout(timeoutId);
       let text = '';
       try { text = (await r.text()).slice(0, 8000); } catch (e) { /* ignore */ }
-      return { status: r.status, text };
+      const respHeaders = {};
+      if (r.headers?.forEach) {
+        r.headers.forEach((v, k) => { respHeaders[k.toLowerCase()] = v; });
+      } else if (r.headers) {
+        Object.keys(r.headers).forEach((k) => { respHeaders[k.toLowerCase()] = r.headers[k]; });
+      }
+      return { status: r.status, text, headers: respHeaders };
     } catch (e) {
-      return { status: null, text: '', error: e.message };
+      return { status: null, text: '', headers: {}, error: e.message };
     }
   }
 
@@ -512,9 +518,16 @@ async function scanTarget(targetUrl, customHeadersString = '', profile = 'Standa
   }
 
   // 3C. Unauthenticated API Probe (Bypassing Auth on Protected Route)
-  if (reqHeaders.Authorization || reqHeaders.authorization || reqHeaders['X-API-Key'] || reqHeaders['x-api-key']) {
+  const authHeader = reqHeaders.Authorization || reqHeaders.authorization || reqHeaders['X-API-Key'] || reqHeaders['x-api-key'];
+  const isPlaceholderToken = !authHeader || /<[^>]+>|paste_.*_here|your_token_here|dummy/i.test(String(authHeader));
+
+  if (authHeader && !isPlaceholderToken) {
     const unauthProbe = await probeGet(normalizedUrl, false);
-    if (unauthProbe.status === 200) {
+    const contentType = (unauthProbe.headers && unauthProbe.headers['content-type']) || '';
+    const isHtmlLanding = contentType.includes('text/html') || /^\s*<!DOCTYPE/i.test(unauthProbe.text || '') || /<html/i.test(unauthProbe.text || '');
+
+    // Only flag if it returned 200 AND is NOT a public HTML web landing page (must be an API endpoint returning data)
+    if (unauthProbe.status === 200 && !isHtmlLanding) {
       findings.push({
         title: 'Broken Authentication: API Endpoint Accessible Without Credentials',
         category: 'Broken Authentication',
