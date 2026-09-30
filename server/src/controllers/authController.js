@@ -140,9 +140,12 @@ const google = asyncHandler(async (req, res) => {
     const details = (e && e.message) || '';
     console.error('[auth/google] verification failed:', details);
     if (/redirect_uri_mismatch/i.test(details)) {
-      return res.status(401).json({ message: 'Google origin not allowed — add this site URL to Authorized JavaScript origins in Google Cloud Console' });
+      return res.status(401).json({ message: 'Google origin not allowed — add this site URL to Authorized JavaScript origins and Redirect URIs in Google Cloud Console' });
     }
-    return res.status(401).json({ message: 'Invalid Google credential' });
+    if (/invalid_grant/i.test(details)) {
+      return res.status(401).json({ message: 'Google auth code expired or client ID mismatch — ensure Vercel and Render use the exact same GOOGLE_CLIENT_ID and redeploy Vercel' });
+    }
+    return res.status(401).json({ message: details ? `Google verification failed: ${details}` : 'Invalid Google credential' });
   }
 
   if (!payload || !payload.email || payload.email_verified !== true) {
