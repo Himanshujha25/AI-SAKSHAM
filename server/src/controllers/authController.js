@@ -41,12 +41,20 @@ const demoLogin = asyncHandler(async (req, res) => {
 
   let user = await User.findOne({ email: roleConfig.email });
   if (!user) {
-    user = await User.create({
-      name: roleConfig.name,
-      email: roleConfig.email,
-      password: 'DemoPassword123!',
-      role: targetRole,
-    });
+    try {
+      user = await User.create({
+        name: roleConfig.name,
+        email: roleConfig.email,
+        password: 'DemoPassword123!',
+        role: targetRole,
+      });
+    } catch (err) {
+      if (err.code === 11000) {
+        user = await User.findOne({ email: roleConfig.email });
+      } else {
+        throw err;
+      }
+    }
   } else if (user.role !== targetRole) {
     user.role = targetRole;
     await user.save();

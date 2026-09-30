@@ -22,6 +22,7 @@ const chatRoutes = require('./routes/chatRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 
 const app = express();
+app.set('trust proxy', 1);
 app.set('io', null);
 
 app.use(helmet());

@@ -9,10 +9,16 @@ const authLimiter = rateLimit({
   message: { message: 'Too many authentication attempts from this IP, please try again after 15 minutes.' },
 });
 
+const demoLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { message: 'Too many demo login attempts, please try again after 15 minutes.' },
+});
+
 const router = express.Router();
 router.post('/register', authLimiter, c.register);
 router.post('/login', authLimiter, c.login);
-router.post('/demo-login', authLimiter, c.demoLogin);
+router.post('/demo-login', demoLimiter, c.demoLogin);
 router.post('/google', authLimiter, c.google);
 router.get('/me', protect, c.me);
 router.patch('/me', protect, c.updateMe);
