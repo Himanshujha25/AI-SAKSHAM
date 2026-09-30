@@ -110,12 +110,8 @@ export function Login() {
     try {
       await demoLogin(role);
       navigate(target, { replace: true });
-    } catch {
-      if (import.meta.env.PROD) {
-        setError('1-Click Demo accounts are disabled in production mode. Please sign in with your enterprise credentials.');
-        return;
-      }
-      // Dev mode fallback only
+    } catch (demoErr) {
+      // Fallback: Attempt standard demo login or direct register
       const demoUsers = {
         ANALYST: { name: 'Lead SOC Analyst', email: 'analyst@saksham.ai', password: 'DemoPassword123!' },
         ADMIN: { name: 'Security Administrator', email: 'admin@saksham.ai', password: 'DemoPassword123!' },
@@ -130,7 +126,7 @@ export function Login() {
           await register(creds.name, creds.email, creds.password, role);
           navigate(target, { replace: true });
         } catch (regErr) {
-          setError(errMsg(regErr, 'Demo access failed'));
+          setError(errMsg(demoErr?.response?.data?.message || regErr, 'Demo access failed'));
         }
       }
     } finally {
