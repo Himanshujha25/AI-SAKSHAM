@@ -56,6 +56,19 @@ app.get('/health', (req, res) => res.json({
   time: new Date().toISOString()
 }));
 
+// Route fallback: if frontend calls without /api/v1 prefix (e.g. /auth/google, /auth/login),
+// rewrite path to /api/v1 so all existing routes and rate limiters match seamlessly.
+app.use((req, res, next) => {
+  if (
+    !req.url.startsWith('/api/v1') &&
+    !req.url.startsWith('/uploads') &&
+    req.path !== '/health'
+  ) {
+    req.url = '/api/v1' + req.url;
+  }
+  next();
+});
+
 const apiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 500 });
 app.use('/api/v1', apiLimiter);
 
@@ -71,7 +84,7 @@ app.use('/api/v1', (req, res, next) => {
   next();
 });
 
-app.use('/api/v1/auth', authRoutes);
+app.use(['/api/v1/auth', '/auth'], authRoutes);
 app.use('/api/v1/chat', chatRoutes); // before targetRoutes: its global protect would 401 guest chat
 app.use('/api/v1/projects', projectRoutes);
 app.use('/api/v1', targetRoutes); // nested /projects/:projectId/targets + /targets/:id

@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+const rawBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1').trim().replace(/\/+$/, '');
+const normalizedBase = rawBase.endsWith('/api/v1') ? rawBase : `${rawBase}/api/v1`;
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1',
+  baseURL: normalizedBase,
   timeout: 60000, // 60s timeout for live LLM providers & scans
 });
 
